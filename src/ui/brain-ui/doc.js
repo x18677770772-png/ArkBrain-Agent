@@ -141,7 +141,8 @@ async function loadTopic(topicId) {
   if (content) content.innerHTML = '<div class="dp-loading">加载中...</div>'
 
   const doc = await fetchDoc(topicId)
-  if (doc) renderDoc(doc)
+  // 连点 Tab 时慢响应回写：仅当仍是当前目标 topic 才渲染，避免覆盖新选中文档
+  if (doc && topicId === currentTopicId) renderDoc(doc)
 }
 
 // ── 状态上报 ─────────────────────────────────────────────────────────────────

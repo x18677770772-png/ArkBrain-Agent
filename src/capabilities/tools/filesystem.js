@@ -105,6 +105,25 @@ function assertExpectedSha(tool, filePath, displayPath, currentContent, expected
   return ''
 }
 
+// Buffering an unbounded file in the Electron main process (sync read +
+// lineStarts scan + sha256) can stall or OOM the agent. Refuse oversized text
+// files before any of that work happens.
+const MAX_TEXT_FILE_BYTES = 16 * 1024 * 1024
+
+function assertTextFileSize(tool, displayPath, filePath) {
+  const stat = fs.statSync(filePath)
+  if (stat.size > MAX_TEXT_FILE_BYTES) {
+    return fileError(
+      tool,
+      displayPath,
+      'FILE_TOO_LARGE',
+      `file is ${stat.size} bytes; refusing to load more than ${MAX_TEXT_FILE_BYTES} bytes into memory. Read a smaller window via shell streaming (head/tail) or split the file.`,
+      { bytes: stat.size, max_bytes: MAX_TEXT_FILE_BYTES },
+    )
+  }
+  return ''
+}
+
 function lineStarts(content) {
   const starts = [0]
   const re = /\r\n|\n|\r/g
@@ -149,6 +168,8 @@ export async function execReadFile(args, context = {}) {
   const filePath = normalizeSandboxPath(rawPath)
   const resolved = path.resolve(SANDBOX_ROOT, filePath)
   assertInSandbox(resolved)
+  const sizeError = assertTextFileSize('read_file', filePath, resolved)
+  if (sizeError) return sizeError
   const content = fs.readFileSync(resolved, 'utf-8')
   const hasRange = args.start_line !== undefined || args.end_line !== undefined || args.max_lines !== undefined
   const includeMetadata = args.include_metadata === true
@@ -215,6 +236,10 @@ export async function execWriteFile(args, context = {}) {
   if (!rawPath) return '错误：未提供文件路径'
   if (content === undefined) return '错误：未提供写入内容'
   const filePath = normalizeSandboxPath(rawPath)
+  const contentBytes = Buffer.byteLength(String(content), 'utf8')
+  if (contentBytes > MAX_TEXT_FILE_BYTES) {
+    return fileError('write_file', filePath, 'FILE_TOO_LARGE', `content is ${contentBytes} bytes; refusing to write more than ${MAX_TEXT_FILE_BYTES} bytes in one call`, { bytes: contentBytes, max_bytes: MAX_TEXT_FILE_BYTES })
+  }
   if (PROTECTED_FILES.has(path.basename(filePath).toLowerCase())) {
     return `错误：${path.basename(filePath)} 是系统文件，不可修改`
   }
@@ -235,7 +260,15 @@ export async function execWriteFile(args, context = {}) {
   if (ifExists === 'error' && existed) {
     return fileError('write_file', filePath, 'FILE_EXISTS', 'the file already exists; use edit_file to modify it or set if_exists="overwrite" explicitly')
   }
-  const previousContent = existed ? fs.readFileSync(writeTarget, 'utf8') : ''
+  // Only buffer the previous content when expected_sha256 actually needs it,
+  // and refuse to pull an unbounded file into memory just for that check.
+  const normalizedSha = normalizedExpectedSha(args.expected_sha256)
+  let previousContent = ''
+  if (existed && typeof normalizedSha === 'string' && normalizedSha !== '') {
+    const prevSizeError = assertTextFileSize('write_file', filePath, writeTarget)
+    if (prevSizeError) return prevSizeError
+    previousContent = fs.readFileSync(writeTarget, 'utf8')
+  }
   const expectedError = assertExpectedSha('write_file', writeTarget, filePath, previousContent, args.expected_sha256)
   if (expectedError) return expectedError
 
@@ -297,6 +330,8 @@ export async function execEditFile(args, context = {}) {
   if (!fs.statSync(writeTarget).isFile()) {
     return fileError('edit_file', filePath, 'NOT_A_FILE', 'the path is not a regular file')
   }
+  const beforeSizeError = assertTextFileSize('edit_file', filePath, writeTarget)
+  if (beforeSizeError) return beforeSizeError
 
   const before = readUtf8Strict(writeTarget)
   if (before === null) {
@@ -379,6 +414,8 @@ export async function execEditFile(args, context = {}) {
 
   // Re-check immediately before committing to narrow the window for concurrent
   // writers even when the caller did not provide an explicit expected hash.
+  const latestSizeError = assertTextFileSize('edit_file', filePath, writeTarget)
+  if (latestSizeError) return latestSizeError
   const latest = fs.readFileSync(writeTarget, 'utf8')
   if (sha256(latest) !== beforeSha) {
     return fileError('edit_file', filePath, 'CONTENT_CHANGED', 'the file changed while the edit was being prepared; read it again and retry', {

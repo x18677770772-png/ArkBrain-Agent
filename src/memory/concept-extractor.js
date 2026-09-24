@@ -1,44 +1,10 @@
-// 停用词表与 injector.js 保持一致
-const STOP_WORDS = new Set([
-  '的', '了', '是', '在', '我', '你', '他', '她', '它', '我们', '你们', '他们', '这', '那', '有', '没有',
-  '和', '与', '把', '被', '因为', '所以', '如果', '一个', '一些', '什么', '怎么', '为什么',
-  '帮我', '请', '好的', '明白', '告诉', '让', '做', '去', '来', '把', '说', '给',
-])
+import { extractKeywords } from './keywords.js'
 
-// 与 injector.js extractKeywords 相同逻辑，返回词频 Map（供相关性计算使用）
+// 复用 keywords.js 的 extractKeywords（同一清洗 + isValidNgram），避免本地拷贝再次漏掉
+// ASCII 标点清洗 / 纯符号 n-gram 过滤。
 function extractKeywordSet(text, maxKeywords = 20) {
   if (!text) return new Set()
-
-  const cleaned = text
-    .replace(/[，。！？、；："""'''【】[\]()（）\d]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-
-  const freq = new Map()
-  const bump = (word) => {
-    if (!word || word.length < 2 || STOP_WORDS.has(word)) return
-    freq.set(word, (freq.get(word) || 0) + 1)
-  }
-
-  const chinese = cleaned.replace(/[a-zA-Z]+/g, ' ')
-  for (let i = 0; i < chinese.length - 1; i++) {
-    for (let len = 2; len <= 4 && i + len <= chinese.length; len++) {
-      bump(chinese.slice(i, i + len).trim())
-    }
-  }
-
-  const english = text.match(/[a-zA-Z]{3,}/g) || []
-  for (const word of english) {
-    const normalized = word.toLowerCase()
-    if (!STOP_WORDS.has(normalized)) bump(word)
-  }
-
-  return new Set(
-    [...freq.entries()]
-      .sort((a, b) => (b[0].length - a[0].length) || (b[1] - a[1]))
-      .slice(0, maxKeywords)
-      .map(([word]) => word)
-  )
+  return new Set(extractKeywords(text, maxKeywords))
 }
 
 // 相关性过滤：候选概念与原始 query 主题词之间必须有字面关联

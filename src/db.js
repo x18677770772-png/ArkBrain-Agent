@@ -302,6 +302,14 @@ export function hideMemoryByMemId(memId, { mergedInto = null, hiddenAt = null } 
 // 因为它们要看到隐藏行（避免 UNIQUE 冲突，且 merge 工具自己要能取 drops 的当前状态）。
 const VISIBLE_CLAUSE = 'visibility = 1'
 
+// 记忆时间戳统一成 UTC ISO（...Z）：写入方混用 nowTimestamp()（本地 +08:00）与
+// new Date().toISOString()（Z）时，ORDER BY timestamp 字典序会错序。
+// 非法/空值回退到当前时刻。
+function normalizeMemoryTimestamp(value) {
+  const d = value ? new Date(value) : new Date()
+  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString()
+}
+
 // 候选实体：fact/person 记忆数 ≥3 的 entity ID，按出现次数倒序
 // 只统计 visible 行（否则已经被合并隐藏的记忆还会反复让同一 entity 被挑出来）
 export function getCandidateEntitiesForConsolidation(limit = 10) {
@@ -367,12 +375,15 @@ function resolveParentRef(parentRef) {
   if (!type || !identifier) return null
 
   // person / object：identifier 是 entity ID，精确匹配根节点
+  // （json_each 等值，避免 ID:000001 子串误命中 ID:0000012）
   if (['person', 'object'].includes(type)) {
     const row = db.prepare(`
       SELECT id FROM memories
-      WHERE event_type = ? AND entities LIKE ? AND parent_id IS NULL
-      ORDER BY timestamp DESC LIMIT 1
-    `).get(type, `%${identifier}%`)
+      WHERE event_type = ?
+      AND EXISTS (SELECT 1 FROM json_each(CASE WHEN json_valid(memories.entities) THEN memories.entities ELSE '[]' END) je WHERE je.value = ?)
+      AND parent_id IS NULL
+      ORDER BY strftime('%s', timestamp) DESC LIMIT 1
+    `).get(type, identifier)
     return row ? row.id : null
   }
 
@@ -382,14 +393,14 @@ function resolveParentRef(parentRef) {
       SELECT m.id FROM memories m
       JOIN memories_fts ON memories_fts.rowid = m.id
       WHERE m.event_type = ? AND memories_fts MATCH ?
-      ORDER BY m.timestamp DESC LIMIT 1
+      ORDER BY strftime('%s', m.timestamp) DESC LIMIT 1
     `).get(type, identifier)
     return row ? row.id : null
   } catch {
     const row = db.prepare(`
       SELECT id FROM memories
       WHERE event_type = ? AND content LIKE ?
-      ORDER BY timestamp DESC LIMIT 1
+      ORDER BY strftime('%s', timestamp) DESC LIMIT 1
     `).get(type, `%${identifier}%`)
     return row ? row.id : null
   }
@@ -426,6 +437,7 @@ export function insertMemory(memory) {
   normalizedMemory.links = normalizeMemoryLinks(normalizedMemory.links)
 
   const m = normalizedMemory
+  m.timestamp = normalizeMemoryTimestamp(m.timestamp)
 
   if (!m.parent_ref && !isCanonicalRootMemory(m)) {
     const primaryEntity = choosePrimaryIdentityEntity(m)
@@ -455,7 +467,7 @@ export function insertMemory(memory) {
         JSON.stringify(m.entities || []),
         JSON.stringify(m.tags || []),
         JSON.stringify(m.links || []),
-        m.timestamp || new Date().toISOString(),
+        m.timestamp,
         existing.id
       )
       console.log(`[DB] 更新记忆节点：${m.mem_id}`)
@@ -470,9 +482,11 @@ export function insertMemory(memory) {
     if (firstEntity) {
       const existing = db.prepare(`
         SELECT id FROM memories
-        WHERE event_type = ? AND entities LIKE ? AND parent_id IS NULL AND ${VISIBLE_CLAUSE}
+        WHERE event_type = ?
+        AND EXISTS (SELECT 1 FROM json_each(CASE WHEN json_valid(memories.entities) THEN memories.entities ELSE '[]' END) je WHERE je.value = ?)
+        AND parent_id IS NULL AND ${VISIBLE_CLAUSE}
         LIMIT 1
-      `).get(m.event_type, `%${firstEntity}%`)
+      `).get(m.event_type, firstEntity)
       if (existing) {
         db.prepare(`
           UPDATE memories SET content = ?, detail = ?, title = ?, entities = ?, concepts = ?, tags = ?, links = ?, timestamp = ?
@@ -485,7 +499,7 @@ export function insertMemory(memory) {
           JSON.stringify(m.concepts || []),
           JSON.stringify(m.tags || []),
           JSON.stringify(m.links || []),
-          m.timestamp || new Date().toISOString(),
+          m.timestamp,
           existing.id
         )
         console.log(`[DB] 更新根节点：${m.event_type} ${firstEntity}`)
@@ -508,7 +522,7 @@ export function insertMemory(memory) {
       WHERE event_type = 'knowledge'
       AND tags LIKE ?
       AND ${VISIBLE_CLAUSE}
-      ORDER BY timestamp DESC LIMIT 1
+      ORDER BY strftime('%s', timestamp) DESC LIMIT 1
     `).get(`%tool:${toolName}%`)
     if (existing) {
       db.prepare(`
@@ -519,7 +533,7 @@ export function insertMemory(memory) {
         JSON.stringify(m.concepts || []),
         JSON.stringify(m.tags || []),
         JSON.stringify(m.links || []),
-        m.timestamp || new Date().toISOString(),
+        m.timestamp,
         existing.id
       )
       console.log(`[DB] 更新工具记忆：${toolName}`)
@@ -530,13 +544,17 @@ export function insertMemory(memory) {
   // 普通记忆去重：同类型且 content 前40字相同则跳过
   // 只看 visible：之前被合并隐藏的同义内容，让 LLM 重新插入为新记忆——
   // 隐藏 ≈ "概念上不再 load-bearing"，如果用户重新提起就该出现，下一轮 consolidator 自然合并
-  const contentPrefix = (m.content || '').slice(0, 40)
-  const dup = db.prepare(`
-    SELECT id FROM memories WHERE event_type = ? AND content LIKE ? AND ${VISIBLE_CLAUSE} LIMIT 1
-  `).get(m.event_type, `${contentPrefix}%`)
-  if (dup) {
-    console.log(`[DB] 跳过重复记忆：${contentPrefix}…`)
-    return null
+  // 长度门槛 + ESCAPE：空前缀会 LIKE '%' 误杀同类型全部行；内容里的 %/_ 需转义。
+  const contentPrefix = (m.content || '').trim().slice(0, 40)
+  if (contentPrefix.length >= 10) {
+    const escPrefix = contentPrefix.replace(/[\\%_]/g, c => `\\${c}`)
+    const dup = db.prepare(`
+      SELECT id FROM memories WHERE event_type = ? AND content LIKE ? ESCAPE '\\' AND ${VISIBLE_CLAUSE} LIMIT 1
+    `).get(m.event_type, `${escPrefix}%`)
+    if (dup) {
+      console.log(`[DB] 跳过重复记忆：${contentPrefix}…`)
+      return null
+    }
   }
 
   // URL 去重：同 URL 当天已有记录则跳过（同样只看 visible）
@@ -566,7 +584,7 @@ export function insertMemory(memory) {
     tags:       JSON.stringify(m.tags || []),
     links:      JSON.stringify(m.links || []),
     source_ref: m.source_ref || null,
-    timestamp:  m.timestamp || new Date().toISOString(),
+    timestamp:  m.timestamp,
     parent_id:  parentId,
   })
 }
@@ -629,7 +647,7 @@ export function upsertMemoryByMemId(memory) {
     }
 
     sets.push('timestamp = @timestamp')
-    params.timestamp = m.timestamp || new Date().toISOString()
+    params.timestamp = normalizeMemoryTimestamp(m.timestamp)
 
     db.prepare(`UPDATE memories SET ${sets.join(', ')} WHERE id = @id`).run(params)
     console.log(`[DB] PATCH 记忆：${m.mem_id}`)
@@ -655,7 +673,7 @@ export function upsertMemoryByMemId(memory) {
     tags:       JSON.stringify(m.tags || []),
     links:      JSON.stringify(m.links || []),
     source_ref: m.source_ref || null,
-    timestamp:  m.timestamp || new Date().toISOString(),
+    timestamp:  normalizeMemoryTimestamp(m.timestamp),
     salience:   clampSalience(m.salience),
     parent_id:  parentId,
   })
@@ -701,7 +719,7 @@ export function searchMemoriesByKeywords(keywords, { limitPerKeyword = 5, typeFi
 export function getRecentMemories(limit = 10) {
   const db = getDB()
   return db.prepare(`
-    SELECT * FROM memories ORDER BY timestamp DESC LIMIT ?
+    SELECT * FROM memories ORDER BY strftime('%s', timestamp) DESC LIMIT ?
   `).all(limit)
 }
 
@@ -732,7 +750,7 @@ export function getMemoriesByDateRange(from, to, {
   types = null,
   minSalience = null,
   limit = 8,
-  orderBy = 'COALESCE(salience, 3) DESC, timestamp ASC',
+  orderBy = `COALESCE(salience, 3) DESC, strftime('%s', timestamp) ASC`,
 } = {}) {
   const db = getDB()
   const conditions = [
@@ -791,7 +809,7 @@ export function getOpinionsByTarget(entityId, limit = 5) {
     WHERE event_type = 'opinion_expressed'
     AND tags LIKE ?
     AND ${VISIBLE_CLAUSE}
-    ORDER BY timestamp DESC
+    ORDER BY strftime('%s', timestamp) DESC
     LIMIT ?
   `).all(`%target:${entityId}%`, limit)
 }
@@ -804,7 +822,7 @@ export function getImpressiveBySource(entityId, limit = 5) {
     WHERE event_type = 'impressive_statement'
     AND tags LIKE ?
     AND ${VISIBLE_CLAUSE}
-    ORDER BY timestamp DESC
+    ORDER BY strftime('%s', timestamp) DESC
     LIMIT ?
   `).all(`%from:${entityId}%`, limit)
 }
@@ -1086,7 +1104,7 @@ export function getActiveConstraints() {
     SELECT * FROM memories
     WHERE event_type = 'behavioral_constraint'
     AND ${VISIBLE_CLAUSE}
-    ORDER BY timestamp DESC
+    ORDER BY strftime('%s', timestamp) DESC
   `).all()
 
   // 同维度去重，保留最新（rows 已按 timestamp DESC 排序）
@@ -1108,7 +1126,7 @@ export function getTaskKnowledge(limit = 30) {
     SELECT * FROM memories
     WHERE event_type = 'task_knowledge'
     AND ${VISIBLE_CLAUSE}
-    ORDER BY timestamp DESC
+    ORDER BY strftime('%s', timestamp) DESC
     LIMIT ?
   `).all(limit)
 }
@@ -1121,7 +1139,7 @@ export function getToolMemories(limit = 20) {
     WHERE event_type = 'knowledge'
     AND tags LIKE '%kind:tool_usage%'
     AND ${VISIBLE_CLAUSE}
-    ORDER BY timestamp DESC
+    ORDER BY strftime('%s', timestamp) DESC
     LIMIT ?
   `).all(limit)
 }
@@ -1134,12 +1152,12 @@ export function getPersonMemory(entityId) {
   return db.prepare(`
     SELECT * FROM memories
     WHERE event_type IN ('person', 'object')
-    AND entities LIKE ?
+    AND EXISTS (SELECT 1 FROM json_each(CASE WHEN json_valid(memories.entities) THEN memories.entities ELSE '[]' END) je WHERE je.value = ?)
     AND parent_id IS NULL
     AND ${VISIBLE_CLAUSE}
-    ORDER BY CASE WHEN mem_id = ? THEN 0 ELSE 1 END, timestamp DESC
+    ORDER BY CASE WHEN mem_id = ? THEN 0 ELSE 1 END, strftime('%s', timestamp) DESC
     LIMIT 1
-  `).get(`%${normalizedId}%`, rootMemId || '')
+  `).get(normalizedId, rootMemId || '')
 }
 
 // 获取某实体相关的所有记忆（非根节点本身，按时间倒序）
@@ -1147,18 +1165,29 @@ export function getMemoriesByEntity(entityId, limit = 10) {
   const db = getDB()
   const normalizedId = normalizeMemoryEntity(entityId)
   const root = getPersonMemory(normalizedId)
+  // links LIKE 只在有 root.mem_id 时拼入：root 缺失时参数会变成 '%%'，
+  // SQLite 里 '[]' LIKE '%%' / '' LIKE '%%' 为真，OR-links 会命中全表。
+  const entityMatch = `EXISTS (SELECT 1 FROM json_each(CASE WHEN json_valid(memories.entities) THEN memories.entities ELSE '[]' END) je WHERE je.value = ?)`
+  const conds = [entityMatch]
+  const params = [normalizedId]
+  if (root?.id != null) {
+    conds.push(`parent_id = ?`)
+    params.push(root.id)
+  }
+  if (root?.mem_id) {
+    conds.push(`links LIKE ?`)
+    params.push(`%${root.mem_id}%`)
+  }
+  params.push(root?.id ?? -1) // id != ?
+  params.push(limit)
   return db.prepare(`
     SELECT * FROM memories
-    WHERE (
-      entities LIKE ?
-      OR parent_id = ?
-      OR links LIKE ?
-    )
+    WHERE (${conds.join(' OR ')})
     AND id != ?
     AND ${VISIBLE_CLAUSE}
-    ORDER BY COALESCE(salience, 3) DESC, timestamp DESC
+    ORDER BY COALESCE(salience, 3) DESC, strftime('%s', timestamp) DESC
     LIMIT ?
-  `).all(`%${normalizedId}%`, root?.id || -1, `%${root?.mem_id || ''}%`, root?.id || -1, limit)
+  `).all(...params)
 }
 
 // 获取与某实体的近期对话记录（最近 limit 条，不超过 maxHours 小时）
@@ -1262,7 +1291,7 @@ export function getRecentConversation(entityId, limit = 20, maxHours = 24, { inc
     const rows = db.prepare(`
       SELECT ${CONVERSATION_COLUMNS} FROM conversations
       WHERE (from_id = ? OR to_id = ?)
-      AND timestamp >= ?
+      AND strftime('%s', timestamp) >= strftime('%s', ?)
       ORDER BY timestamp DESC, id DESC
       LIMIT ?
     `).all(normalizedId, normalizedId, cutoff, safeLimit)
@@ -1273,10 +1302,11 @@ export function getRecentConversation(entityId, limit = 20, maxHours = 24, { inc
   // 写端（markConversationsAbsorbed）已无人调用；读端也不再按 focus_absorbed 过滤——
   // 历史上被时间区间误标记的行不该永久隐藏（误丢的代价是失忆，不可恢复）。
   // "主线深化时不看子线索原文"由读时选择（thread_id + buildThreadView）天然完成。
+  // timestamp 比较用 strftime：cutoff 是 '...Z'，行可能是 nowTimestamp() 的 '+08:00'。
   const rows = db.prepare(`
     SELECT ${CONVERSATION_COLUMNS} FROM conversations
     WHERE (from_id = ? OR to_id = ?)
-    AND timestamp >= ?
+    AND strftime('%s', timestamp) >= strftime('%s', ?)
     ORDER BY timestamp DESC, id DESC
     LIMIT ?
   `).all(normalizedId, normalizedId, cutoff, safeLimit)
@@ -1292,7 +1322,7 @@ export function getRecentConversationTimeline(limit = 20, maxHours = 24, { inclu
   if (includeAbsorbed) {
     const rows = db.prepare(`
       SELECT ${CONVERSATION_COLUMNS} FROM conversations
-      WHERE timestamp >= ?
+      WHERE strftime('%s', timestamp) >= strftime('%s', ?)
       AND channel <> 'RESOURCE'
       ORDER BY timestamp DESC, id DESC
       LIMIT ?
@@ -1301,9 +1331,10 @@ export function getRecentConversationTimeline(limit = 20, maxHours = 24, { inclu
   }
 
   // absorbed 棘轮退役（同 getRecentConversation 的说明）：不再按 focus_absorbed 过滤。
+  // cutoff 用 strftime 比较，避免 'Z' vs '+08:00' 字典序误判（见 markConversationsAbsorbed）。
   const rows = db.prepare(`
     SELECT ${CONVERSATION_COLUMNS} FROM conversations
-    WHERE timestamp >= ?
+    WHERE strftime('%s', timestamp) >= strftime('%s', ?)
     AND channel <> 'RESOURCE'
     ORDER BY timestamp DESC, id DESC
     LIMIT ?
@@ -1345,10 +1376,10 @@ export function getRecentConversationPartners(maxHours = 24, limit = 20) {
   const rows = db.prepare(`
     SELECT party, MAX(timestamp) AS last_ts FROM (
       SELECT from_id AS party, timestamp FROM conversations
-        WHERE timestamp >= ? AND from_id IS NOT NULL AND from_id <> 'jarvis'
+        WHERE strftime('%s', timestamp) >= strftime('%s', ?) AND from_id IS NOT NULL AND from_id <> 'jarvis'
       UNION ALL
       SELECT to_id AS party, timestamp FROM conversations
-        WHERE timestamp >= ? AND to_id   IS NOT NULL AND to_id   <> 'jarvis'
+        WHERE strftime('%s', timestamp) >= strftime('%s', ?) AND to_id   IS NOT NULL AND to_id   <> 'jarvis'
     )
     WHERE party IS NOT NULL AND party <> ''
     GROUP BY party
@@ -1432,7 +1463,7 @@ export function searchMemories(keyword, limit = 10) {
       OR entities LIKE ? OR concepts LIKE ? OR tags LIKE ?
     )
     AND ${VISIBLE_CLAUSE}
-    ORDER BY COALESCE(salience, 3) DESC, timestamp DESC
+    ORDER BY COALESCE(salience, 3) DESC, strftime('%s', timestamp) DESC
     LIMIT ?
   `).all(`%${kw}%`, `%${kw}%`, `%${kw}%`, `%${kw}%`, `%${kw}%`, `%${kw}%`, `%${kw}%`, limit)
 
@@ -1446,7 +1477,7 @@ export function searchMemories(keyword, limit = 10) {
       SELECT m.*, bm25(memories_fts) AS _ftsScore FROM memories m
       JOIN memories_fts ON memories_fts.rowid = m.id
       WHERE memories_fts MATCH ? AND m.${VISIBLE_CLAUSE}
-      ORDER BY bm25(memories_fts), m.timestamp DESC
+      ORDER BY bm25(memories_fts), strftime('%s', m.timestamp) DESC
       LIMIT ?
     `).all(kw, limit)
     if (hits.length > 0) return hits

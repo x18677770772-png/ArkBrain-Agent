@@ -104,21 +104,32 @@ export function setFxEnabledForVoice(voiceId, on) {
 
 // ── 付费解锁（基于时间的一次性密码）────────────────────────────────────────
 // 密码＝20 位数字，格式：秒RR 分RR 时RR 日RR 月RR
-//   （UTC 的秒/分/时/日/月 各 2 位，每个后面紧跟 2 位随机 RR）。
-// 校验：取偶数段还原时间，与设备当前时间比，≤1 小时才解锁（永久）。
-// 注意：纯客户端校验，是付费门槛/君子协议，非强加密保护。
-// 生成器只在 scripts/gen-fx-password.mjs（作者专用），此处仅校验，不生成。
+//   （UTC 的秒/分/时/日/月 各 2 位，每个后面紧跟 2 位 RR 校验位）。
+// 校验：① RR 位必须等于时间分量按固定规则推导的校验值（拒绝随手拼的 20 位数字）；
+//       ② 取时间段还原时间，与设备当前时间比，≤1 小时才解锁（永久）。
+// 注意：纯客户端校验，是付费门槛/君子协议，非强加密保护——读过本文件即可自行构造。
+// 生成器在 scripts/gen-fx-password.mjs，其 RR 规则必须与本处 fxExpectedRR 保持一致。
 const UNLOCK_KEY = 'bailongma.ttsfx.unlocked'
 const PW_WINDOW_MS = 60 * 60 * 1000  // 1 小时有效窗口
+const FX_RR_SEED = 7                  // RR 校验种子（客户端混淆值，非保密密钥）
 
-// 解码密码 → 返回它代表的时间与当前时间的最小绝对差(ms)；格式非法返回 null
+// 由时间分量推导第 i 段（0-based）的 RR 两位校验值；与 gen-fx-password.mjs 同算法
+function fxExpectedRR(ss, mi, hh, dd, MM, i) {
+  const v = (ss * 3 + mi * 5 + hh * 7 + dd * 11 + MM * 13 + (i + 1) * FX_RR_SEED) % 100
+  return String(v).padStart(2, '0')
+}
+
+// 解码密码 → 返回它代表的时间与当前时间的最小绝对差(ms)；格式/校验位非法返回 null
 function decodeFxPasswordDiff(password) {
   const s = String(password || '').replace(/\D/g, '')
   if (s.length !== 20) return null
-  // 秒RR分RR时RR日RR月RR：真实分量在每 4 位的前 2 位
+  // 秒RR分RR时RR日RR月RR：真实分量在每 4 位的前 2 位，后 2 位为 RR 校验位
   const ss = +s.slice(0, 2), mi = +s.slice(4, 6), hh = +s.slice(8, 10)
   const dd = +s.slice(12, 14), MM = +s.slice(16, 18)
   if (ss > 59 || mi > 59 || hh > 23 || dd < 1 || dd > 31 || MM < 1 || MM > 12) return null
+  const expectedRR = [0, 1, 2, 3, 4].map(i => fxExpectedRR(ss, mi, hh, dd, MM, i)).join('')
+  const actualRR = s.slice(2, 4) + s.slice(6, 8) + s.slice(10, 12) + s.slice(14, 16) + s.slice(18, 20)
+  if (actualRR !== expectedRR) return null
   const now = Date.now()
   const y = new Date(now).getUTCFullYear()
   let best = Infinity
@@ -136,7 +147,7 @@ export function isFxUnlocked() {
 
 export function tryUnlockFx(password) {
   const diff = decodeFxPasswordDiff(password)
-  if (diff == null) return { ok: false, reason: '密码格式不正确' }
+  if (diff == null) return { ok: false, reason: '密码格式不正确（RR 校验位不匹配或结构非法）' }
   if (diff > PW_WINDOW_MS) return { ok: false, reason: '密码已过期（超过 1 小时），请重新向作者索取' }
   try { localStorage.setItem(UNLOCK_KEY, '1') } catch { /* ignore */ }
   return { ok: true }

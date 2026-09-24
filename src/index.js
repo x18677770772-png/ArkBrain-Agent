@@ -1722,6 +1722,8 @@ const consciousnessLoop = createConsciousnessLoop({
   enqueueDueReminders,
   hasMessages,
   popMessage,
+  requeueMessage,
+  maxMessageRetries: MAX_MESSAGE_RETRIES,
   hasUserMessages,
   getQueueSnapshot,
   formatTick,

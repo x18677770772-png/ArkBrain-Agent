@@ -44,7 +44,8 @@ export function setTyphoonMode(visible, { source = 'brain-ui' } = {}) {
     cancelBackgroundRelease()
     setHotspotMode(false, { source: 'typhoon_open' })
     setWorldcupMode(false, { source: 'typhoon_open' })
-    for (const mode of ['video-mode', 'image-mode', 'music-mode']) document.body.classList.remove(mode)
+    // 真正关停媒体（停音轨/摄像头并派发事件），而非只删 body class
+    window.bailongmaMedia?.closeAllMediaModes?.()
     if (frame) frame.src = FRAME_SRC
     moveVoicePanel($('chat-area'), { prepend: true })
     document.body.classList.add('typhoon-mode')

@@ -26,7 +26,16 @@ function safeImageSrc(rawUrl) {
   if (!url) return "";
   if (/^https?:/i.test(url)) return url;
   if (/^data:image\//i.test(url)) return url;
-  if (url.startsWith("/")) return url;
+  if (url.startsWith("/")) {
+    // Same-origin media needs ?token= when LAN gate is on (img cannot set headers).
+    try {
+      const token = globalThis.localStorage?.getItem("bailongma-api-token")?.trim();
+      if (token && !url.includes("token=")) {
+        return `${url}${url.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
+      }
+    } catch {}
+    return url;
+  }
   return "";
 }
 

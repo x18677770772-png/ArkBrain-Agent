@@ -874,6 +874,29 @@ export function resolveActionContractForTurn(message = '', {
   return requiredTools.length > 0 ? { ...contract, requiredTools } : null
 }
 
+// 模型把最终答复塞进 edit_file(new_text=…) 当说话：file_write 已满足后这类调用必然
+// TEXT_NOT_FOUND / 空 old_text，浪费一轮工具并让用户误以为任务失败。编排侧在执行前拦下。
+function looksLikeConversationalReply(text) {
+  const s = String(text || '').trim()
+  if (s.length < 8 || s.length > 500) return false
+  if (s.includes('```')) return false
+  if (s.includes('\n')) return false
+  if (/(写好了|读回来了|完成了|搞定了|文件已|已经创建|已经写入|成功)/.test(s)) return true
+  return /[。！？!?]\s*$/.test(s)
+}
+
+export function isEditFileAsSpeak(toolName, args = {}, { contract = null, actionContractSatisfied = false } = {}) {
+  if (toolName !== 'edit_file') return false
+  if (contract?.id === 'file_edit') return false
+  if (contract?.id !== 'file_write' && !actionContractSatisfied) return false
+  const operation = String(args?.operation || 'replace')
+  if (operation !== 'replace') return false
+  const oldText = String(args?.old_text ?? '')
+  const newText = String(args?.new_text ?? '')
+  if (!oldText.trim()) return true
+  return looksLikeConversationalReply(newText)
+}
+
 export function actionContractToolCallIssue(contract, toolName, args = {}, options = {}) {
   if (contract?.id === 'file_edit' && toolName === 'edit_file') {
     const successful = options?.successfulToolNames instanceof Set

@@ -6,6 +6,12 @@ export function initializeSchema(db) {
   try {
     knowledgeFtsNeedsRebuild = !db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'knowledge_chunks_fts'`).get()
   } catch {}
+  // memories_fts 同理：仅在首次创建或 tokenizer 迁移 DROP 后需要全量 rebuild；
+  // 触发器在建表后保持同步，避免每次启动 O(all memories) 重建。
+  let memoriesFtsNeedsRebuild = false
+  try {
+    memoriesFtsNeedsRebuild = !db.prepare(`SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'memories_fts'`).get()
+  } catch {}
   // 迁移：添加 parent_id 字段（已存在时跳过）
   try { db.exec(`ALTER TABLE memories ADD COLUMN parent_id INTEGER REFERENCES memories(id)`) } catch {}
   try { db.exec(`CREATE INDEX IF NOT EXISTS idx_memories_parent_id ON memories(parent_id)`) } catch {}
@@ -54,6 +60,7 @@ export function initializeSchema(db) {
       || !/\bmem_id\b/i.test(ftsSql)
     )
     if (needsFtsRebuild) {
+      memoriesFtsNeedsRebuild = true
       const memCountBefore = (() => { try { return db.prepare('SELECT COUNT(*) AS c FROM memories').get().c } catch { return -1 } })()
       console.log(`[DB migration] Upgrading memories_fts: trigram + title/mem_id searchable columns. memories rows=${memCountBefore}. memories table itself is NOT touched.`)
       db.exec(`
@@ -730,6 +737,13 @@ export function initializeSchema(db) {
     db.exec(`INSERT INTO knowledge_chunks_fts(knowledge_chunks_fts) VALUES('rebuild')`)
   }
 
-  // 重建 FTS 索引（覆盖已有数据，确保历史记忆也被索引）
-  db.exec(`INSERT INTO memories_fts(memories_fts) VALUES('rebuild')`)
+  // 重建 FTS 索引：仅在首次创建 / tokenizer 迁移 DROP 后执行（对齐 knowledge_chunks_fts）。
+  // 触发器已在建表时同步增量写入；失败时降级为搜索缺索引，不阻断 DB 初始化。
+  if (memoriesFtsNeedsRebuild) {
+    try {
+      db.exec(`INSERT INTO memories_fts(memories_fts) VALUES('rebuild')`)
+    } catch (err) {
+      console.warn('[DB] memories_fts rebuild failed:', err.message)
+    }
+  }
 }

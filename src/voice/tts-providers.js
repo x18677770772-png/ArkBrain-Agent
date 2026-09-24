@@ -97,7 +97,34 @@ export const TTS_PROVIDER_REQUIREMENTS = {
   },
 }
 
-// 合成前预检：当前 provider 是否选对、必填凭证是否配齐。
+// 已知失效的上游泄露 key：预检直接拒绝，避免无意义的网络 401（不硬编码新密钥，仅黑名单拒载）
+const KNOWN_INVALID_TTS_KEYS = new Set([
+  '0f9a6c2b-8d91-4f2b-92b0-531c357b24da',
+])
+
+// 会话级凭证熔断：某 provider 首次 401/403 后缓存 guide，后续 validateTTSConfig 直接返回、不再打上游。
+const credentialInvalidByProvider = new Map()
+
+export function markTTSCredentialInvalid(provider, guide = '') {
+  if (!provider) return
+  const req = TTS_PROVIDER_REQUIREMENTS[provider]
+  credentialInvalidByProvider.set(
+    provider,
+    guide || `服务商（${req?.label || provider}）的凭证可能无效或已过期。请在「语音设置 → 语音合成」重新填写后再试。`,
+  )
+}
+
+export function clearTTSCredentialInvalid(provider) {
+  if (provider) credentialInvalidByProvider.delete(provider)
+  else credentialInvalidByProvider.clear()
+}
+
+function isCredentialTTSError(err) {
+  const msg = String(err?.message || '')
+  return /\b(401|403)\b/.test(msg) || /unauthor|invalid.*(key|token)|api[ _-]?key/i.test(msg)
+}
+
+// 合成前预检：当前 provider 是否选对、必填凭证是否配齐、是否命中失效 key / 会话熔断。
 // 返回 { ok:true } 或 { ok:false, provider, missing?, guide }——guide 是给用户看的可执行提示。
 export function validateTTSConfig(creds = {}) {
   const provider = creds.provider
@@ -114,6 +141,21 @@ export function validateTTSConfig(creds = {}) {
     .map(group => group.label)
   if (missing.length) {
     return { ok: false, provider, missing, guide: `${req.label} 还没配置好：缺少 ${missing.join('、')}。${req.guide}` }
+  }
+  const brokenGuide = credentialInvalidByProvider.get(provider)
+  if (brokenGuide) {
+    return { ok: false, provider, credentialInvalid: true, guide: brokenGuide }
+  }
+  const hasKnownInvalidKey = req.groups.some(group =>
+    group.keys.some(k => KNOWN_INVALID_TTS_KEYS.has(String(creds[k] || '').trim())))
+  if (hasKnownInvalidKey) {
+    markTTSCredentialInvalid(provider, `${req.label} 当前配置的 API Key 已失效。${req.guide}`)
+    return {
+      ok: false,
+      provider,
+      credentialInvalid: true,
+      guide: credentialInvalidByProvider.get(provider),
+    }
   }
   return { ok: true, provider }
 }
@@ -359,24 +401,30 @@ async function streamVolcano({ text, voiceId = 'BV001_streaming', appId, token }
 // ── 通用入口 ────────────────────────────────────────────────────────────────
 export async function streamTTS({ text, provider, voiceId, keys = {} }) {
   if (!text?.trim()) throw new Error('TTS: 文本为空')
-  switch (provider) {
-    case 'doubao':
-      return streamDoubao({
-        text,
-        voiceId,
-        apiKey: keys.doubaoKey,
-        resourceId: keys.doubaoResourceId,
-        speechRate: keys.doubaoSpeechRate,
-      })
-    case 'minimax':
-      return streamMiniMax({ text, voiceId, apiKey: keys.minimaxKey })
-    case 'openai':
-      return streamOpenAI({ text, voiceId, apiKey: keys.openaiKey, baseURL: keys.openaiBaseURL })
-    case 'elevenlabs':
-      return streamElevenLabs({ text, voiceId, apiKey: keys.elevenLabsKey })
-    case 'volcano':
-      return streamVolcano({ text, voiceId, appId: keys.volcanoAppId, token: keys.volcanoToken })
-    default:
-      throw new Error(`未知 TTS 服务商: ${provider}，请在设置中选择一个 TTS 服务商`)
+  try {
+    switch (provider) {
+      case 'doubao':
+        return await streamDoubao({
+          text,
+          voiceId,
+          apiKey: keys.doubaoKey,
+          resourceId: keys.doubaoResourceId,
+          speechRate: keys.doubaoSpeechRate,
+        })
+      case 'minimax':
+        return await streamMiniMax({ text, voiceId, apiKey: keys.minimaxKey })
+      case 'openai':
+        return await streamOpenAI({ text, voiceId, apiKey: keys.openaiKey, baseURL: keys.openaiBaseURL })
+      case 'elevenlabs':
+        return await streamElevenLabs({ text, voiceId, apiKey: keys.elevenLabsKey })
+      case 'volcano':
+        return await streamVolcano({ text, voiceId, appId: keys.volcanoAppId, token: keys.volcanoToken })
+      default:
+        throw new Error(`未知 TTS 服务商: ${provider}，请在设置中选择一个 TTS 服务商`)
+    }
+  } catch (err) {
+    // 首次 401/403 即会话熔断：execSpeak 与 /tts/stream 的 validateTTSConfig 预检随后直接短路
+    if (isCredentialTTSError(err)) markTTSCredentialInvalid(provider)
+    throw err
   }
 }

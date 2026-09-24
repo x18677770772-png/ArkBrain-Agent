@@ -122,7 +122,11 @@ export function scoreSection(text, refKeywords) {
 //   meta  —— { referenceFrame(截断), refKeywords, enoughSignal, gated }
 export function selectContextSections(args = {}, { referenceFrame = '', enabled = true } = {}) {
   const refKeywords = enabled ? extractKeywords(referenceFrame || '', REF_MAX_KEYWORDS) : []
-  const enoughSignal = refKeywords.length >= REF_MIN_KEYWORDS
+  // enoughSignal 只认「有效词」（长度≥2 且含字母/汉字）：纯标点/符号 n-gram 不算信号，
+  // 避免脏参照系把 enforce 段（known-others）错误 drop。
+  const validRefKeywords = refKeywords.filter(kw =>
+    String(kw || '').length >= 2 && /[\p{L}\p{N}]/u.test(String(kw)))
+  const enoughSignal = validRefKeywords.length >= REF_MIN_KEYWORDS
   const gated = enabled && enoughSignal
 
   const out = { ...args }

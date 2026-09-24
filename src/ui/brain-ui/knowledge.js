@@ -3,6 +3,7 @@ import { t } from './i18n/index.js'
 
 let active = false
 let state = { regionId: '', query: '', documentId: '' }
+let searchSeq = 0
 const $ = (id) => document.getElementById(id)
 
 function request(path) {
@@ -132,6 +133,8 @@ async function refreshDocuments() {
 }
 
 async function search() {
+  // 每次搜索自增序号：慢响应回来时若已不是最新一次，则丢弃，避免旧结果覆盖新查询
+  const seq = ++searchSeq
   const query = text($('kc-search-input')?.value || state.query)
   state.query = query
   if (!query) { renderResults([]); report('brain-ui'); return }
@@ -140,9 +143,11 @@ async function search() {
     const params = new URLSearchParams({ q: query, limit: '12' })
     if (state.regionId) params.set('region_id', state.regionId)
     const data = await request(`/knowledge/search?${params}`)
+    if (seq !== searchSeq) return
     renderResults(data.hits || [])
     setStatus(t('knowledge.found', { count: data.count || 0 }))
   } catch (err) {
+    if (seq !== searchSeq) return
     empty($('kc-result-list'), err.message)
     setStatus(t('knowledge.searchFailed'))
   }

@@ -36,24 +36,27 @@ export function cancelBackfill() {
 // force=true：全量重算所有可见记忆的 embedding（用于切换嵌入模型后，把旧维度向量刷成新维度）。
 // force=false（默认）：只补 embedding IS NULL 的存量记忆。
 export async function runBackfill({ batchSize = 20, throttleMs = 100, force = false, signal, onProgress } = {}) {
-  // 防并发：已在跑就直接返回
+  // 防并发：已在跑就直接返回。
+  // 必须在任何 await 之前同步置位，否则两个并发调用都能通过 guard（TOCTOU）。
   if (state.running) {
     return { skipped: true, reason: 'already running' }
   }
+  state.running = true
 
-  // 配置自检：未配置 embedding 直接跳过
+  // 配置自检：未配置 embedding 直接跳过（清掉上面提前置的 running）
   let isEmbeddingConfigured
   try {
     ;({ isEmbeddingConfigured } = await import('../embedding.js'))
   } catch (err) {
+    state.running = false
     return { error: `import embedding module failed: ${err.message}` }
   }
   if (!isEmbeddingConfigured()) {
+    state.running = false
     return { skipped: true, reason: 'embedding not configured' }
   }
 
-  // 标记 running 并重置统计
-  state.running = true
+  // 重置统计（running 已在 guard 后置位）
   state.total = 0
   state.processed = 0
   state.failed = 0
@@ -79,8 +82,10 @@ export async function runBackfill({ batchSize = 20, throttleMs = 100, force = fa
       // 隐藏意味着这条不再参与召回，连 embedding 都不必算。
       // force：重算全部可见记忆（含已有 embedding 的，用于切模型后刷新维度）；否则只补 NULL。
       const nullClause = force ? '' : 'embedding IS NULL AND '
+      // mem_id IS NOT NULL：updateMemoryEmbedding 按 mem_id 更新，NULL 行写不进去；
+      // 跳过它们避免「processed++ 但向量从未落库」以及每次白跑 embedding API。
       rows = db.prepare(
-        `SELECT id, mem_id, title, content FROM memories WHERE ${nullClause}content IS NOT NULL AND TRIM(content) != '' AND visibility = 1`
+        `SELECT id, mem_id, title, content FROM memories WHERE ${nullClause}mem_id IS NOT NULL AND content IS NOT NULL AND TRIM(content) != '' AND visibility = 1`
       ).all()
     } catch (err) {
       state.lastError = err.message

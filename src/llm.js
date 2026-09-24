@@ -29,15 +29,16 @@ import {
   browserScreenshotDeliveryMatches,
   browserScreenshotPathFromEvidence,
   containsUnsupportedCompletionClaim,
+  isEditFileAsSpeak,
   verifiedActionContractReply,
 } from './runtime/action-contract.js'
 
 // 单轮流式调用的「空闲超时」：从开始到第一个 token、以及每两个 token 之间，
 // 若超过这个时长没有任何增量到达，判定为 provider 连接卡死（连接开着却不吐字节）。
 // 每收到一个 chunk 就重置，所以正常的长流式生成不受影响，只掐真正的停摆。
-// 必须显著小于 index.js 的 RUN_TURN_WATCHDOG_MS(180s)，且留够 streamOnceWithRetry 重试的余量
-// （最坏 3 次 × 该值 + 退避 仍要 < 180s）。
-const STREAM_IDLE_TIMEOUT_MS = 45_000
+// 必须显著小于 index.js 的 RUN_TURN_WATCHDOG_MS(600s)，且留够 streamOnceWithRetry 重试的余量
+// （最坏 3 次 × 该值 + 退避 仍要 < 600s）。75s 覆盖 Ark plan 工具回填后的长思考间隙。
+const STREAM_IDLE_TIMEOUT_MS = 75_000
 
 // find_tool 命中后，把它返回的 loaded 工具 schema 原地追加进本轮 toolSchemas。
 // 已在列表里的跳过；schema 取不到的跳过。数组原地 mutate —— 调用方传的是 callLLM 的 toolSchemas
@@ -242,9 +243,24 @@ async function streamOnce({ messages, toolSchemas, temperature, topP, maxTokens,
     if (idleFired && !signal?.aborted) {
       flushTextStream()
       if (streamStarted) onStream?.({ event: 'end' })
+      // Mirror the AbortError path: when tokens already arrived, return the
+      // partial text instead of throwing. streamOnceWithRetry refuses to retry
+      // once content has been emitted (hadContent), so a throw here would make
+      // the partial answer unrecoverable — callLLM only salvages prior rounds.
+      if (hasPartialOutput(partial)) {
+        return {
+          content: sanitizeAssistantReplyForDelivery(partial.content || ''),
+          reasoningContent: partial.reasoningContent,
+          // Never execute arguments from a stalled/truncated stream.
+          toolCalls: [],
+          outputItems: partial.outputItems || [],
+          aborted: false,
+          incomplete: true,
+        }
+      }
       const e = new Error(`stream idle timeout after ${STREAM_IDLE_TIMEOUT_MS / 1000}s`)
       e.code = 'ETIMEDOUT'
-      e.hadContent = hasPartialOutput(partial)
+      e.hadContent = false
       throw e
     }
     if (err.name === 'AbortError' || signal?.aborted) {
@@ -261,6 +277,18 @@ async function streamOnce({ messages, toolSchemas, temperature, topP, maxTokens,
     err.hadContent = hasPartialOutput(partial)
     flushTextStream()
     if (streamStarted) onStream?.({ event: 'end' })
+    // 已流出正文的中断/网络错：salvage partial 作为本轮结果（incomplete 会停工具轮），
+    // 避免冒到 handleLLMFailure 整消息 requeue 重放副作用工具。
+    if (err.hadContent && String(partial.content || partial.reasoningContent || '').trim()) {
+      return {
+        content: sanitizeAssistantReplyForDelivery(partial.content || ''),
+        reasoningContent: partial.reasoningContent,
+        toolCalls: [],
+        outputItems: [],
+        aborted: false,
+        incomplete: true,
+      }
+    }
     throw err
   } finally {
     cleanupIdle()
@@ -287,7 +315,21 @@ async function streamOnce({ messages, toolSchemas, temperature, topP, maxTokens,
   flushTextStream()
   if (streamStarted) onStream?.({ event: 'end' })
   const streamError = responseStreamError(parsed)
-  if (streamError && (parsed.terminalType !== 'response.incomplete' || !parsed.content.trim())) throw streamError
+  if (streamError && (parsed.terminalType !== 'response.incomplete' || !parsed.content.trim())) {
+    // 丢 terminal / failed 但已有正文：salvage partial，禁止整消息 requeue 重放已执行工具。
+    if (streamError.hadContent && String(parsed.content || parsed.reasoningContent || '').trim()) {
+      console.warn(`[LLM] Responses stream error with partial content, salvaging instead of requeue: ${streamError.code || streamError.message}`)
+      return {
+        content: sanitizeAssistantReplyForDelivery(parsed.content || ''),
+        reasoningContent: parsed.reasoningContent,
+        toolCalls: [],
+        outputItems: [],
+        incomplete: true,
+        aborted: false,
+      }
+    }
+    throw streamError
+  }
   if (parsed.usage.totalTokens > 0) {
     recordUsage(parsed.usage.totalTokens)
     const promptTotal = parsed.usage.inputTokens
@@ -313,14 +355,18 @@ export const __internals = {
   buildLLMRequestParams,
 }
 
-// 判断是否为瞬时错误（5xx / 网络抖动 / 超时），429 交给外层 setRateLimited
-function isTransientError(err) {
+// 判断是否为瞬时错误（5xx / 网络抖动 / 超时 / 丢 terminal 且无正文），429 交给外层 setRateLimited
+// Exported for unit tests covering ERESPONSESTREAM / partial-salvage paths.
+export function isTransientError(err) {
   const status = err.status ?? err.response?.status
   if (status && status >= 500 && status < 600) return true
   if (status === 408) return true
   const code = err.code || err.cause?.code
+  // Responses 流缺 terminal event：无已流出正文时允许 800/2500ms inner retry，避免整消息 requeue
+  if (code === 'ERESPONSESTREAM' && !err.hadContent) return true
   if (code && ['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND', 'EPIPE'].includes(code)) return true
   const msg = err.message || ''
+  if (!err.hadContent && /stream ended without a terminal response event/i.test(msg)) return true
   return /timeout|timed out|socket hang up|fetch failed|network error|upstream/i.test(msg)
 }
 
@@ -847,6 +893,11 @@ function isMediaCloser(content) {
 }
 
 function getToolLoopStopReason(state, name, fingerprint) {
+  // Hard cap: totalCalls is not only a parallel-batch size — sequential calls
+  // and each new round must stop once maxTotalCalls has been reached.
+  if (state.totalCalls >= TOOL_LOOP_LIMITS.maxTotalCalls) {
+    return `tool call budget exhausted (${TOOL_LOOP_LIMITS.maxTotalCalls})`
+  }
   const isReportChannel = REPORT_CHANNEL_TOOLS.has(name)
   if (!isReportChannel && state.consecutiveFailures >= TOOL_LOOP_LIMITS.maxConsecutiveFailures) {
     return `too many consecutive tool failures (${TOOL_LOOP_LIMITS.maxConsecutiveFailures})`
@@ -1404,6 +1455,21 @@ export async function callLLM({ systemPrompt, message, messages: inputMessages =
         // （比如换 read_file 查日志、search_memory 找历史经验）。同指纹反复失败仍由 sameFailureCounts
         // 拦截，跨工具死循环仍由 recentFingerprints 的 unique threshold 拦截——安全网未失效。
         toolLoopState.consecutiveFailures = 0
+      } else if (isEditFileAsSpeak(tc.name, normalizedArgs, {
+        contract: actionContract,
+        actionContractSatisfied,
+      })) {
+        // 设计内拒绝（不是执行器故障）：回传结构化 guide 让模型改用正文收尾，且不累加连续失败熔断。
+        actionScopeSuppressed = true
+        result = JSON.stringify({
+          ok: false,
+          tool: tc.name,
+          skipped: 'edit_file_as_speak',
+          reason: '用普通文本回复，不要用 edit_file 当说话。old_text/new_text 必须是文件里真实存在的片段；最终答复请直接输出文本（或 send_message）收尾。',
+        })
+        recordToolLoopOutcome(toolLoopState, tc.name, fingerprint, result)
+        toolLoopState.consecutiveFailures = 0
+        console.log(`[action contract] blocked edit_file used as speak for ${actionContract?.id || 'unknown'}`)
       } else if (actionSequenceIssue) {
         actionScopeSuppressed = true
         result = JSON.stringify({

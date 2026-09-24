@@ -10,6 +10,7 @@ import {
   DEFAULT_TTS_PROVIDER,
   normalizeDoubaoSpeechRate,
 } from './voice/tts-defaults.js'
+import { clearTTSCredentialInvalid } from './voice/tts-providers.js'
 import { buildResponsesRequest } from './llm-responses.js'
 
 export const DEEPSEEK_PROVIDER = 'deepseek'
@@ -1888,6 +1889,8 @@ export function setTTSConfig(updates) {
     else delete next[key]
   }
   writeStoredConfig({ ...existing, tts: next })
+  // 凭证变更后解除会话级 401/403 熔断，允许用新 key 立即重试
+  clearTTSCredentialInvalid()
 }
 
 // ── Embedding config ──────────────────────────────────────────────────────────

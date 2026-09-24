@@ -10,6 +10,8 @@ export function createConsciousnessLoop({
   enqueueDueReminders,
   hasMessages,
   popMessage,
+  requeueMessage,
+  maxMessageRetries = 3,
   hasUserMessages,
   getQueueSnapshot,
   formatTick,
@@ -89,11 +91,13 @@ export function createConsciousnessLoop({
     lastTickAborted = false
     let autoTick = false
     let tickerRevisionAtStart = null
+    let popped = null
 
     try {
       enqueueDueReminders()
       if (hasMessages()) {
-        const msg = popMessage()
+        popped = popMessage()
+        const msg = popped
         const lane = msg.runtimeLane === 'l3'
           ? 'L3'
           : (msg.queueName === 'background' ? 'BG' : 'L1')
@@ -112,6 +116,37 @@ export function createConsciousnessLoop({
       // 否则会冒泡到 setTimeout 回调外层，绕过 scheduleNextTick → 主循环停摆。
       if (err?.name === 'WatchdogTimeoutError') {
         lastTickAborted = true
+        // Message was already popped before runTurn hung — put it back so the
+        // user turn is not silently dropped. Orphan runTurn aborts do not requeue.
+        // L3 recovery stays solely on AbortError → scheduleReminderRunRetry in
+        // index.js (matches handleLLMFailure L3 special-case); requeue here
+        // would double-run the scheduled task.
+        const shouldRequeue = popped
+          && popped.runtimeLane !== 'l3'
+          && typeof requeueMessage === 'function'
+        if (shouldRequeue) {
+          const nextRetry = (popped.retryCount || 0) + 1
+          if (nextRetry <= maxMessageRetries) {
+            console.log(`[system] Message requeued after watchdog timeout (retry ${nextRetry}/${maxMessageRetries})`)
+            try {
+              emitEvent('message_requeued', {
+                fromId: popped.fromId,
+                retryCount: nextRetry,
+                error: 'runTurn watchdog timeout',
+              })
+            } catch {}
+            requeueMessage(popped, nextRetry)
+          } else {
+            console.error(`[system] Message dropped after ${maxMessageRetries} retries (watchdog): ${popped.raw?.slice?.(0, 60) ?? ''}`)
+            try {
+              emitEvent('message_dropped', {
+                fromId: popped.fromId,
+                retryCount: Math.max(0, nextRetry - 1),
+                reason: 'runTurn watchdog timeout',
+              })
+            } catch {}
+          }
+        }
       } else {
         // A failed autonomous turn did not consume a meaningful heartbeat.
         // Preserve cadence/awakening state so the next Tick can retry or make
@@ -121,6 +156,7 @@ export function createConsciousnessLoop({
       }
     } finally {
       processing = false
+      popped = null
       // Cadence TTL and awakening state describe autonomous heartbeats, not
       // user/background messages that happen to share this scheduler entry.
       // A cadence created during this Tick starts governing the *next* Tick;

@@ -44,6 +44,8 @@ function hasInvalidDuplicate(word) {
 
 function isValidNgram(word) {
   if (!word || word.length < 2 || STOP_WORDS.has(word)) return false
+  // 至少含一个字母/汉字：禁止纯数字或纯符号 n-gram 进入召回与 section-gate 打分
+  if (!/[\p{L}]/u.test(word)) return false
   for (const ch of word) {
     if (STOP_CHARS.has(ch)) return false
   }
@@ -62,8 +64,10 @@ function lengthWeight(len) {
 
 function extractCore(text) {
   if (!text) return { freq: new Map(), rawNgrams: [] }
+  // 只保留字母/数字/汉字：全角与 ASCII 标点（: " { } + - …）一律变空格，避免切出
+  // '": ' / ': -' 之类的垃圾 n-gram 挤占 top-N 并污染 context_section_gate。
   const cleaned = text
-    .replace(/[，。！？、；：”””’’’【】[\]()（）\d]/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 
@@ -80,7 +84,8 @@ function extractCore(text) {
     freq.set(word, (freq.get(word) || 0) + 1)
   }
 
-  const chinese = cleaned.replace(/[a-zA-Z]+/g, ' ')
+  // 数字不参与中文 n-gram（与旧行为一致：\d 已被剥离出主题词材料）
+  const chinese = cleaned.replace(/[a-zA-Z\d]+/g, ' ')
   for (let i = 0; i < chinese.length - 1; i++) {
     for (let len = 2; len <= 4 && i + len <= chinese.length; len++) {
       bumpChinese(chinese.slice(i, i + len).trim())

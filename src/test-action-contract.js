@@ -22,6 +22,7 @@ try {
     collectVerifiedWebResearchSources,
     filterMemoriesForActionContract,
     inferWebResearchSourceCount,
+    isEditFileAsSpeak,
     resolveActionContractForTurn,
     verifiedActionContractReply,
   } = await import('./runtime/action-contract.js')
@@ -33,6 +34,22 @@ try {
   const writeContract = classifyActionContract('帮我在 sandbox 里创建一个 hello.txt 文件')
   assert.equal(writeContract?.id, 'file_write')
   assert.deepEqual(writeContract.requiredTools, ['write_file'])
+  // 编排侧 guard：write 已满足后，模型不得把最终答复塞进 edit_file 当说话
+  assert.equal(isEditFileAsSpeak('edit_file', {
+    path: 'sandbox/hello.txt',
+    new_text: '写好了，也读回来了，sandbox/hello.txt 里就是 hi。',
+  }, { contract: writeContract, actionContractSatisfied: true }), true,
+    'conversational new_text under file_write is edit_file_as_speak')
+  assert.equal(isEditFileAsSpeak('edit_file', {
+    path: 'sandbox/hello.txt',
+  }, { contract: writeContract, actionContractSatisfied: true }), true,
+    'missing old_text under file_write is edit_file_as_speak')
+  assert.equal(isEditFileAsSpeak('edit_file', {
+    path: 'sandbox/hello.txt',
+    old_text: 'hello',
+    new_text: 'hello world\nsecond line',
+  }, { contract: writeContract, actionContractSatisfied: true }), false,
+    'real old_text/new_text edit is allowed under file_write')
   const editContract = classifyActionContract('帮我修改 src/app.js 文件里的一个函数')
   assert.equal(editContract?.id, 'file_edit')
   assert.deepEqual(editContract.requiredTools, ['read_file', 'edit_file'])

@@ -60,6 +60,15 @@ function makeKind(name) {
         let childEl
         if (!prevRec) {
           childEl = ctx.renderChild(child, i)            // 新增 → enter
+        } else if (prevRec.surface.kind !== child.kind) {
+          // kind 变了：旧结构无法 morph，整卡替换（与 shell.js 顶层 kind 变更语义一致）
+          const fresh = ctx.renderChild(child, i)
+          if (fresh) {
+            prevRec.el.replaceWith(fresh)
+            childEl = fresh
+          } else {
+            childEl = prevRec.el
+          }
         } else {
           childEl = prevRec.el
           if (JSON.stringify(prevRec.data) !== JSON.stringify(child.data)) {

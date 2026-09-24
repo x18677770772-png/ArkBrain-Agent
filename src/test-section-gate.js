@@ -110,6 +110,26 @@ function auditFor(result, section) {
   }
 }
 
+// —— ASCII 标点/JSON 噪声不得伪造 enoughSignal，也不得把 known-others 误 drop ——
+{
+  const args = { entities: [{ id: '张三', label: '同事' }] }
+  const noise = selectContextSections(args, { referenceFrame: ': +" + : 我在' })
+  assert(noise.meta.enoughSignal === false, '纯符号参照系: enoughSignal=false')
+  assert(noise.meta.gated === false, '纯符号参照系: 不门控')
+  const noiseKo = auditFor(noise, 'known-others')
+  assert(noiseKo && noiseKo.dropped === false, '纯符号参照系: known-others 不被误 drop')
+
+  const jsonRef = '输出: {"a": -1, "b": +2} 然后确认张三的进度'
+  const jsonKws = extractKeywords(jsonRef, 12)
+  assert(jsonKws.every(kw => /[\p{L}\p{N}]/u.test(kw)), '含 ASCII JSON 的关键词不含纯符号词')
+  const jsonGate = selectContextSections(args, { referenceFrame: jsonRef })
+  assert(jsonGate.meta.enoughSignal === true, 'JSON+实体消息仍有有效信号')
+  const jsonKo = auditFor(jsonGate, 'known-others')
+  assert(jsonKo && jsonKo.dropped === false && jsonKo.hits >= 1,
+    '提到张三时 known-others 不得因符号词挤出而被 enforce drop')
+  assert(jsonGate.args.entities.length === 1, '张三保留')
+}
+
 if (failed === 0) {
   console.log('\nAll section-gate tests passed.')
 } else {

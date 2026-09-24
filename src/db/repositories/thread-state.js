@@ -81,7 +81,9 @@ export function saveFocusStack(stack) {
 export function loadThreadState() {
   const db = getDB()
   try {
-    const threadRows = db.prepare(`SELECT * FROM threads`).all()
+    // status='merged' 的线索在 mergeThreads + saveThreadState 时已从内存删除；
+    // 读侧必须同样排除，否则 7 天窗口内会把幽灵线程装回内存（跨重启拆回合并）。
+    const threadRows = db.prepare(`SELECT * FROM threads WHERE status IS NULL OR status <> 'merged'`).all()
     if (threadRows.length === 0) return null
     const commitmentRows = db.prepare(`SELECT * FROM commitments WHERE status = 'open'`).all()
     const openThreadIds = new Set(commitmentRows.map(r => r.thread_id))

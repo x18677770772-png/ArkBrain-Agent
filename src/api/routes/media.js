@@ -16,10 +16,30 @@ function streamFile(req, res, filePath, contentType, { cacheControl = 'no-cache'
     }
     const total = stat.size
     const rangeHeader = range ? req.headers.range : null
-    if (rangeHeader) {
-      const m = rangeHeader.match(/bytes=(\d*)-(\d*)/)
-      const start = m?.[1] ? parseInt(m[1]) : 0
-      const end = m?.[2] ? parseInt(m[2]) : total - 1
+    const m = rangeHeader ? /^bytes=(\d*)-(\d*)$/.exec(String(rangeHeader).trim()) : null
+    if (m) {
+      let start = m[1] === '' ? null : Number(m[1])
+      let end = m[2] === '' ? null : Number(m[2])
+
+      // Suffix form bytes=-N serves the last N bytes (same semantics as static.js).
+      if (start === null && end !== null) {
+        start = Math.max(0, total - end)
+        end = total - 1
+      } else {
+        start ??= 0
+        end = Math.min(end ?? total - 1, total - 1)
+      }
+
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)
+        || start < 0 || end < start || start >= total) {
+        res.writeHead(416, {
+          'Content-Range': `bytes */${total}`,
+          'Accept-Ranges': 'bytes',
+        })
+        res.end()
+        return
+      }
+
       res.writeHead(206, {
         'Content-Type': contentType,
         'Content-Range': `bytes ${start}-${end}/${total}`,
@@ -38,8 +58,13 @@ function streamFile(req, res, filePath, contentType, { cacheControl = 'no-cache'
       fs.createReadStream(filePath).pipe(res)
     }
   } catch {
-    res.writeHead(404)
-    res.end('media not found')
+    // Headers may already be sent if the range stream failed mid-flight.
+    if (!res.headersSent) {
+      res.writeHead(404)
+      res.end('media not found')
+    } else {
+      try { res.end() } catch {}
+    }
   }
 }
 
