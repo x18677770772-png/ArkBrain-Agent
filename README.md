@@ -1,4 +1,4 @@
-![ArkBrain-Agent](https://github.com/xiaoyuanda666-ship-it/ArkBrain-Agent/blob/main/images/AGI128k.jpg)
+![ArkBrain-Agent](images/AGI128k.jpg)
 
 # ArkBrain-Agent
 
