@@ -113,8 +113,33 @@ if (browserWindow?.fetch) {
   };
 }
 
+// EventSource / <img>/<audio> subresources cannot set Authorization headers.
+// When LAN access requires a token, append ?token= (hasValidAuthToken accepts query).
+export function withApiToken(url) {
+  const token = getApiToken();
+  const raw = String(url || "");
+  if (!token) return raw;
+  try {
+    const u = new URL(raw, `${API}/`);
+    if (!u.searchParams.has("token")) u.searchParams.set("token", token);
+    return u.toString();
+  } catch {
+    return raw;
+  }
+}
+
 export function apiUrl(path) {
-  return `${API}${path}`;
+  // Keep absolute origin form: callers pass this to fetch/EventSource as full URL.
+  const token = getApiToken();
+  const base = `${API}${path}`;
+  if (!token) return base;
+  try {
+    const u = new URL(base);
+    if (!u.searchParams.has("token")) u.searchParams.set("token", token);
+    return u.toString();
+  } catch {
+    return base;
+  }
 }
 
 export function apiWebSocketUrl(path) {

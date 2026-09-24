@@ -40,13 +40,56 @@ export function normalizeToolPermissions(permissions = {}, { legacy = false } = 
 const CODE_DENY_RULES = [
   { re: /\b(?:eval|Function)\s*\(/, reason: 'dynamic JavaScript evaluation is not allowed' },
   { re: /\bnew\s+Function\b/, reason: 'dynamic JavaScript evaluation is not allowed' },
+  // Bare identifiers: catches indirect eval like (0, eval)(...) and Function
+  // references retrieved without an immediately visible call.
+  { re: /\beval\b/, reason: 'dynamic JavaScript evaluation is not allowed' },
+  { re: /\bFunction\b/, reason: 'dynamic JavaScript evaluation is not allowed' },
   { re: /\b(?:require|import)\s*(?:\(|["'])/, reason: 'module loading is not allowed' },
   { re: /\b(?:process|globalThis|global|window|document)\b/, reason: 'global runtime access is not allowed' },
   { re: /\b(?:fs|child_process|worker_threads|vm)\b/, reason: 'Node system modules are not allowed' },
   { re: /\b(?:execSync|execFileSync|spawn|spawnSync|fork)\b/, reason: 'process execution APIs are not allowed' },
   { re: /constructor\s*\.\s*constructor/, reason: 'constructor escape is not allowed' },
+  // (function(){}).constructor / (async function(){}).constructor / (function*(){}).constructor
+  // retrieve Function/AsyncFunction/GeneratorFunction and bypass Function\s*\( checks.
+  { re: /\.\s*constructor\b/, reason: 'constructor escape is not allowed' },
+  { re: /\[\s*(['"`])constructor\1\s*\]/, reason: 'constructor escape is not allowed' },
+  { re: /\[\s*(['"`])con\1\s*,\s*(['"`])structor\2\s*\]/, reason: 'constructor escape is not allowed' },
   { re: /__proto__|prototype\s*\[/, reason: 'prototype manipulation is not allowed' },
+  // Reflect.get(fn,'constructor') / Object.getOwnPropertyDescriptor bypass dotted
+  // `.constructor` deny rules and the shadowed Function parameter.
+  { re: /\bReflect\s*\.\s*get\b/, reason: 'Reflect.get constructor escape is not allowed' },
+  { re: /\bObject\s*\.\s*getOwnPropertyDescriptor\b/, reason: 'descriptor constructor escape is not allowed' },
+  { re: /\bObject\s*\.\s*getPrototypeOf\b/, reason: 'prototype escape is not allowed' },
 ]
+
+// Collect string-literal concatenation chains ("'a' + 'b' + ...") and return
+// each fully joined value. Raw deny rules only see source text, so reassembled
+// identifiers like 'pro' + 'cess' never match them contiguously.
+function collectStringLiteralConcatenations(text) {
+  // Non-capturing group around each alternative: without it, `'a'|'b'+` binds as
+  // `'a' | ('b'+)` and multi-literal chains never match as one joined value.
+  const strPattern = `'(?:\\\\.|[^'\\\\])*'|"(?:\\\\.|[^"\\\\])*"`
+  const chainRe = new RegExp(`(?:${strPattern})(?:\\s*\\+\\s*(?:${strPattern}))+`, 'g')
+  const literalRe = new RegExp(strPattern, 'g')
+  const joinedValues = []
+  let chain
+  while ((chain = chainRe.exec(text)) !== null) {
+    const literals = chain[0].match(literalRe) || []
+    joinedValues.push(literals.map(l => l.slice(1, -1)).join(''))
+  }
+  return joinedValues
+}
+
+function permissionIssuesFor(text, normalized) {
+  const issues = []
+  if (!normalized.exec && /\bhelpers\s*\.\s*exec\b/.test(text)) {
+    issues.push('helpers.exec requires permissions.exec=true')
+  }
+  if (!normalized.network && (/\bhelpers\s*\.\s*fetch\b/.test(text) || /\bfetch\s*\(/.test(text))) {
+    issues.push('network access requires permissions.network=true')
+  }
+  return issues
+}
 
 export function analyzeToolCode(code = '', permissions = {}) {
   const text = String(code || '')
@@ -55,11 +98,13 @@ export function analyzeToolCode(code = '', permissions = {}) {
   for (const rule of CODE_DENY_RULES) {
     if (rule.re.test(text)) issues.push(rule.reason)
   }
-  if (!normalized.exec && /\bhelpers\s*\.\s*exec\b/.test(text)) {
-    issues.push('helpers.exec requires permissions.exec=true')
-  }
-  if (!normalized.network && (/\bhelpers\s*\.\s*fetch\b/.test(text) || /\bfetch\s*\(/.test(text))) {
-    issues.push('network access requires permissions.network=true')
+  issues.push(...permissionIssuesFor(text, normalized))
+  // Re-run every deny rule against identifiers reassembled by string concat.
+  for (const joined of collectStringLiteralConcatenations(text)) {
+    for (const rule of CODE_DENY_RULES) {
+      if (rule.re.test(joined)) issues.push(rule.reason)
+    }
+    issues.push(...permissionIssuesFor(joined, normalized))
   }
   return [...new Set(issues)]
 }
@@ -105,6 +150,8 @@ function buildHelpers(permissions = {}) {
 
 // 把工具代码字符串编译为可调用的 async 函数
 // 代码是函数体（不含 function 声明），可用变量：args, helpers
+// 说明：eval 不能作为参数名（严格模式 SyntaxError），由 analyzeToolCode 的
+// 裸 eval deny 规则拦截；Function/constructor 通过参数遮蔽为 undefined。
 function compileExecute(name, code, permissions = {}, { legacyUnsafeGlobals = false } = {}) {
   let fn
   try {
@@ -122,6 +169,8 @@ function compileExecute(name, code, permissions = {}, { legacyUnsafeGlobals = fa
           'module',
           'exports',
           'Buffer',
+          'Function',
+          'constructor',
           `"use strict";\nreturn (async () => {\n${code}\n})()`,
         )
   } catch (err) {
@@ -131,7 +180,19 @@ function compileExecute(name, code, permissions = {}, { legacyUnsafeGlobals = fa
     const helpers = buildHelpers(permissions)
     return legacyUnsafeGlobals
       ? await fn(args ?? {}, helpers)
-      : await fn(args ?? {}, helpers, undefined, undefined, undefined, undefined, undefined, undefined, undefined)
+      : await fn(
+          args ?? {},
+          helpers,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+        )
   }
 }
 
@@ -250,21 +311,25 @@ export async function loadInstalledTools() {
     const filePath = path.join(TOOLS_DIR, file)
     try {
       const meta = JSON.parse(fs.readFileSync(filePath, 'utf-8'))
-      const { name, description, parameters, code } = meta
+      const { name, code } = meta
       if (!name || !code) {
         console.warn(`[marketplace] 跳过无效工具文件 ${file}`)
         continue
       }
-      validateName(name)
-      if (seenNames.has(name)) {
-        console.warn(`[marketplace] 跳过重复工具名称 "${name}"（文件 ${file}）`)
+      // 加载路径与安装路径同样过安全校验：磁盘上的改动不能绕过
+      // analyzeToolCode；缺少 permissions 字段也不再等同于开启
+      // legacyUnsafeGlobals——缺失时按默认安全权限 {network,exec}=false 处理。
+      const manifest = validateToolManifest(meta)
+      if (seenNames.has(manifest.name)) {
+        console.warn(`[marketplace] 跳过重复工具名称 "${manifest.name}"（文件 ${file}）`)
         continue
       }
-      seenNames.add(name)
-      const legacy = !meta.permissions
-      const permissions = normalizeToolPermissions(meta.permissions, { legacy })
-      const executeFn = compileExecute(name, code, permissions, { legacyUnsafeGlobals: legacy })
-      registry.set(name, { schema: buildSchema(name, description, parameters), execute: executeFn })
+      seenNames.add(manifest.name)
+      const executeFn = compileExecute(manifest.name, manifest.code, manifest.permissions)
+      registry.set(manifest.name, {
+        schema: buildSchema(manifest.name, manifest.description, manifest.parameters),
+        execute: executeFn,
+      })
       loaded++
     } catch (err) {
       console.warn(`[marketplace] 加载工具 ${file} 失败：${err.message}`)

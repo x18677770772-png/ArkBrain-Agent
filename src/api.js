@@ -25,6 +25,7 @@ import { handleMessageRoutes } from './api/routes/message.js'
 import { handlePanelRoutes } from './api/routes/panels.js'
 import { handleSettingsRoutes } from './api/routes/settings.js'
 import { handleSocialRoutes } from './api/routes/social.js'
+import { handleSocialWebhook } from './social/webhooks.js'
 import { handleStaticRoutes } from './api/routes/static.js'
 import { handleTTSRoutes } from './api/routes/tts.js'
 import {
@@ -90,7 +91,10 @@ function isLanRequest(req) {
 }
 
 function isLoopbackOrigin(origin = '') {
-  if (!origin || origin === 'null') return true
+  // Opaque Origin: null (sandboxed iframe / data: / file:) and a missing Origin
+  // are NOT real http(s) loopback origins. Never treat them as loopback here —
+  // that would let hostile null-origin pages pass the CORS/sensitive gates.
+  if (!origin || origin === 'null') return false
   try {
     const parsed = new URL(origin)
     return ['127.0.0.1', 'localhost', '::1'].includes(parsed.hostname)
@@ -99,8 +103,12 @@ function isLoopbackOrigin(origin = '') {
   }
 }
 
-function isAllowedOrigin(origin = '') {
+function isAllowedOrigin(origin = '', req = null, url = null) {
+  // Missing Origin: non-browser client (curl / native) — no CORS to grant.
+  if (!origin) return true
   if (isLoopbackOrigin(origin)) return true
+  // Opaque origin is only acceptable with an explicit LAN bearer token.
+  if (origin === 'null') return !!(req && url && hasValidAuthToken(req, url))
   if (!isLanAccessEnabled()) return false
   try {
     const parsed = new URL(origin)
@@ -124,7 +132,15 @@ function hasValidAuthToken(req, url) {
 }
 
 function requireLocalOrToken(req, res, url) {
-  if (isLoopbackRequest(req) || hasValidAuthToken(req, url)) return true
+  if (hasValidAuthToken(req, url)) return true
+  // Browser request with a non-loopback Origin (including opaque 'null'):
+  // TCP loopback alone is not enough — require the token.
+  const origin = req.headers.origin
+  if (origin && !isLoopbackOrigin(origin)) {
+    jsonResponse(res, 403, { ok: false, error: 'forbidden' })
+    return false
+  }
+  if (isLoopbackRequest(req)) return true
   jsonResponse(res, 403, { ok: false, error: 'forbidden' })
   return false
 }
@@ -139,13 +155,62 @@ function isSensitivePath(pathname) {
     || pathname === '/settings'
     || pathname.startsWith('/settings/')
     || pathname.startsWith('/admin/')
+    || pathname === '/memories'
     || pathname.startsWith('/memories/')
     || pathname.startsWith('/knowledge/')
+    || pathname === '/system-prompt-preview'
+    || pathname === '/conversations'
+    || pathname.startsWith('/memory/')
+    || pathname === '/social/wechat-clawbot/logout'
+}
+
+// State-changing requests on sensitive paths must come from a same-origin
+// browser context (or a non-browser client that omits Sec-Fetch-Site).
+// Blocks local CSRF from other loopback origins and opaque null origins even
+// when TCP is loopback — Origin alone cannot distinguish 127.0.0.1:3721 UI
+// from another local page on a different port.
+const SENSITIVE_WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+
+function isForbiddenSensitiveWrite(req, pathname) {
+  if (!SENSITIVE_WRITE_METHODS.has(req.method) || !isSensitivePath(pathname)) return false
+  // Opaque Origin (sandboxed iframe / file:) never writes sensitive routes,
+  // even with a bearer token (legitimate null clients only hit /message).
+  if (req.headers.origin === 'null') return true
+  const site = req.headers['sec-fetch-site']
+  // Missing header: non-browser client (curl/CLI) — still constrained by
+  // requireLocalOrToken / isLoopbackRequest below.
+  return !!site && site !== 'same-origin' && site !== 'none'
+}
+
+// First-load static shell stays tokenless for LAN; every other route needs
+// loopback or the LAN bearer token (align HTTP with WebSocket policy).
+function isPublicPath(pathname) {
+  return pathname === '/'
+    || pathname === '/index.html'
+    || pathname === '/favicon.ico'
+    || pathname === '/brain-ui'
+    || pathname === '/brain-ui.html'
+    || pathname === '/activation'
+    || pathname === '/activation.html'
+    || pathname === '/site'
+    || pathname === '/site.html'
+    || pathname === '/bailongma-lan-root-ca.cer'
+    || pathname.startsWith('/src/ui/brain-ui/')
+    || pathname.startsWith('/src/ui/scene-shell/')
+    || pathname.startsWith('/vendor/')
+}
+
+function needsTokenGate(req, pathname) {
+  if (isSensitivePath(pathname)) return true
+  // LAN remotes: everything except the static first-load shell needs a token.
+  return isLanRequest(req) && !isPublicPath(pathname)
 }
 
 function setCorsHeaders(req, res, origin) {
-  if (isAllowedOrigin(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin || 'null')
+  // Never reflect empty/'null' into Access-Control-Allow-Origin — Fetch treats
+  // ACAO: null as matching opaque origins and would let a hostile context read.
+  if (origin && origin !== 'null' && isAllowedOrigin(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
@@ -370,15 +435,24 @@ export function startAPI(port = 3721, {
     onActivationIntroComplete: onActivationIntroCompleteCallback,
   }
 
+  // External social webhooks authenticate via signature/token and must skip
+  // the browser Origin gate; local social admin (qr/status/logout) does not.
+  const isExternalSocialWebhook = (pathname) => pathname === '/social/feishu/webhook'
+    || pathname === '/social/wechat/official'
+    || pathname === '/social/wecom/webhook'
+
   const requestHandler = async (req, res) => {
     const base = `${protocol}://localhost:${port}`
     const url = new URL(req.url, base)
     const origin = req.headers.origin
 
     try {
-      if (await handleSocialRoutes(req, res, url, { hasAllowedAccess, requireLocalOrToken })) return
+      if (isExternalSocialWebhook(url.pathname)) {
+        await handleSocialWebhook(req, res, url)
+        return
+      }
 
-      if (origin && !isAllowedOrigin(origin)) {
+      if (origin && !isAllowedOrigin(origin, req, url)) {
         return jsonResponse(res, 403, { ok: false, error: 'forbidden origin' })
       }
 
@@ -386,9 +460,15 @@ export function startAPI(port = 3721, {
         return jsonResponse(res, 403, { ok: false, error: 'forbidden' })
       }
 
+      if (isForbiddenSensitiveWrite(req, url.pathname)) {
+        return jsonResponse(res, 403, { ok: false, error: 'forbidden origin' })
+      }
+
       setCorsHeaders(req, res, origin)
 
-      if (req.method !== 'OPTIONS' && isSensitivePath(url.pathname) && !requireLocalOrToken(req, res, url)) return
+      if (req.method !== 'OPTIONS' && needsTokenGate(req, url.pathname) && !requireLocalOrToken(req, res, url)) return
+
+      if (await handleSocialRoutes(req, res, url, { hasAllowedAccess, requireLocalOrToken })) return
 
       if (req.method === 'OPTIONS') {
         res.writeHead(204)

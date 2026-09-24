@@ -442,7 +442,9 @@ const directRejectName = `factory_direct_reject_${suffix}`
   }
 }
 
-// Legacy disk tools without permissions still load with the compatibility path.
+// Disk tools are revalidated on load. A permissions-less manifest no longer
+// opts into unshadowed globals: safe code loads with default deny permissions,
+// while unsafe legacy code (process access) is rejected instead of executed.
 {
   const tempUserDir = fs.mkdtempSync(path.join(os.tmpdir(), `blm-tool-legacy-${suffix}-`))
   try {
@@ -452,6 +454,7 @@ const directRejectName = `factory_direct_reject_${suffix}`
       import { paths } from './src/paths.js'
       import { executeInstalledTool, getInstalledToolSchema, loadInstalledTools } from './src/capabilities/marketplace/index.js'
       const name = ${JSON.stringify(legacyName)}
+      const safeName = name + '_safe'
       const toolsDir = path.join(paths.sandboxDir, 'installed_tools')
       fs.mkdirSync(toolsDir, { recursive: true })
       fs.writeFileSync(path.join(toolsDir, name + '.json'), JSON.stringify({
@@ -461,10 +464,27 @@ const directRejectName = `factory_direct_reject_${suffix}`
         code: 'return process.cwd() ? "legacy-ok" : "legacy-bad"',
         installed_at: new Date().toISOString(),
       }, null, 2), 'utf-8')
+      fs.writeFileSync(path.join(toolsDir, safeName + '.json'), JSON.stringify({
+        name: safeName,
+        description: 'Permissions-less tool with safe code.',
+        parameters: { type: 'object', properties: {}, required: [] },
+        code: 'return "safe-ok"',
+        installed_at: new Date().toISOString(),
+      }, null, 2), 'utf-8')
       await loadInstalledTools()
-      const schema = getInstalledToolSchema(name)
-      const result = await executeInstalledTool(name, {})
-      console.log('@@RESULT@@' + JSON.stringify({ schema_name: schema?.function?.name, result }))
+      const unsafeSchema = getInstalledToolSchema(name)
+      const safeSchema = getInstalledToolSchema(safeName)
+      let unsafeResult = null
+      let unsafeError = null
+      try { unsafeResult = await executeInstalledTool(name, {}) } catch (err) { unsafeError = err.message }
+      const safeResult = await executeInstalledTool(safeName, {})
+      console.log('@@RESULT@@' + JSON.stringify({
+        unsafe_schema: unsafeSchema?.function?.name ?? null,
+        safe_schema: safeSchema?.function?.name ?? null,
+        unsafeResult,
+        unsafeError,
+        safeResult,
+      }))
     `, {
       BAILONGMA_USER_DIR: tempUserDir,
       BAILONGMA_RESOURCES_DIR: process.cwd(),
@@ -472,8 +492,9 @@ const directRejectName = `factory_direct_reject_${suffix}`
     assert(legacyRun.status === 0, 'isolated legacy load process exits cleanly', legacyRun.stderr || legacyRun.stdout)
 
     const legacy = parseMarker(legacyRun.stdout)
-    assert(legacy?.schema_name === legacyName, 'legacy tool without permissions exposes schema', JSON.stringify(legacy))
-    assert(legacy?.result === 'legacy-ok', 'legacy tool without permissions keeps legacy globals compatibility', JSON.stringify(legacy))
+    assert(legacy?.unsafe_schema === null, 'permissions-less tool with unsafe code is not loaded', JSON.stringify(legacy))
+    assert(legacy?.safe_schema === `${legacyName}_safe`, 'permissions-less tool with safe code loads with safe defaults', JSON.stringify(legacy))
+    assert(legacy?.safeResult === 'safe-ok', 'safe permissions-less tool executes under shadowed globals', JSON.stringify(legacy))
   } finally {
     fs.rmSync(tempUserDir, { recursive: true, force: true })
   }

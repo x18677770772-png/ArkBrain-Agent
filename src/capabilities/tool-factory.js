@@ -138,12 +138,19 @@ function runToolTests(pkg) {
     }
     console.log(JSON.stringify({ ok: results.every(r => r.ok), results }));
   `
+  // Proposal code is agent-supplied. Hand the test child only the vars it needs
+  // to spawn node — never the full process.env (provider/social API keys).
+  const childEnv = {}
+  for (const key of ['PATH', 'HOME', 'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH', 'LANG', 'LC_ALL', 'TMP', 'TEMP', 'TMPDIR', 'SystemRoot', 'ComSpec', 'PATHEXT', 'WINDIR']) {
+    if (process.env[key] !== undefined) childEnv[key] = process.env[key]
+  }
+  childEnv.ELECTRON_RUN_AS_NODE = '1'
   const child = spawnSync(process.execPath, ['--input-type=module', '-e', runner], {
     input: JSON.stringify({ code: pkg.code, tests: pkg.tests }),
     encoding: 'utf-8',
     timeout: REVIEW_TIMEOUT_MS,
     maxBuffer: 1024 * 1024,
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+    env: childEnv,
     windowsHide: true,
   })
   if (child.error) {

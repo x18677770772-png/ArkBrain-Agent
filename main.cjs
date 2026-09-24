@@ -751,12 +751,13 @@ async function createWindow({
   window.on('enter-full-screen', () => sendFullScreenState(true))
   window.on('leave-full-screen', () => sendFullScreenState(false))
 
+  // 仅把 http(s)/mailto 交给系统处理；其余 scheme 一律 deny——allow 会新建继承
+  // 本窗口 preload.cjs 的特权子窗口。
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//i.test(url)) {
+    if (/^(https?|mailto):/i.test(url)) {
       shell.openExternal(url)
-      return { action: 'deny' }
     }
-    return { action: 'allow' }
+    return { action: 'deny' }
   })
 
   try {

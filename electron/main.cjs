@@ -815,13 +815,39 @@ async function createWindow({
   window.on('enter-full-screen', () => sendFullScreenState(true))
   window.on('leave-full-screen', () => sendFullScreenState(false))
 
+  // 仅把 http(s)/mailto 交给系统处理；其余 scheme（file:、javascript:、devtools:、自定义等）
+  // 一律 deny——allow 会新建继承本窗口 preload.cjs 的特权子窗口。
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:\/\//i.test(url)) {
+    if (/^(https?|mailto):/i.test(url)) {
       shell.openExternal(url)
-      return { action: 'deny' }
     }
-    return { action: 'allow' }
+    return { action: 'deny' }
   })
+
+  // 主窗口只允许停在本地启动页 / 本地后端源，防止 XSS 或开放重定向把带 preload 的
+  // frame 带到外域（loadFile/loadURL 由主进程发起，不走 will-navigate，不影响启动流）。
+  const isTrustedNavigationUrl = (targetUrl) => {
+    if (!targetUrl) return false
+    try {
+      if (targetUrl.startsWith(pathToFileURL(STARTUP_PAGE).href)) return true
+    } catch {}
+    if (backendPort) {
+      try {
+        return new URL(targetUrl).origin === new URL(backendUrl(backendPort, '/')).origin
+      } catch {}
+    }
+    return false
+  }
+  // Main-frame only: subframe navigations (YouTube/Bilibili embeds, about:blank
+  // resets) intentionally leave the startup/backend origin. will-frame-navigate
+  // fires for every frame; enforcing the whitelist here would break product iframes.
+  const guardTrustedNavigation = (event) => {
+    if (event.isMainFrame === false) return
+    if (!isTrustedNavigationUrl(event.url || '')) event.preventDefault()
+  }
+  window.webContents.on('will-navigate', guardTrustedNavigation)
+  window.webContents.on('will-redirect', guardTrustedNavigation)
+  window.webContents.on('will-frame-navigate', guardTrustedNavigation)
 
   try {
     if (loadStartup) {
@@ -1614,7 +1640,10 @@ function setupAutoUpdater() {
 }
 
 ipcMain.handle('app:get-version', () => app.getVersion())
-ipcMain.handle('ui:set-language', (_event, locale) => ({ locale: setNativeUiLanguage(locale) }))
+ipcMain.handle('ui:set-language', (event, locale) => {
+  requirePrivilegedIpcSender(event)
+  return { locale: setNativeUiLanguage(locale) }
+})
 ipcMain.handle('startup:get-progress', () => cloneStartupProgressState())
 ipcMain.handle('window:is-full-screen', (event) => {
   const targetWindow = BrowserWindow.fromWebContents(event.sender)
@@ -1629,8 +1658,32 @@ ipcMain.handle('window:set-title-bar-theme', (event, theme) => {
   return true
 })
 
+// 特权 IPC：sender 必须是受信窗口，且当前 URL 仍在本地启动页 / 后端源白名单内
+// （requireTrustedSender 只比对 webContents，不防导航后的同窗滥用）。
+function isTrustedIpcSenderUrl(senderUrl) {
+  if (!senderUrl) return false
+  try {
+    if (senderUrl.startsWith(pathToFileURL(STARTUP_PAGE).href)) return true
+  } catch {}
+  if (backendPort) {
+    try {
+      return new URL(senderUrl).origin === new URL(backendUrl(backendPort, '/')).origin
+    } catch {}
+  }
+  return false
+}
+
+function requirePrivilegedIpcSender(event) {
+  const window = browserEmbedSenderGuard.requireTrustedSender(event)
+  const senderUrl = event?.sender?.getURL?.() || ''
+  if (!isTrustedIpcSenderUrl(senderUrl)) {
+    throw new Error('privileged IPC requests are only accepted from the trusted app origin')
+  }
+  return window
+}
+
 function requireMainWindowSender(event) {
-  return browserEmbedSenderGuard.requireTrustedSender(event)
+  return requirePrivilegedIpcSender(event)
 }
 
 ipcMain.handle('browser-embed:update', (event, options) => (
@@ -1643,7 +1696,8 @@ ipcMain.handle('browser-embed:get-state', event => (
   browserEmbedHost.getState(requireMainWindowSender(event))
 ))
 
-ipcMain.handle('system-screenshot:get-latest', async (_event, options = {}) => {
+ipcMain.handle('system-screenshot:get-latest', async (event, options = {}) => {
+  requirePrivilegedIpcSender(event)
   const maxAgeMs = Number(options?.maxAgeMs || 15 * 60 * 1000)
   const preferClipboard = options?.preferClipboard !== false
 
@@ -1689,7 +1743,8 @@ ipcMain.handle('system-screenshot:get-latest', async (_event, options = {}) => {
   return { ok: false, error: 'no_recent_system_screenshot' }
 })
 
-ipcMain.handle('updater:check-for-updates', async () => {
+ipcMain.handle('updater:check-for-updates', async (event) => {
+  requirePrivilegedIpcSender(event)
   if (IS_PORTABLE) {
     sendUpdaterStatus({ stage: 'portable', portable: true })
     return { ok: false, skipped: true, reason: 'portable' }
@@ -1713,7 +1768,8 @@ ipcMain.handle('updater:check-for-updates', async () => {
   }
 })
 
-ipcMain.handle('updater:start-download', async () => {
+ipcMain.handle('updater:start-download', async (event) => {
+  requirePrivilegedIpcSender(event)
   if (IS_PORTABLE) {
     sendUpdaterStatus({ stage: 'portable', portable: true })
     return { ok: false, skipped: true, reason: 'portable' }
@@ -1728,7 +1784,8 @@ ipcMain.handle('updater:start-download', async () => {
   }
 })
 
-ipcMain.handle('updater:quit-and-install', () => {
+ipcMain.handle('updater:quit-and-install', (event) => {
+  requirePrivilegedIpcSender(event)
   if (IS_PORTABLE) {
     sendUpdaterStatus({ stage: 'portable', portable: true })
     return { ok: false, skipped: true, reason: 'portable' }

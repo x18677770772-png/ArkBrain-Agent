@@ -2,7 +2,9 @@ import fs from 'fs'
 import path from 'path'
 import { spawn } from 'child_process'
 import { fileURLToPath } from 'url'
+import { config } from '../../config.js'
 import { paths } from '../../paths.js'
+import { resolvePathThroughExistingPrefix } from '../sandbox.js'
 import { stringifyJsonForTransport } from '../../runtime/json-unicode.js'
 import {
   apiCapabilityNeedsCredential,
@@ -84,7 +86,7 @@ function resolveMediaChatPath(urlPath = '') {
   return path.join(paths.mediaDir, filename)
 }
 
-function resolveLocalImagePath(ref = '') {
+export function resolveLocalImagePath(ref = '') {
   let raw = String(ref || '').trim()
   if (!raw) return ''
   if (/^file:\/\//i.test(raw)) {
@@ -92,18 +94,47 @@ function resolveLocalImagePath(ref = '') {
   }
   if (raw.startsWith('/media/chat/')) return resolveMediaChatPath(raw)
   if (/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) return ''
-  return path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(paths.sandboxDir, raw)
+  const resolved = path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(paths.sandboxDir, raw)
+  // Constrain local reads to sandbox/ or data/media/ — same roots as localImageToDataUrl.
+  // Blocks absolute / file:// / ../ escapes so arbitrary local images cannot be
+  // shipped to the vision API (file sandbox defaults to off, so this is the only gate).
+  if (!isPathInside(paths.sandboxDir, resolved) && !isPathInside(paths.mediaDir, resolved)) return ''
+  return resolved
+}
+
+// Content sniff (headers only) so a symlink/extension trick cannot ship
+// arbitrary bytes to the vision provider as data:image/*.
+function sniffImageMime(bytes = Buffer.alloc(0)) {
+  if (bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'image/png'
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'image/jpeg'
+  if (bytes.length >= 12 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') return 'image/webp'
+  const gifHeader = bytes.length >= 6 ? bytes.toString('ascii', 0, 6) : ''
+  if (gifHeader === 'GIF87a' || gifHeader === 'GIF89a') return 'image/gif'
+  if (bytes.length >= 2 && bytes[0] === 0x42 && bytes[1] === 0x4d) return 'image/bmp'
+  return ''
 }
 
 function localImageToDataUrl(filePath = '') {
-  const resolved = path.resolve(filePath)
-  const stat = fs.statSync(resolved)
-  if (!stat.isFile()) throw new Error(`image path is not a file: ${resolved}`)
+  // Resolve symlinks first, then (when the file sandbox is on) confine reads
+  // to sandbox/ or data/media/ — mediaDir keeps /media/chat and screenshots working.
+  const physical = resolvePathThroughExistingPrefix(path.resolve(filePath))
+  if (config.security?.fileSandbox !== false) {
+    const roots = [
+      resolvePathThroughExistingPrefix(paths.sandboxDir),
+      resolvePathThroughExistingPrefix(paths.mediaDir),
+    ]
+    const inside = roots.some(root => physical === root || isPathInside(root, physical))
+    if (!inside) throw new Error(`image path is outside the sandbox: ${filePath}`)
+  }
+  const stat = fs.statSync(physical)
+  if (!stat.isFile()) throw new Error(`image path is not a file: ${physical}`)
   if (stat.size > 20 * 1024 * 1024) throw new Error('image file is larger than 20MB')
-  const mime = mimeFromPath(resolved)
-  if (!mime.startsWith('image/')) throw new Error(`unsupported image extension: ${path.extname(resolved)}`)
-  const bytes = fs.readFileSync(resolved)
-  return `data:${mime};base64,${bytes.toString('base64')}`
+  const mime = mimeFromPath(physical)
+  if (!mime.startsWith('image/')) throw new Error(`unsupported image extension: ${path.extname(physical)}`)
+  const bytes = fs.readFileSync(physical)
+  const sniffed = sniffImageMime(bytes)
+  if (!sniffed) throw new Error(`file content is not a supported image: ${physical}`)
+  return `data:${sniffed};base64,${bytes.toString('base64')}`
 }
 
 function resolveImageUrl(ref = '') {
@@ -142,7 +173,8 @@ function buildProgramCommand(slot, programPath) {
     return { file: process.execPath, args: [programPath] }
   }
   if (runtime === 'python' || runtime === 'python3') {
-    return { file: 'python', args: [programPath] }
+    // Same pattern as src/voice/manager.js findPython(): most Linux/macOS hosts only ship python3.
+    return { file: process.platform === 'win32' ? 'python' : 'python3', args: [programPath] }
   }
   throw new Error(`unsupported capability program runtime: ${runtime}`)
 }
@@ -170,6 +202,43 @@ function publicRuntimeSlot(slot = {}) {
   }
 }
 
+// Runner programs live under the agent-writable sandbox/api-capabilities dir.
+// Never spread process.env here: it carries every provider/social API key.
+// Only the slot's own credential is passed, via CAPABILITY_API_KEY.
+const CAPABILITY_ENV_ALLOWLIST = [
+  'PATH',
+  'HOME',
+  'USERPROFILE',
+  'HOMEDRIVE',
+  'HOMEPATH',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'TMP',
+  'TEMP',
+  'TMPDIR',
+  'SystemRoot',
+  'ComSpec',
+  'PATHEXT',
+  'WINDIR',
+]
+
+function buildCapabilityChildEnv(slot, apiKey) {
+  const env = {}
+  for (const key of CAPABILITY_ENV_ALLOWLIST) {
+    if (process.env[key] !== undefined) env[key] = process.env[key]
+  }
+  env.ELECTRON_RUN_AS_NODE = '1'
+  env.CAPABILITY_SLOT_ID = slot.id
+  env.CAPABILITY_PROVIDER = slot.provider
+  env.CAPABILITY_KIND = slot.kind
+  env.CAPABILITY_API_KEY = apiKey
+  env.CAPABILITY_BASE_URL = slot.api?.baseURL || ''
+  env.CAPABILITY_ENDPOINT = slot.api?.endpoint || ''
+  env.CAPABILITY_MODEL = slot.api?.model || ''
+  return env
+}
+
 function runCapabilityProgram(slot, args = {}, context = {}, { apiKey = '' } = {}) {
   const programPath = resolveCapabilityProgramPath(slot.program?.path)
   const command = buildProgramCommand(slot, programPath)
@@ -187,17 +256,7 @@ function runCapabilityProgram(slot, args = {}, context = {}, { apiKey = '' } = {
     const child = spawn(command.file, command.args, {
       cwd: path.dirname(programPath),
       windowsHide: true,
-      env: {
-        ...process.env,
-        ELECTRON_RUN_AS_NODE: '1',
-        CAPABILITY_SLOT_ID: slot.id,
-        CAPABILITY_PROVIDER: slot.provider,
-        CAPABILITY_KIND: slot.kind,
-        CAPABILITY_API_KEY: apiKey,
-        CAPABILITY_BASE_URL: slot.api?.baseURL || '',
-        CAPABILITY_ENDPOINT: slot.api?.endpoint || '',
-        CAPABILITY_MODEL: slot.api?.model || '',
-      },
+      env: buildCapabilityChildEnv(slot, apiKey),
       stdio: ['pipe', 'pipe', 'pipe'],
     })
     const stdout = []

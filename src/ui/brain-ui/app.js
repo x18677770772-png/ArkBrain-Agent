@@ -1,5 +1,5 @@
 ﻿import { renderBrainUiApp } from "./app-shell.js";
-import { API, getUiClientId, isUiClientTarget } from "./api-client.js";
+import { API, getUiClientId, isUiClientTarget, withApiToken } from "./api-client.js";
 import { bootstrapScene } from "../scene-shell/bootstrap.js";
 import { initChat, friendlyChannelLabel } from "./chat.js";
 import { initPanelCollapse } from "./panel-collapse.js";
@@ -914,8 +914,14 @@ function showTip(event, d) {
   tip
     .style("display", "block")
     .style("left", `${event.clientX + 14}px`)
-    .style("top", `${event.clientY + 12}px`)
-    .html(`<span class="tip-type">${type}</span><div>${label}</div>`);
+    .style("top", `${event.clientY + 12}px`);
+  // title/content/event_type 来自记忆数据（LLM/工具写入），textContent 避免 .html() 注入 XSS
+  const typeEl = document.createElement("span");
+  typeEl.className = "tip-type";
+  typeEl.textContent = String(type);
+  const labelEl = document.createElement("div");
+  labelEl.textContent = String(label);
+  tip.node().replaceChildren(typeEl, labelEl);
 }
 
 function markCore() {
@@ -2440,7 +2446,8 @@ function connectSSE() {
   let lastEventId = "";
   try { lastEventId = sessionStorage.getItem(SSE_LAST_EVENT_KEY) || ""; } catch {}
   if (lastEventId) eventsUrl.searchParams.set("last_event_id", lastEventId);
-  const es = new EventSource(eventsUrl);
+  // EventSource cannot send Authorization; LAN gate accepts ?token=.
+  const es = new EventSource(withApiToken(eventsUrl.toString()));
 
   es.onopen = () => {
     setConnectionState(t("runtime.connected"), true);

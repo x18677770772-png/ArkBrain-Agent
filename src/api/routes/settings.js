@@ -32,7 +32,7 @@ import {
 } from '../../config.js'
 import { refreshScheduler } from '../../control.js'
 import { EMBEDDING_PROVIDER_PRESETS } from '../../config.js'
-import { TTS_PROVIDERS, TTS_VOICES } from '../../voice/tts-providers.js'
+import { TTS_PROVIDERS, TTS_VOICES, clearTTSCredentialInvalid } from '../../voice/tts-providers.js'
 import { getAgentName, validateAgentName } from '../agent.js'
 import { jsonResponse, readJsonBody } from '../utils.js'
 import { setConfig } from '../../db.js'
@@ -336,6 +336,8 @@ export async function handleSettingsRoutes(req, res, url, { requireLocalOrToken,
     try {
       const body = await readJsonBody(req)
       setTTSConfig(body)
+      // 用户改写语音配置后解除会话级 401/403 熔断，允许立即重试新凭证
+      clearTTSCredentialInvalid()
       jsonResponse(res, 200, { ok: true, tts: getTTSConfig() })
     } catch (err) {
       jsonResponse(res, 400, { ok: false, error: err.message })

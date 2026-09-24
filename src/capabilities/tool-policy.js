@@ -167,10 +167,20 @@ export function isDangerousShellCommand(command) {
   const reasons = []
   if (config.security?.execSandbox !== false) {
     if (/(^|[\s"'`])\.\.([\\/]|$)/.test(text)) reasons.push('command references a parent directory')
-    if (/(^|[\s"'`])[a-z]:[\\/]/i.test(text) || /(^|[\s"'`])[\\/]{2}[^\\/]/.test(text)) reasons.push('command references an absolute filesystem path')
+    // Windows drive letters, UNC //server shares, and POSIX absolute paths
+    // (a single leading-or-delimited / that is not the start of //server).
+    if (
+      /(^|[\s"'`])[a-z]:[\\/]/i.test(text)
+      || /(^|[\s"'`])[\\/]{2}[^\\/]/.test(text)
+      || /(^|[\s"'`=])\/(?![\/])/.test(text)
+    ) reasons.push('command references an absolute filesystem path')
     if (/(^|[\s"'`])~([\\/]|$)/.test(text) || /\$(home|env:userprofile)\b/i.test(text) || /%userprofile%/i.test(text)) reasons.push('command references the user home directory')
     if (/\bgit\s+reset\s+--hard\b/i.test(text) || /\bgit\s+clean\b/i.test(text)) reasons.push('command can destructively rewrite the worktree')
     if (/\b(format|diskpart|shutdown)\b/i.test(text)) reasons.push('command is system-level destructive or disruptive')
+    if (/\brm\s+(?:-[a-zA-Z]*[rR][a-zA-Z]*[fF]|-[a-zA-Z]*[fF][a-zA-Z]*[rR])\b/.test(text)) reasons.push('recursive force delete (rm -rf) detected')
+    if (/\bdd\b[^\n]*\bof=/.test(text)) reasons.push('raw disk write (dd of=) detected')
+    if (/\bmkfs(?:\.\w+)?\b/i.test(text)) reasons.push('filesystem format (mkfs) detected')
+    if (/\bshred\b/i.test(text)) reasons.push('secure wipe (shred) detected')
     if (/Remove-Item\b.*-Recurse|-Recurse\b.*Remove-Item/i.test(text)) reasons.push('recursive delete (Remove-Item -Recurse) detected')
     if (/\brd\s+\/s\b/i.test(text)) reasons.push('recursive directory delete (rd /s) detected')
     if (/\bInvoke-Expression\b|\biex\s/i.test(text)) reasons.push('dynamic code execution via Invoke-Expression detected')

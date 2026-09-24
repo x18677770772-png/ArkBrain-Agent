@@ -440,9 +440,16 @@ export function initMediaModes() {
   function loadLrc(lrcText) {
     lrcLines = lrcText ? parseLrc(lrcText) : [];
     if (musicLyricsScroll) {
-      musicLyricsScroll.innerHTML = lrcLines
-        .map((l, i) => `<div class="lrc-line" data-idx="${i}">${l.text}</div>`)
-        .join("");
+      // 歌词来自工具/外部抓取，禁止拼进 innerHTML；textContent 避免 LRC 注入 XSS
+      const fragment = document.createDocumentFragment();
+      lrcLines.forEach((l, i) => {
+        const row = document.createElement("div");
+        row.className = "lrc-line";
+        row.dataset.idx = String(i);
+        row.textContent = l.text;
+        fragment.appendChild(row);
+      });
+      musicLyricsScroll.replaceChildren(fragment);
     }
     if (musicNoLyrics) musicNoLyrics.hidden = lrcLines.length > 0;
   }

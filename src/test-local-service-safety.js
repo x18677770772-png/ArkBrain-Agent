@@ -113,4 +113,31 @@ const finiteCommand = analyzeLocalServiceCommand('node build.js', {
 })
 assert.equal(finiteCommand.is_service, false, 'ordinary finite commands are untouched')
 
+const jupyterAllIface = analyzeLocalServiceCommand('jupyter notebook --ip=0.0.0.0', {
+  cwd: sandboxProject,
+  currentUserMessage: '本机打开 notebook',
+})
+assert.equal(jupyterAllIface.blocked, true, 'jupyter --ip=0.0.0.0 is parsed as all-interface bind')
+assert.equal(jupyterAllIface.code, 'NETWORK_SERVICE_NOT_REQUESTED')
+
+const sensitiveUnknownBind = analyzeLocalServiceCommand('jupyter notebook', {
+  cwd: sandboxProject,
+  currentUserMessage: '跑个 notebook',
+})
+assert.equal(sensitiveUnknownBind.blocked, true, 'sensitive service with unknown bind fails closed')
+
+const devUnknownBind = analyzeLocalServiceCommand('npm run dev', {
+  cwd: sandboxProject,
+  currentUserMessage: '运行这个前端项目测试一下',
+})
+assert.equal(devUnknownBind.blocked, false, 'ordinary dev server with unknown bind stays allowed')
+assert(devUnknownBind.warnings.some(item => /bind host is unknown/i.test(item)),
+  'unknown bind still warns for non-sensitive dev servers')
+
+const literalAllIface = analyzeLocalServiceCommand('node my-server.js --port 8080 # listen 0.0.0.0', {
+  cwd: sandboxProject,
+  currentUserMessage: '启动本地服务',
+})
+assert.equal(literalAllIface.blocked, true, 'literal 0.0.0.0 in command counts as all-interface exposure')
+
 console.log('test-local-service-safety passed')

@@ -8,7 +8,6 @@ const DEFAULT_REFRESH_MINUTES = 30
 const HOTSPOT_CONTEXT_TTL_MINUTES = 60
 const DEFAULT_TIMEOUT_MS = 10000
 const USER_AGENT = 'Bailongma/1.0 (+https://localhost)'
-const PUBLIC_HOTDATA_API_KEY = 'zIisgRZJLLXgqKCwBirNLegtNNRuL70eBsbHXPxEBWU='
 
 const PLATFORM_ORDER = ['douyin', 'xiaohongshu', 'wechat', 'weibo']
 const PLATFORM_LABELS = {
@@ -87,7 +86,7 @@ function readHotspotConfig() {
       token: String(stored.tikhubToken || process.env.TIKHUB_TOKEN || process.env.HOTSPOT_TIKHUB_TOKEN || '').trim(),
     },
     hotdata: {
-      key: String(stored.hotdataApiKey || process.env.HOTDATA_API_KEY || PUBLIC_HOTDATA_API_KEY || '').trim(),
+      key: String(stored.hotdataApiKey || process.env.HOTDATA_API_KEY || '').trim(),
     },
     wechat: {
       url: String(stored.customWechatUrl || process.env.HOTSPOT_WECHAT_URL || '').trim(),
@@ -444,7 +443,9 @@ async function fetchXiaohongshu(config) {
   const providers = []
   if (config.xiaohongshu.url) providers.push(() => fetchCustomPlatform('xiaohongshu', config.xiaohongshu.url))
   if (config.xiaohongshu.token) providers.push(() => fetchTikhubXiaohongshu(config))
-  if (config.provider === 'auto' || config.provider === 'hotdata') providers.push(() => fetchHotData('xiaohongshu', 'xiaohongshu', config.hotdata.key))
+  if ((config.provider === 'auto' || config.provider === 'hotdata') && config.hotdata.key) {
+    providers.push(() => fetchHotData('xiaohongshu', 'xiaohongshu', config.hotdata.key))
+  }
   return runProviders(providers, '小红书实时源未配置')
 }
 
@@ -452,7 +453,9 @@ async function fetchWechat(config) {
   const providers = []
   if (config.wechat.url) providers.push(() => fetchCustomPlatform('wechat', config.wechat.url))
   if (config.wechat.tianapiKey) providers.push(() => fetchTianapi('wechat', 'wxhottopic', config.wechat.tianapiKey))
-  if (config.provider === 'auto' || config.provider === 'hotdata') providers.push(() => fetchHotData('wechat', 'wxhottopic', config.hotdata.key))
+  if ((config.provider === 'auto' || config.provider === 'hotdata') && config.hotdata.key) {
+    providers.push(() => fetchHotData('wechat', 'wxhottopic', config.hotdata.key))
+  }
   return runProviders(providers, '微信热点实时源未配置')
 }
 
@@ -460,7 +463,9 @@ async function fetchWeibo(config) {
   const providers = []
   if (config.weibo.url) providers.push(() => fetchCustomPlatform('weibo', config.weibo.url))
   if (config.weibo.tianapiKey) providers.push(() => fetchTianapi('weibo', 'weibohot', config.weibo.tianapiKey))
-  if (config.provider === 'auto' || config.provider === 'hotdata') providers.push(() => fetchHotData('weibo', 'weibohot', config.hotdata.key))
+  if ((config.provider === 'auto' || config.provider === 'hotdata') && config.hotdata.key) {
+    providers.push(() => fetchHotData('weibo', 'weibohot', config.hotdata.key))
+  }
   if (config.provider === 'auto' || config.provider === 'xxapi') providers.push(() => fetchXxapi('weibo', 'weibohot'))
   return runProviders(providers, '微博热搜实时源未配置')
 }

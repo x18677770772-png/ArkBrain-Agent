@@ -405,6 +405,9 @@
 <script>
 // ═══ 国旗：中文队名 → flagcdn 代码（未命中退直播吧队徽，再失败隐藏） ═══════════
 
+// 外部数据（直播吧/qiumibao）拼进 innerHTML 前必须转义（与 typhoon-broadcast.html 一致）
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
 const FLAG_CODES = {
   阿根廷:'ar', 法国:'fr', 巴西:'br', 德国:'de', 西班牙:'es', 英格兰:'gb-eng', 葡萄牙:'pt',
   荷兰:'nl', 日本:'jp', 韩国:'kr', 墨西哥:'mx', 南非:'za', 捷克:'cz', 加拿大:'ca',
@@ -424,7 +427,7 @@ function flagImg(team, fallbackLogo = '', cls = 'flag') {
   const code = FLAG_CODES[team];
   const src = code ? `https://flagcdn.com/w160/${code}.png` : fallbackLogo;
   if (!src) return '';
-  return `<img class="${cls}" src="${src}" alt="${team}" onerror="this.style.display='none'">`;
+  return `<img class="${cls}" src="${esc(src)}" alt="${esc(team)}" onerror="this.style.display='none'">`;
 }
 
 // ═══ 演示数据（仅在后端不可达、或板块无真实数据源时使用） ═══════════════════════
@@ -537,22 +540,22 @@ function renderHero(focus) {
   if (!focus) { $('hero').innerHTML = '<div class="empty-note">暂无比赛数据</div>'; return; }
   const banner = focus.status === 'live' ? '正在进行' : (focus.status === 'finished' ? '最近赛果' : '即将开始');
   const mid = focus.score
-    ? `<div class="hero-score">${focus.score.home}<i>:</i>${focus.score.away}</div>`
+    ? `<div class="hero-score">${esc(focus.score.home)}<i>:</i>${esc(focus.score.away)}</div>`
     : `<div class="hero-score" style="font-size:84px;letter-spacing:.18em">VS</div>`;
-  const scorer = (s) => `<div class="scorer"><span class="ball"></span><b>${s.min}'</b>&nbsp;${s.name}</div>`;
+  const scorer = (s) => `<div class="scorer"><span class="ball"></span><b>${esc(s.min)}'</b>&nbsp;${esc(s.name)}</div>`;
   // 进球名单只有演示焦点才有（真数据待详情页解析）；真数据展示开球时间+转播渠道
   const foot = (focus.scorersHome || focus.scorersAway)
     ? `<div class="scorer-col">${(focus.scorersHome || []).map(scorer).join('')}</div>
        <div class="scorer-col r">${(focus.scorersAway || []).map(scorer).join('')}</div>`
-    : `<div class="hero-meta">开球：${focus.time || '--'}（北京时间）${focus.channels ? ` · 转播：${focus.channels}` : ''}</div>`;
+    : `<div class="hero-meta">开球：${esc(focus.time || '--')}（北京时间）${focus.channels ? ` · 转播：${esc(focus.channels)}` : ''}</div>`;
 
   $('hero').innerHTML = `
     <div class="hero-banner">${banner}</div>
-    <div class="hero-stage">${focus.league || ''}</div>
+    <div class="hero-stage">${esc(focus.league || '')}</div>
     <div class="hero-row">
-      <div class="hero-team"><div class="hero-team-cn">${focus.home}</div>${flagImg(focus.home, focus.homeLogo)}</div>
+      <div class="hero-team"><div class="hero-team-cn">${esc(focus.home)}</div>${flagImg(focus.home, focus.homeLogo)}</div>
       <div class="hero-mid">${mid}<div class="hero-clock" id="hero-clock">--</div></div>
-      <div class="hero-team"><div class="hero-team-cn">${focus.away}</div>${flagImg(focus.away, focus.awayLogo)}</div>
+      <div class="hero-team"><div class="hero-team-cn">${esc(focus.away)}</div>${flagImg(focus.away, focus.awayLogo)}</div>
     </div>
     <div class="hero-foot">${foot}</div>
     ${focus.status === 'live' ? '<div class="hero-live">· LIVE</div>' : ''}`;
@@ -597,14 +600,14 @@ function renderStandings(standings) {
   }
   $('stats-body').innerHTML = `<div class="grp-wrap">${groups.map((g) => `
     <div>
-      <div class="grp-name">${g} 组</div>
+      <div class="grp-name">${esc(g)} 组</div>
       <table class="grp-table">
         <thead><tr><th>球队</th><th>赛</th><th>胜平负</th><th>净</th><th>分</th></tr></thead>
         <tbody>${standings[g].map((r) => `
           <tr>
-            <td><span class="tm">${flagImg(r.team, r.logo)}${r.team}</span></td>
-            <td>${r.played}</td><td>${r.won}-${r.drawn}-${r.lost}</td>
-            <td>${r.gd > 0 ? '+' : ''}${r.gd}</td><td class="pts">${r.pts}</td>
+            <td><span class="tm">${flagImg(r.team, r.logo)}${esc(r.team)}</span></td>
+            <td>${esc(r.played)}</td><td>${esc(r.won)}-${esc(r.drawn)}-${esc(r.lost)}</td>
+            <td>${r.gd > 0 ? '+' : ''}${esc(r.gd)}</td><td class="pts">${esc(r.pts)}</td>
           </tr>`).join('')}</tbody>
       </table>
     </div>`).join('')}</div>`;
@@ -642,12 +645,12 @@ function renderOthers(list, aux) {
   }
   $('others-list').innerHTML = list.map((m) => {
     const mid = m.score
-      ? `${m.score.home} - ${m.score.away}`
-      : hm(m.time);
+      ? `${esc(m.score.home)} - ${esc(m.score.away)}`
+      : esc(hm(m.time));
     return `<div class="other-row">
-      ${flagImg(m.home, m.homeLogo)}<span class="name">${m.home}</span>
+      ${flagImg(m.home, m.homeLogo)}<span class="name">${esc(m.home)}</span>
       <span class="other-score">${mid}</span>
-      <span class="name r">${m.away}</span>${flagImg(m.away, m.awayLogo)}
+      <span class="name r">${esc(m.away)}</span>${flagImg(m.away, m.awayLogo)}
     </div>`;
   }).join('');
 }
@@ -666,18 +669,18 @@ function renderSchedule(rows, { title, dateText }) {
       ? '<span class="st-live">进行中</span>'
       : (m.status === 'finished' ? '<span class="st-done">已结束</span>' : '');
     const mid = m.score
-      ? `<span class="vs score">${m.score.home} - ${m.score.away}</span>`
+      ? `<span class="vs score">${esc(m.score.home)} - ${esc(m.score.away)}</span>`
       : '<span class="vs">VS</span>';
     return `<div class="sched-row ${m.status === 'live' ? 'live' : ''}">
       <div class="sched-time">
-        <b>${isToday(m.startMs) ? hm(m.time) : `${md(m.time)} ${hm(m.time)}`}</b>
+        <b>${isToday(m.startMs) ? esc(hm(m.time)) : `${esc(md(m.time))} ${esc(hm(m.time))}`}</b>
         ${statusLine}
-        <span>${(m.league || '').replace('世界杯', '')}</span>
+        <span>${esc((m.league || '').replace('世界杯', ''))}</span>
       </div>
       <div class="sched-vs">
-        <div class="sched-side">${flagImg(m.home, m.homeLogo)}<span>${m.home}</span></div>
+        <div class="sched-side">${flagImg(m.home, m.homeLogo)}<span>${esc(m.home)}</span></div>
         ${mid}
-        <div class="sched-side">${flagImg(m.away, m.awayLogo)}<span>${m.away}</span></div>
+        <div class="sched-side">${flagImg(m.away, m.awayLogo)}<span>${esc(m.away)}</span></div>
       </div>
     </div>`;
   }).join('');
@@ -696,15 +699,15 @@ function renderBottomRight(vm) {
   }
   $('br-body').innerHTML = rows.map((m) => {
     const mid = m.score
-      ? `<span class="mid">${m.score.home} - ${m.score.away}</span>`
+      ? `<span class="mid">${esc(m.score.home)} - ${esc(m.score.away)}</span>`
       : '<span class="mid vs">VS</span>';
     return `<div class="res-row">
-      <span class="when">${md(m.time)} ${hm(m.time)}</span>
-      <span class="stage">${m.league || ''}</span>
+      <span class="when">${esc(md(m.time))} ${esc(hm(m.time))}</span>
+      <span class="stage">${esc(m.league || '')}</span>
       <div class="pair">
-        <div class="side r">${flagImg(m.home, m.homeLogo)}<span>${m.home}</span></div>
+        <div class="side r">${flagImg(m.home, m.homeLogo)}<span>${esc(m.home)}</span></div>
         ${mid}
-        <div class="side">${flagImg(m.away, m.awayLogo)}<span>${m.away}</span></div>
+        <div class="side">${flagImg(m.away, m.awayLogo)}<span>${esc(m.away)}</span></div>
       </div>
     </div>`;
   }).join('');
@@ -745,9 +748,9 @@ function eventCell(e, focus) {
   }
   return `
     <div class="event-cell">
-      <div class="event-top">${eventIcon(kind)} ${e.min}'</div>
-      <div class="event-main ${kind === 'goal' ? 'goal' : ''}">${main}</div>
-      ${sub ? `<div class="event-sub">${sub}</div>` : ''}
+      <div class="event-top">${eventIcon(kind)} ${esc(e.min)}'</div>
+      <div class="event-main ${kind === 'goal' ? 'goal' : ''}">${esc(main)}</div>
+      ${sub ? `<div class="event-sub">${esc(sub)}</div>` : ''}
     </div>`;
 }
 
@@ -766,15 +769,15 @@ function renderEvents() {
   $('events-aux').textContent = '';
   $('events-strip').innerHTML = DEMO_EVENTS.map((e) => `
     <div class="event-cell">
-      <div class="event-top">${eventIcon(e.type)} ${e.min}'</div>
-      <div class="event-main ${e.type === 'goal' ? 'goal' : ''}">${e.main}</div>
-      ${e.sub ? `<div class="event-sub">${e.sub}</div>` : ''}
+      <div class="event-top">${eventIcon(e.type)} ${esc(e.min)}'</div>
+      <div class="event-main ${e.type === 'goal' ? 'goal' : ''}">${esc(e.main)}</div>
+      ${e.sub ? `<div class="event-sub">${esc(e.sub)}</div>` : ''}
     </div>`).join('');
 }
 
 function renderNews(items) {
   const list = items.length ? items : DEMO.news.map((t) => ({ title: t }));
-  const html = list.map((n) => `<span class="news-item">${n.title || n}</span>`).join('<span class="news-sep">|</span>');
+  const html = list.map((n) => `<span class="news-item">${esc(n.title || n)}</span>`).join('<span class="news-sep">|</span>');
   $('news-track').innerHTML = html + '<span class="news-sep">|</span>' + html + '<span class="news-sep">|</span>';
 }
 

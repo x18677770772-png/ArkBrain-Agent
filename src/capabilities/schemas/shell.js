@@ -45,13 +45,15 @@ export const shellSchemas = {
     type: 'function',
     function: {
       name: 'download_file',
-      description: 'Download a URL to a local file using structured parameters instead of shelling out through curl, wget, Invoke-WebRequest, or Start-BitsTransfer. This is better for downloads because timeout, redirects, sandbox path checks, parent directory creation, progress events, and file existence verification are handled by the runtime. During long downloads the runtime emits download_start/download_progress/download_complete events that can notify the agent/UI; the final result includes bytes, bytes_human, elapsed_ms, and a progress snapshot.',
+      description: 'Download a URL to a local file using structured parameters instead of shelling out through curl, wget, Invoke-WebRequest, or Start-BitsTransfer. This is better for downloads because timeout, redirects, sandbox path checks, parent directory creation, progress events, and file existence verification are handled by the runtime. Existing output files are rejected by default: pass if_exists="overwrite" to replace one on purpose (same contract as write_file). During long downloads the runtime emits download_start/download_progress/download_complete events that can notify the agent/UI; the final result includes bytes, bytes_human, elapsed_ms, and a progress snapshot.',
       parameters: {
         type: 'object',
         properties: {
           url: { type: 'string', description: 'HTTP or HTTPS URL to download.' },
           output_path: { type: 'string', description: 'Destination file path. Relative paths are resolved inside the sandbox; absolute paths require the file sandbox to be disabled.' },
-          timeout: { type: 'number', description: 'Timeout in seconds, default 120, max 120.' }
+          timeout: { type: 'number', description: 'Timeout in seconds, default 120, max 120.' },
+          if_exists: { type: 'string', enum: ['error', 'overwrite'], description: 'What to do when output_path already exists. Default "error" rejects the download and never overwrites; pass "overwrite" to replace the existing file explicitly.' },
+          expected_sha256: { type: 'string', description: 'Optional 64-character hex SHA-256 of the existing output file. When set and the file exists, the download is refused unless the current content still matches (optimistic concurrency guard for overwrite).' }
         },
         required: ['url', 'output_path']
       }

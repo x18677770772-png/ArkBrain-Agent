@@ -75,7 +75,8 @@ function hostFromEndpoint(value = '') {
 
 function extractHost(command) {
   const text = String(command || '')
-  const optionHost = optionValue(text, ['--host', '--hostname', '--bind', '-b', '-H', '-a'])
+  // --ip (Jupyter), --addr/--address cover common framework bind aliases.
+  const optionHost = optionValue(text, ['--host', '--hostname', '--bind', '-b', '-H', '-a', '--ip', '--addr', '--address'])
   if (optionHost) return hostFromEndpoint(optionHost)
   if (/(?:^|\s)--host(?=\s*(?:$|[;&|]))/i.test(text)) return '0.0.0.0'
   const php = text.match(/\bphp\s+-S\s+([^\s:]+)(?::\d+)?/i)
@@ -130,14 +131,20 @@ export function analyzeLocalServiceCommand(command, {
   const isService = isTunnel || LOCAL_SERVICE_RE.test(text)
   if (!isService) return { is_service: false, blocked: false }
 
-  const host = extractHost(text)
-  const bind = classifyHost(host)
+  let host = extractHost(text)
+  let bind = classifyHost(host)
+  // Literal all-interface bind embedded outside parsed options (custom scripts).
+  if (bind === 'unknown' && /\b0\.0\.0\.0\b/.test(text)) {
+    host = '0.0.0.0'
+    bind = 'all_interfaces'
+  }
   const staticRoot = STATIC_SERVER_RE.test(text) ? extractStaticRoot(text, cwd) : ''
   const broadRoot = staticRoot ? broadRootLabel(staticRoot) : ''
   const lanAuthorized = LAN_INTENT_RE.test(userText) || PUBLIC_INTENT_RE.test(userText)
   const publicAuthorized = PUBLIC_INTENT_RE.test(userText)
   const broadShareAuthorized = BROAD_SHARE_INTENT_RE.test(userText)
   const warnings = []
+  const isSensitiveService = SENSITIVE_SERVICE_RE.test(text)
 
   let blocked = false
   let code = ''
@@ -156,6 +163,12 @@ export function analyzeLocalServiceCommand(command, {
     hint = /\bpython3?\s+-m\s+http\.server\b/i.test(text)
       ? 'Bind the preview explicitly with --bind 127.0.0.1 and run it from a dedicated sandbox project directory.'
       : 'Bind the development service to 127.0.0.1/localhost. Use LAN exposure only when the user asks another device to connect.'
+  } else if (bind === 'unknown' && isSensitiveService && !lanAuthorized) {
+    // Sensitive service with an unparsed bind: fail closed rather than assume loopback.
+    blocked = true
+    code = 'NETWORK_SERVICE_NOT_REQUESTED'
+    reason = 'the service bind host is unknown and the command looks sensitive; refusing to assume it stays on loopback'
+    hint = 'Bind the service explicitly to 127.0.0.1/localhost and verify it does not listen on 0.0.0.0.'
   } else if (broadRoot && !broadShareAuthorized) {
     blocked = true
     code = 'SERVICE_ROOT_TOO_BROAD'
@@ -169,8 +182,11 @@ export function analyzeLocalServiceCommand(command, {
   if (!blocked && broadRoot) {
     warnings.push(`broad static root explicitly requested by the user: ${broadRoot}`)
   }
-  if (!blocked && SENSITIVE_SERVICE_RE.test(text) && bind !== 'loopback' && bind !== 'unknown') {
+  if (!blocked && isSensitiveService && bind !== 'loopback' && bind !== 'unknown') {
     warnings.push('this is a sensitive service exposed beyond loopback; verify its authentication and intended audience')
+  }
+  if (!blocked && bind === 'unknown') {
+    warnings.push('bind host is unknown; verify the command does not listen on 0.0.0.0')
   }
 
   return {

@@ -14,7 +14,7 @@ import {
   listApiSlotCapabilities,
   saveKimiVisionDocs,
 } from './capabilities/api-slots.js'
-import { execAnalyzeImage, execManageApiCapability } from './capabilities/tools/api-capability.js'
+import { execAnalyzeImage, execManageApiCapability, resolveLocalImagePath } from './capabilities/tools/api-capability.js'
 import { execRunApiCapability } from './capabilities/tools/api-capability.js'
 import { capabilityContextBlocks, capabilityToolsFor, findCapabilitiesByQuery } from './capabilities/capability-registry.js'
 import { paths } from './paths.js'
@@ -54,6 +54,15 @@ function parseJson(value) {
 }
 
 try {
+  // resolveLocalImagePath must confine local refs to sandbox/ + data/media/
+  assert(resolveLocalImagePath('/etc/hosts.png') === '', 'resolveLocalImagePath rejects absolute path outside sandbox')
+  assert(resolveLocalImagePath('file:///etc/hosts.png') === '', 'resolveLocalImagePath rejects file:// outside sandbox')
+  assert(resolveLocalImagePath('../../../x.png') === '', 'resolveLocalImagePath rejects ../ escape from sandbox')
+  assert(
+    resolveLocalImagePath(path.join(paths.sandboxDir, 'ok.png')) === path.join(paths.sandboxDir, 'ok.png'),
+    'resolveLocalImagePath allows path inside sandbox',
+  )
+
   fs.rmSync(paths.apiCapabilitySlotsFile, { force: true })
   fs.rmSync(paths.apiCapabilitySecretsFile, { force: true })
   fs.rmSync(paths.apiCapabilitySecretKeyFile, { force: true })

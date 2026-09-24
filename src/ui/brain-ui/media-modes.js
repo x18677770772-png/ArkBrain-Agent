@@ -1,4 +1,4 @@
-import { API } from "./api-client.js";
+import { API, withApiToken } from "./api-client.js";
 import { moveVoicePanelToBody, restoreVoicePanel, toggleHotspot } from "./hotspot.js";
 import { shouldHandlePttKeyEvent } from "./voice-ptt.js";
 
@@ -43,7 +43,7 @@ export function initMediaModes() {
     }
     const filename = resolved.split(/[\\/]/).filter(Boolean).pop() || "";
     if (!filename) return s;
-    return "/media/music/" + encodeURIComponent(filename);
+    return withApiToken("/media/music/" + encodeURIComponent(filename));
   }
 
   function extractYoutubeId(url) {
@@ -450,9 +450,16 @@ export function initMediaModes() {
   function loadLrc(lrcText) {
     lrcLines = lrcText ? parseLrc(lrcText) : [];
     if (musicLyricsScroll) {
-      musicLyricsScroll.innerHTML = lrcLines
-        .map((l, i) => `<div class="lrc-line" data-idx="${i}">${l.text}</div>`)
-        .join("");
+      // 歌词来自工具/外部抓取，禁止拼进 innerHTML；textContent 避免 LRC 注入 XSS
+      const fragment = document.createDocumentFragment();
+      lrcLines.forEach((l, i) => {
+        const row = document.createElement("div");
+        row.className = "lrc-line";
+        row.dataset.idx = String(i);
+        row.textContent = l.text;
+        fragment.appendChild(row);
+      });
+      musicLyricsScroll.replaceChildren(fragment);
     }
     if (musicNoLyrics) musicNoLyrics.hidden = lrcLines.length > 0;
   }
@@ -613,7 +620,23 @@ export function initMediaModes() {
     }
   });
 
-  window.bailongmaMedia = { handle: handleMediaCommand, showVideo, controlVideo, showImage, showCamera, showMusic, controlMusic };
+  // 其他全屏模式（热点/世界杯/台风）打开时调用：真正关停媒体，
+  // 而不是只删 body class——否则音乐继续播、摄像头轨不 stop、
+  // voice-panel 收不到 bailongma:music-mode/video-mode {active:false} 无法 resume。
+  // close 路径内部已 setPanelVisible/setMusicPanelVisible(false) 并派发事件，无需手动再发。
+  function closeAllMediaModes() {
+    if (document.body.classList.contains("video-mode")) {
+      try { controlVideo({ action: "close" }); } catch {}
+    }
+    if (document.body.classList.contains("image-mode")) {
+      try { handleMediaCommand({ mode: "image", action: "close" }); } catch {}
+    }
+    if (document.body.classList.contains("music-mode")) {
+      try { controlMusic({ action: "close" }); } catch {}
+    }
+  }
+
+  window.bailongmaMedia = { handle: handleMediaCommand, showVideo, controlVideo, showImage, showCamera, showMusic, controlMusic, closeAllMediaModes };
   window.addEventListener("bailongma:media", (event) => handleMediaCommand(event.detail || {}));
 
   // Push-to-talk：按住空格说话；Agent 正在说话时按下空格直接打断

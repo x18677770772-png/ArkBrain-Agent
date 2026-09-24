@@ -111,11 +111,9 @@ export function setWorldcupMode(visible, { source = 'brain-ui' } = {}) {
     // 取消可能还在等退场动画的卸载（快速关了又开）
     if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; }
     cancelBackgroundRelease();
-    // 与其他全屏模式互斥
+    // 与其他全屏模式互斥——真正关停媒体（停音轨/摄像头并派发事件），而非只删 class
     setHotspotMode(false, { source: 'worldcup_open' });
-    for (const mode of ['video-mode', 'image-mode', 'music-mode']) {
-      document.body.classList.remove(mode);
-    }
+    window.bailongmaMedia?.closeAllMediaModes?.();
     if (frame) frame.src = FRAME_SRC;   // 重新加载即重播出场动画
     // 语音球+识别文字并入右下角悬浮聊天窗顶部一行（CSS 见 body.worldcup-mode .console）
     moveVoicePanel(document.getElementById('chat-area'), { prepend: true });

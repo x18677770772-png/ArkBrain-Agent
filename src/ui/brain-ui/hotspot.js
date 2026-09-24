@@ -163,6 +163,11 @@ const earthLifecycle = new HotspotEarthLifecycle({
 const TREND_ICONS = { up: '↑', down: '↓', same: '—' };
 const TREND_CLASSES = { up: 'hs-trend-up', down: 'hs-trend-dn', same: 'hs-trend-same' };
 
+// 外部热榜标题/热度不可信，拼进 innerHTML 前必须转义（防投毒数据源 XSS）
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function renderList(listId, items, style = 'heat') {
   const ul = $(listId);
   if (!ul) return;
@@ -181,11 +186,11 @@ function renderList(listId, items, style = 'heat') {
     const trendCls  = TREND_CLASSES[trend] || '';
     const newBadge  = isNew ? `<span class="hs-new-badge">${t('hotspot.new')}</span>` : '';
     const heatLabel = style === 'heat'
-      ? `<span class="hs-heat">${heat}</span>`
-      : `<span class="hs-label-badge">${heat}</span>`;
+      ? `<span class="hs-heat">${escapeHtml(heat)}</span>`
+      : `<span class="hs-label-badge">${escapeHtml(heat)}</span>`;
     return `<li class="hs-item">
       <span class="hs-rank ${rankCls}">${rank}</span>
-      <span class="hs-item-text">${text}${newBadge}</span>
+      <span class="hs-item-text">${escapeHtml(text)}${newBadge}</span>
       ${heatLabel}
       <span class="hs-trend ${trendCls}">${trendIcon}</span>
     </li>`;
@@ -423,13 +428,10 @@ export function setHotspotMode(visible, { source = 'brain-ui' } = {}) {
     earthLifecycle.close();
     restoreVoicePanel();
   } else {
-    // 关闭其他媒体模式（互斥）
-    if (document.body.classList.contains('video-mode'))
-      document.body.classList.remove('video-mode');
-    if (document.body.classList.contains('image-mode'))
-      document.body.classList.remove('image-mode');
-    if (document.body.classList.contains('music-mode'))
-      document.body.classList.remove('music-mode');
+    // 关闭其他媒体模式（互斥）——经 bailongmaMedia 真正关停（停音乐/摄像头并派发事件），
+    // 而不是只删 body class（那样音乐继续播、摄像头灯亮、语音 suspend 无法 resume）。
+    // 不能直接 import media-modes（会循环依赖），只经 window.bailongmaMedia。
+    window.bailongmaMedia?.closeAllMediaModes?.();
 
     setPanelVisible(true, source);
     // 同步进入 loading/ready，保证热点面板第一次可见绘制时中央区域已有反馈。

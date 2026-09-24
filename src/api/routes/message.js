@@ -115,7 +115,9 @@ export async function handleMessageRoutes(req, res, url) {
 
   let claim = null
   try {
-    const body = await readJsonBody(req)
+    // Cap body size so a single large POST cannot OOM the process. Room for
+    // up to MAX_INBOUND_CHAT_MEDIA inline data-URL attachments (~16MB JSON).
+    const body = await readJsonBody(req, { maxBytes: 16 * 1024 * 1024 })
     const { from_id = 'ID:000001', content = '', channel = 'API' } = body
     const trimmed = String(content || '').trim()
     const enhanced = appendInboundChatMediaMarkdown(trimmed, body)
@@ -186,7 +188,7 @@ export async function handleMessageRoutes(req, res, url) {
     })
   } catch (e) {
     if (claim?.claimed && claim.key) recentInboundMessages.delete(claim.key)
-    jsonResponse(res, 400, { error: e.message })
+    jsonResponse(res, e?.statusCode || 400, { error: e.message })
   }
   return true
 }

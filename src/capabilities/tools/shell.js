@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { randomUUID } from 'crypto'
+import { randomUUID, createHash } from 'crypto'
 import { spawn, spawnSync } from 'child_process'
 import { Readable, Transform } from 'stream'
 import { pipeline } from 'stream/promises'
@@ -8,8 +8,9 @@ import { nowTimestamp } from '../../time.js'
 import { emitEvent } from '../../events.js'
 import { config } from '../../config.js'
 import { createMergedAbortSignal, throwIfAborted } from '../abort-utils.js'
-import { SANDBOX_ROOT, assertInSandbox } from '../sandbox.js'
+import { SANDBOX_ROOT, assertInSandbox, isPathInside, resolvePathThroughExistingPrefix } from '../sandbox.js'
 import { analyzeLocalServiceCommand } from '../../runtime/local-service-safety.js'
+import { assertWebUrlAllowed } from './web/url-policy.js'
 import { classifyCommandProfile, resolveProfileTimeout } from './command-profiles.js'
 import { runOnPersistentShell } from './persistent-shell.js'
 
@@ -40,7 +41,7 @@ function shutdownManagedCommandRuns() {
   }
   for (const [pid, entry] of bgProcesses.entries()) {
     if (entry?.status !== 'running') continue
-    try { terminateProcessTree(entry.process, pid) } catch {}
+    try { terminateProcessTree(entry.process, pid, { processGroup: entry.processGroup === true }) } catch {}
   }
 }
 
@@ -107,7 +108,14 @@ function resolveExecCwd(cwdArg) {
   if (!cwdArg) return SANDBOX_ROOT
   if (config.security?.execSandbox === false) return path.resolve(SANDBOX_ROOT, cwdArg)
   const resolved = path.resolve(SANDBOX_ROOT, cwdArg)
-  assertInSandbox(resolved)
+  // exec 边界只看 execSandbox。不能复用 assertInSandbox——它在
+  // fileSandbox===false 时直接放行，会让「关文件沙箱、开 exec 沙箱」的
+  // 组合配置失去 cwd 约束。
+  const physicalRoot = resolvePathThroughExistingPrefix(SANDBOX_ROOT)
+  const physical = resolvePathThroughExistingPrefix(resolved)
+  if (physical !== physicalRoot && !isPathInside(physicalRoot, physical)) {
+    throw new Error(`访问被拒绝：exec 沙箱开启时 cwd 只允许在 sandbox 目录内（${SANDBOX_ROOT}）`)
+  }
   return resolved
 }
 
@@ -705,16 +713,74 @@ function resolveDownloadOutputPath(outputPath) {
   return resolved
 }
 
+function sha256File(filePath) {
+  // Named import: ESM globalThis.crypto is WebCrypto and has no createHash.
+  const hash = createHash('sha256')
+  const fd = fs.openSync(filePath, 'r')
+  try {
+    const buf = Buffer.allocUnsafe(64 * 1024)
+    let bytes
+    while ((bytes = fs.readSync(fd, buf, 0, buf.length, null)) > 0) hash.update(buf.subarray(0, bytes))
+  } finally {
+    fs.closeSync(fd)
+  }
+  return hash.digest('hex')
+}
+
 export async function execDownloadFile(args, context = {}) {
   throwIfAborted(context.signal)
   const url = String(args.url || '').trim()
   if (!/^https?:\/\//i.test(url)) {
     return toolJson({ ok: false, tool: 'download_file', error: 'url must start with http:// or https://' })
   }
+  const allowPrivateNetwork = () => config.security?.browserPrivateNetwork === true
 
   let outputPath
   try {
     outputPath = resolveDownloadOutputPath(args.output_path || args.path)
+  } catch (err) {
+    return toolJson({ ok: false, tool: 'download_file', url, error: err.message })
+  }
+
+  // Same contract as write_file: replacing an existing file must be an
+  // explicit model choice (if_exists="overwrite"), not a silent clobber.
+  const ifExists = String(args.if_exists || 'error').trim().toLowerCase()
+  if (!['overwrite', 'error'].includes(ifExists)) {
+    return toolJson({ ok: false, tool: 'download_file', url, output_path: outputPath, code: 'INVALID_IF_EXISTS', error: 'if_exists must be "overwrite" or "error"' })
+  }
+  const existed = fs.existsSync(outputPath)
+  if (ifExists === 'error' && existed) {
+    return toolJson({
+      ok: false,
+      tool: 'download_file',
+      url,
+      output_path: outputPath,
+      code: 'FILE_EXISTS',
+      error: 'the file already exists; use a new output_path or set if_exists="overwrite" explicitly',
+    })
+  }
+  const expectedSha = String(args.expected_sha256 || '').trim().toLowerCase()
+  if (expectedSha && !/^[a-f0-9]{64}$/.test(expectedSha)) {
+    return toolJson({ ok: false, tool: 'download_file', url, output_path: outputPath, code: 'INVALID_EXPECTED_SHA256', error: 'expected_sha256 must be a 64-character hexadecimal SHA-256 digest' })
+  }
+  if (expectedSha && existed) {
+    const actualSha = sha256File(outputPath)
+    if (actualSha !== expectedSha) {
+      return toolJson({
+        ok: false,
+        tool: 'download_file',
+        url,
+        output_path: outputPath,
+        code: 'CONTENT_CHANGED',
+        error: 'the existing file changed since it was read; read it again before overwriting',
+        expected_sha256: expectedSha,
+        actual_sha256: actualSha,
+      })
+    }
+  }
+
+  try {
+    await assertWebUrlAllowed(url, { allowPrivateNetwork })
   } catch (err) {
     return toolJson({ ok: false, tool: 'download_file', url, error: err.message })
   }
@@ -738,6 +804,21 @@ export async function execDownloadFile(args, context = {}) {
         output_path: outputPath,
         status: res.status,
         error: `download failed with HTTP ${res.status}`,
+      })
+    }
+    // Re-check after redirects so a public URL cannot bounce into a private host.
+    try {
+      await assertWebUrlAllowed(res.url || url, { allowPrivateNetwork })
+    } catch (err) {
+      try { res.body?.cancel?.() } catch {}
+      reporter.fail(`redirect blocked: ${err.message}`)
+      return toolJson({
+        ok: false,
+        tool: 'download_file',
+        url,
+        redirected_to: res.url || '',
+        output_path: outputPath,
+        error: `redirect blocked: ${err.message}`,
       })
     }
 
@@ -865,12 +946,15 @@ async function execCommandImpl(args, context = {}) {
 
 // 注册一个后台进程：挂好输出捕获与退出处理，统一供 execBackground 与前台超时提升复用。
 // seedLines 用于前台提升场景，把超时前已累积的 stdout/stderr 带入后台缓冲，避免丢失。
-function registerBackgroundProcess(child, command, execCwd, seedLines = []) {
+function registerBackgroundProcess(child, command, execCwd, seedLines = [], { processGroup = false } = {}) {
   const pid = child.pid
   const entry = {
     process: child,
     command,
     cwd: execCwd,
+    // Only true when the child was spawned detached (own POSIX process group).
+    // Group-killing a non-detached child would signal the host's group.
+    processGroup,
     startedAt: nowTimestamp(),
     outputLines: seedLines.slice(-BG_OUTPUT_MAX_LINES),
     status: 'running',
@@ -920,7 +1004,10 @@ function pruneBackgroundProcesses() {
 function execBackground(command, execCwd, commandProfile = 'background') {
   const child = spawnShellCommand(command, {
     cwd: execCwd,
-    detached: false,
+    // Mirror startCommandRun: a detached POSIX child gets its own process
+    // group so kill_process can stop the shell and its grandchildren, not
+    // just the intermediate shell.
+    detached: !IS_WIN,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
   child.stdout?.setEncoding('utf8')
@@ -938,7 +1025,7 @@ function execBackground(command, execCwd, commandProfile = 'background') {
     })
   }
 
-  const { pid, entry } = registerBackgroundProcess(child, command, execCwd)
+  const { pid, entry } = registerBackgroundProcess(child, command, execCwd, [], { processGroup: !IS_WIN })
 
   return toolJson({
     ok: true,
@@ -1116,7 +1203,7 @@ export async function execKillProcess(args) {
   }
   // 不在此处删除：terminate 会触发 child 的 exit 事件，由 registerBackgroundProcess
   // 统一标记为 exited 并延时清理，模型仍可在保留期内查到最终状态。
-  const stopped = terminateProcessTree(entry.process, pid)
+  const stopped = terminateProcessTree(entry.process, pid, { processGroup: entry.processGroup === true })
   return toolJson({
     ok: stopped.ok,
     tool: 'kill_process',
