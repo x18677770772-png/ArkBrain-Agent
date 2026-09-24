@@ -8,7 +8,7 @@ const path = require('node:path')
 const { app, BaseWindow, WebContentsView } = require('electron')
 const { CdpNetworkRecorder } = require('./network-diagnostics.cjs')
 
-const testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-network-real-'))
+const testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-network-real-'))
 app.setPath('userData', testRoot)
 
 function listen(server) {
@@ -52,7 +52,7 @@ app.whenReady().then(async () => {
     windowHost = new BaseWindow({ width: 800, height: 600, show: false })
     view = new WebContentsView({
       webPreferences: {
-        partition: `bailongma-network-test-${process.pid}`,
+        partition: `arkbrain-network-test-${process.pid}`,
         sandbox: true,
         contextIsolation: true,
         nodeIntegration: false,
@@ -89,7 +89,7 @@ app.whenReady().then(async () => {
     try { view?.webContents.close() } catch {}
     try { windowHost?.destroy() } catch {}
     try { await new Promise(resolve => server?.close(resolve)) } catch {}
-    if (path.basename(testRoot).startsWith('bailongma-network-real-')) {
+    if (path.basename(testRoot).startsWith('arkbrain-network-real-')) {
       try { fs.rmSync(testRoot, { recursive: true, force: true }) } catch {}
     }
     app.quit()

@@ -10,9 +10,9 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const tempUserDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-web-removal-'))
-process.env.BAILONGMA_USER_DIR = tempUserDir
-process.env.BAILONGMA_RESOURCES_DIR = process.cwd()
+const tempUserDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-web-removal-'))
+process.env.ARKBRAIN_USER_DIR = tempUserDir
+process.env.ARKBRAIN_RESOURCES_DIR = process.cwd()
 
 const LEGACY_WEB_TOOLS = ['web_search', 'web_read', 'fetch_url', 'browser_read']
 const FORBIDDEN_CHROME_TOOLS = [

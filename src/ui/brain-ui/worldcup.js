@@ -80,7 +80,7 @@ function initConsoleCollapse() {
     expandConsole();
     scheduleConsoleCollapse(MESSAGE_PEEK_MS);
   });
-  window.addEventListener('bailongma:chat-pin', (event) => {
+  window.addEventListener('arkbrain:chat-pin', (event) => {
     if (!worldcupActive) return;
     if (event?.detail?.pinned) expandConsole();
     else scheduleConsoleCollapse();
@@ -113,7 +113,7 @@ export function setWorldcupMode(visible, { source = 'brain-ui' } = {}) {
     cancelBackgroundRelease();
     // 与其他全屏模式互斥——真正关停媒体（停音轨/摄像头并派发事件），而非只删 class
     setHotspotMode(false, { source: 'worldcup_open' });
-    window.bailongmaMedia?.closeAllMediaModes?.();
+    window.arkbrainMedia?.closeAllMediaModes?.();
     if (frame) frame.src = FRAME_SRC;   // 重新加载即重播出场动画
     // 语音球+识别文字并入右下角悬浮聊天窗顶部一行（CSS 见 body.worldcup-mode .console）
     moveVoicePanel(document.getElementById('chat-area'), { prepend: true });
@@ -140,7 +140,7 @@ export function setWorldcupMode(visible, { source = 'brain-ui' } = {}) {
     else finishClose();
   }
 
-  window.dispatchEvent(new CustomEvent('bailongma:worldcup-mode', {
+  window.dispatchEvent(new CustomEvent('arkbrain:worldcup-mode', {
     detail: { active: nextVisible },
   }));
   reportWorldcupState(nextVisible, source);
@@ -156,7 +156,7 @@ export async function initWorldcup() {
   initConsoleCollapse();
 
   // 热点面板打开时让位（事件解耦，避免 hotspot.js 反向 import 形成循环）
-  window.addEventListener('bailongma:hotspot-mode', (event) => {
+  window.addEventListener('arkbrain:hotspot-mode', (event) => {
     if (event?.detail?.active && worldcupActive) setWorldcupMode(false, { source: 'hotspot_open' });
   });
 
@@ -168,13 +168,13 @@ export async function initWorldcup() {
     const { phase } = event.data;
     if (phase === 'down') {
       try { window.stopTTS?.(); } catch {}   // 与 app.js PTT 同语义：按下即打断播报
-      window.bailongmaVoice?.pttStart?.();
+      window.arkbrainVoice?.pttStart?.();
       expandConsole();                        // 说话时展开看实时识别文字
     } else if (phase === 'up') {
-      window.bailongmaVoice?.pttEnd?.();
+      window.arkbrainVoice?.pttEnd?.();
       scheduleConsoleCollapse(MESSAGE_PEEK_MS);
     } else if (phase === 'cancel') {
-      window.bailongmaVoice?.pttEnd?.({ send: false });
+      window.arkbrainVoice?.pttEnd?.({ send: false });
       scheduleConsoleCollapse();
     }
   });

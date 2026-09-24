@@ -1,6 +1,6 @@
 'use strict'
 
-const BROWSER_EMBED_PARTITION = 'persist:bailongma-browser'
+const BROWSER_EMBED_PARTITION = 'persist:arkbrain-browser'
 const TRUSTED_GOOGLE_OAUTH_HOSTS = new Set(['accounts.google.com'])
 const configuredSessions = new WeakMap()
 const WINDOWS_CARD_SCROLLBAR_CSS = `
@@ -580,8 +580,8 @@ function createBrowserEmbedHost({
     if (contents.getURL()) return
     if (!rendererReadyPromise) {
       // A unique fragment lets the MCP client distinguish this managed page
-      // from Bailongma's own renderer and other hidden Electron windows.
-      rendererReadyPromise = contents.loadURL(`about:blank#bailongma-browser-${contents.id}`).catch(error => {
+      // from ArkBrain-Agent's own renderer and other hidden Electron windows.
+      rendererReadyPromise = contents.loadURL(`about:blank#arkbrain-browser-${contents.id}`).catch(error => {
         state.loading = false
         state.error = {
           code: 0,
@@ -650,7 +650,7 @@ function createBrowserEmbedHost({
       minWidth: 480,
       minHeight: 360,
       show: false,
-      title: 'Bailongma Browser',
+      title: 'ArkBrain-Agent Browser',
       backgroundColor: '#000000',
       frame: true,
       titleBarStyle: 'default',

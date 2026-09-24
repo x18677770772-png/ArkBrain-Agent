@@ -14,10 +14,10 @@ const TARGET_ID_RE = /^[A-Za-z0-9._:-]{1,160}$/
 const browserAttachments = new Map()
 const SIDECAR_ENTRY = path.join(path.dirname(fileURLToPath(import.meta.url)), 'embedded-playwright-sidecar.js')
 const SIDECAR_ENV_NAMES = Object.freeze([
-  'BAILONGMA_BROWSER_PRIVATE_NETWORK',
-  'BAILONGMA_BUNDLED_PLAYWRIGHT',
-  'BAILONGMA_RESOURCES_DIR',
-  'BAILONGMA_USER_DIR',
+  'ARKBRAIN_BROWSER_PRIVATE_NETWORK',
+  'ARKBRAIN_BUNDLED_PLAYWRIGHT',
+  'ARKBRAIN_RESOURCES_DIR',
+  'ARKBRAIN_USER_DIR',
   'ComSpec',
   'HOME',
   'LOCALAPPDATA',
@@ -32,7 +32,7 @@ const SIDECAR_ENV_NAMES = Object.freeze([
 ])
 
 export function getEmbeddedBrowserBridge({
-  bridge = globalThis.bailongmaBrowserEmbedBridge,
+  bridge = globalThis.arkbrainBrowserEmbedBridge,
 } = {}) {
   return bridge && typeof bridge.getTarget === 'function' ? bridge : null
 }
@@ -121,7 +121,7 @@ export function createSinglePageContextFacade(context, allowedPage) {
       }
       if (property === 'newPage') {
         return async () => {
-          throw new Error('Bailongma embedded browser supports one managed page')
+          throw new Error('ArkBrain-Agent embedded browser supports one managed page')
         }
       }
       if (property === 'route') return (...args) => allowedPage.route(...args)
@@ -175,7 +175,7 @@ export async function connectEmbeddedPlaywrightInProcess({
   const browserContext = createSinglePageContextFacade(context, page)
   const server = await createConnectionFn(mcpConfig, async () => browserContext)
   const [clientTransport, serverTransport] = createTransportPair()
-  const client = new ClientClass({ name: 'bailongma', version: '2.1.0' })
+  const client = new ClientClass({ name: 'arkbrain', version: '2.1.0' })
 
   try {
     await Promise.all([
@@ -210,8 +210,8 @@ function sidecarEnvironment(target, mcpConfig, source = process.env) {
   for (const name of SIDECAR_ENV_NAMES) {
     if (source[name]) env[name] = String(source[name])
   }
-  env.BAILONGMA_EMBEDDED_PLAYWRIGHT_TARGET = JSON.stringify(target)
-  env.BAILONGMA_EMBEDDED_PLAYWRIGHT_CONFIG = JSON.stringify(mcpConfig || {})
+  env.ARKBRAIN_EMBEDDED_PLAYWRIGHT_TARGET = JSON.stringify(target)
+  env.ARKBRAIN_EMBEDDED_PLAYWRIGHT_CONFIG = JSON.stringify(mcpConfig || {})
   // In packaged builds process.execPath is Electron. Node mode lets the same
   // signed executable run this small ESM sidecar without starting another app.
   if (process.versions.electron) env.ELECTRON_RUN_AS_NODE = '1'
@@ -230,7 +230,7 @@ export async function connectEmbeddedPlaywrightSidecar({
   logger = console,
 } = {}) {
   const safeTarget = normalizeEmbeddedBrowserTarget(target)
-  const client = new ClientClass({ name: 'bailongma', version: '2.1.0' })
+  const client = new ClientClass({ name: 'arkbrain', version: '2.1.0' })
   const transport = new TransportClass({
     command,
     args: [sidecarPath],

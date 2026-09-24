@@ -3,7 +3,7 @@ import enUS from "./locales/en-US.js";
 
 export const DEFAULT_LOCALE = "zh-CN";
 export const SUPPORTED_LOCALES = Object.freeze(["zh-CN", "en-US"]);
-export const LANGUAGE_STORAGE_KEY = "bailongma-ui-language";
+export const LANGUAGE_STORAGE_KEY = "arkbrain-ui-language";
 
 const catalogs = Object.freeze({
   "zh-CN": zhCN,

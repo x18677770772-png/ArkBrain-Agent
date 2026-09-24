@@ -46,12 +46,12 @@ assert.equal(taskEvents.length, 4)
 assert.equal(weekEvents.length, 7)
 assert.deepEqual(taskEvents.map(event => event.at), [3.34, 3.8, 4.26, 4.72])
 assert.deepEqual(weekEvents.map(event => event.at), [6.6, 6.71, 6.82, 6.93, 7.04, 7.15, 7.26])
-assert.equal(ACTIVATION_INTRO_SOUND_EVENTS.filter(event => event.id === 'bailongma').length, 1)
+assert.equal(ACTIVATION_INTRO_SOUND_EVENTS.filter(event => event.id === 'arkbrain').length, 1)
 assert.equal(ACTIVATION_INTRO_SOUND_EVENTS.filter(event => event.id === 'time').length, 1)
 
 const soundFiles = new Set(ACTIVATION_INTRO_SOUND_EVENTS.map(event => event.file))
 assert.deepEqual([...soundFiles].sort(), [
-  'intro-bailongma.mp3',
+  'intro-arkbrain.mp3',
   'intro-startup.mp3',
   'intro-tasks.mp3',
   'intro-time.mp3',

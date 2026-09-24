@@ -8,10 +8,10 @@ import { publishUpdates } from '../../../scripts/publish-updates-lib.mjs'
 import { applyRemoteVersionGate, createMacReleasePlan, expectedMacArtifactNames, scanMacArtifacts, stableGatePassed } from '../release-engine.mjs'
 
 function fixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-release-console-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-release-console-'))
   const dist = path.join(root, 'dist')
   fs.mkdirSync(dist)
-  const productName = 'Bailongma'
+  const productName = 'ArkBrain-Agent'
   const version = '9.8.7'
   for (const name of expectedMacArtifactNames(productName, version).filter(name => !name.endsWith('.blockmap'))) {
     const artifactPath = path.join(dist, name)

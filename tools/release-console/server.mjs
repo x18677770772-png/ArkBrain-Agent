@@ -262,7 +262,7 @@ class TaskManager {
       this.transition(task, 'VALIDATING', task.request.mode === 'build' ? 'Building and validating artifacts' : 'Validating existing artifacts')
       task.git = await readGitState(root)
       if (task.request.mode === 'build') await this.spawnWorker(task, 'build')
-      task.preflight = await runMacPreflight({ root, productName: pkg.productName || 'Bailongma', version: pkg.version, archs: task.request.archs, remoteVersions, remoteVersionStates })
+      task.preflight = await runMacPreflight({ root, productName: pkg.productName || 'ArkBrain-Agent', version: pkg.version, archs: task.request.archs, remoteVersions, remoteVersionStates })
       this.emitTask(task, { type: 'preflight', result: task.preflight, at: new Date().toISOString() })
       if (!task.request.dryRun && !task.preflight.stableEligible) {
         throw new Error('Stable publication blocked: notarization, stapler, Gatekeeper, signing, architecture, completeness and version checks must all pass')
@@ -324,7 +324,7 @@ async function refreshSnapshot() {
     statusPromise = (async () => {
       const [system, artifacts, histories] = await Promise.all([
         getSystemStatus({ root, version: pkg.version }),
-        scanMacArtifacts({ root, productName: pkg.productName || 'Bailongma', version: pkg.version }),
+        scanMacArtifacts({ root, productName: pkg.productName || 'ArkBrain-Agent', version: pkg.version }),
         readHistories(),
       ])
       cachedStatus = { system, artifacts, histories, refreshedAt: new Date().toISOString() }
@@ -361,7 +361,7 @@ const server = http.createServer(async (req, res) => {
     const url = new URL(req.url, expectedOrigin(port))
     if (req.method === 'GET' && serveStatic(req, res, url.pathname)) return
     if (req.method === 'GET' && url.pathname === '/api/bootstrap') {
-      return json(res, 200, { token: secrets.token, operator, version: pkg.version, productName: pkg.productName || 'Bailongma', channels: [{ id: 'stable', enabled: true }, { id: 'beta', enabled: false }, { id: 'internal', enabled: false }], stagingPercentages: [5, 10, 25, 50, 100] })
+      return json(res, 200, { token: secrets.token, operator, version: pkg.version, productName: pkg.productName || 'ArkBrain-Agent', channels: [{ id: 'stable', enabled: true }, { id: 'beta', enabled: false }, { id: 'internal', enabled: false }], stagingPercentages: [5, 10, 25, 50, 100] })
     }
     if (req.method === 'GET' && url.pathname === '/api/status') {
       const snapshot = cachedStatus || await refreshSnapshot()
@@ -383,7 +383,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && url.pathname === '/api/plan') {
       const body = await readJson(req)
       const request = validateReleaseRequest({ ...body, dryRun: true }, pkg.version)
-      const plan = await createMacReleasePlan({ root, productName: pkg.productName || 'Bailongma', ...request })
+      const plan = await createMacReleasePlan({ root, productName: pkg.productName || 'ArkBrain-Agent', ...request })
       return json(res, 200, { plan })
     }
     if (req.method === 'POST' && url.pathname === '/api/preflight') {
@@ -391,7 +391,7 @@ const server = http.createServer(async (req, res) => {
       const request = validateReleaseRequest({ ...body, dryRun: true }, pkg.version)
       lastPreflight = await runMacPreflight({
         root,
-        productName: pkg.productName || 'Bailongma',
+        productName: pkg.productName || 'ArkBrain-Agent',
         version: pkg.version,
         archs: request.archs,
         remoteVersions: cachedStatus?.system?.remoteVersions || {},
@@ -419,7 +419,7 @@ server.on('clientError', (_error, socket) => socket.end('HTTP/1.1 400 Bad Reques
 server.listen(0, LOOPBACK_HOST, async () => {
   const address = server.address()
   const url = `http://${LOOPBACK_HOST}:${address.port}`
-  console.log(`[release:ui] Bailongma Release Console listening on ${url}`)
+  console.log(`[release:ui] ArkBrain-Agent Release Console listening on ${url}`)
   console.log('[release:ui] Real publication is never started automatically; it requires checkbox and exact version confirmation in the UI.')
   refreshSnapshot().catch(error => console.warn(`[release:ui] initial status refresh failed: ${redactLog(error.message)}`))
   if (!process.argv.includes('--no-open')) {

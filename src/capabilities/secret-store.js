@@ -73,7 +73,7 @@ function getSafeStorage() {
 }
 
 function approveSafeStorageAccess(purpose = 'saved-secrets') {
-  const request = globalThis.bailongmaRequestSafeStorageAccessSync
+  const request = globalThis.arkbrainRequestSafeStorageAccessSync
   if (typeof request !== 'function') return true
   try { return request(purpose) === true } catch { return false }
 }

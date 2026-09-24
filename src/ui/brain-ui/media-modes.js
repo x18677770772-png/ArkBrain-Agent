@@ -2,7 +2,7 @@ import { API, withApiToken } from "./api-client.js";
 import { moveVoicePanelToBody, restoreVoicePanel, toggleHotspot } from "./hotspot.js";
 import { shouldHandlePttKeyEvent } from "./voice-ptt.js";
 
-const VOICE_SPACE_PTT_KEY = "bailongma-voice-space-ptt-enabled";
+const VOICE_SPACE_PTT_KEY = "arkbrain-voice-space-ptt-enabled";
 
 // ── Media modes (video / image) ──
 export function initMediaModes() {
@@ -117,7 +117,7 @@ export function initMediaModes() {
     videoBtn?.classList.toggle("active", videoActive);
     if (videoActive) moveVoicePanelToBody();
     else restoreVoicePanel();
-    window.dispatchEvent(new CustomEvent("bailongma:video-mode", {
+    window.dispatchEvent(new CustomEvent("arkbrain:video-mode", {
       detail: { active: videoActive, kind: videoKind },
     }));
   }
@@ -365,7 +365,7 @@ export function initMediaModes() {
       else controlVideo(payload);
       return { ok: true, mode: "video", action };
     }
-    if (mode === "music" && window.bailongma?.platform === "darwin") {
+    if (mode === "music" && window.arkbrain?.platform === "darwin") {
       return { ok: false, mode: "music", action, error: "Use macOS Music.app via system_music" };
     }
     if (mode === "music") {
@@ -402,7 +402,7 @@ export function initMediaModes() {
   let playlist     = [];
   let playlistIdx  = 0;
   let isSeeking    = false;
-  const systemMusicOnly = window.bailongma?.platform === "darwin";
+  const systemMusicOnly = window.arkbrain?.platform === "darwin";
   if (systemMusicOnly) {
     musicBtn?.remove();
     document.getElementById("music-panel")?.remove();
@@ -430,7 +430,7 @@ export function initMediaModes() {
     musicActive = Boolean(visible);
     document.body.classList.toggle("music-mode", musicActive);
     musicBtn?.classList.toggle("active", musicActive);
-    window.dispatchEvent(new CustomEvent("bailongma:music-mode", {
+    window.dispatchEvent(new CustomEvent("arkbrain:music-mode", {
       detail: { active: musicActive },
     }));
   }
@@ -622,7 +622,7 @@ export function initMediaModes() {
 
   // 其他全屏模式（热点/世界杯/台风）打开时调用：真正关停媒体，
   // 而不是只删 body class——否则音乐继续播、摄像头轨不 stop、
-  // voice-panel 收不到 bailongma:music-mode/video-mode {active:false} 无法 resume。
+  // voice-panel 收不到 arkbrain:music-mode/video-mode {active:false} 无法 resume。
   // close 路径内部已 setPanelVisible/setMusicPanelVisible(false) 并派发事件，无需手动再发。
   function closeAllMediaModes() {
     if (document.body.classList.contains("video-mode")) {
@@ -636,8 +636,8 @@ export function initMediaModes() {
     }
   }
 
-  window.bailongmaMedia = { handle: handleMediaCommand, showVideo, controlVideo, showImage, showCamera, showMusic, controlMusic, closeAllMediaModes };
-  window.addEventListener("bailongma:media", (event) => handleMediaCommand(event.detail || {}));
+  window.arkbrainMedia = { handle: handleMediaCommand, showVideo, controlVideo, showImage, showCamera, showMusic, controlMusic, closeAllMediaModes };
+  window.addEventListener("arkbrain:media", (event) => handleMediaCommand(event.detail || {}));
 
   // Push-to-talk：按住空格说话；Agent 正在说话时按下空格直接打断
   (() => {
@@ -654,7 +654,7 @@ export function initMediaModes() {
       document.body.classList.add("ptt-active");
       // 不论是否在播，stopTTS 内部已做 no-op 守卫
       try { window.stopTTS?.(); } catch {}
-      window.bailongmaVoice?.pttStart?.();
+      window.arkbrainVoice?.pttStart?.();
     }, { capture: true });
 
     window.addEventListener("keyup", (e) => {
@@ -664,7 +664,7 @@ export function initMediaModes() {
       pttHeld = false;
       document.body.classList.remove("ptt-active");
       e.preventDefault();
-      window.bailongmaVoice?.pttEnd?.();
+      window.arkbrainVoice?.pttEnd?.();
     }, { capture: true });
 
     // 切到后台/失焦（如点开 DevTools、切窗口）时如果还按着，强制释放 PTT，避免 mic 永远不关。
@@ -673,7 +673,7 @@ export function initMediaModes() {
       if (!pttHeld) return;
       pttHeld = false;
       document.body.classList.remove("ptt-active");
-      window.bailongmaVoice?.pttEnd?.({ send: false });
+      window.arkbrainVoice?.pttEnd?.({ send: false });
     });
   })();
 

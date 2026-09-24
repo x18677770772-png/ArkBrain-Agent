@@ -45,7 +45,7 @@ export function setTyphoonMode(visible, { source = 'brain-ui' } = {}) {
     setHotspotMode(false, { source: 'typhoon_open' })
     setWorldcupMode(false, { source: 'typhoon_open' })
     // 真正关停媒体（停音轨/摄像头并派发事件），而非只删 body class
-    window.bailongmaMedia?.closeAllMediaModes?.()
+    window.arkbrainMedia?.closeAllMediaModes?.()
     if (frame) frame.src = FRAME_SRC
     moveVoicePanel($('chat-area'), { prepend: true })
     document.body.classList.add('typhoon-mode')
@@ -59,7 +59,7 @@ export function setTyphoonMode(visible, { source = 'brain-ui' } = {}) {
     const finish = () => { closeTimer = null; document.body.classList.remove('typhoon-mode'); scheduleBackgroundRelease(frame) }
     if (loaded) closeTimer = setTimeout(finish, EXIT_ANIMATION_MS); else finish()
   }
-  window.dispatchEvent(new CustomEvent('bailongma:typhoon-mode', { detail: { active: next } }))
+  window.dispatchEvent(new CustomEvent('arkbrain:typhoon-mode', { detail: { active: next } }))
   reportState(next, source)
 }
 export function toggleTyphoon(source = 'brain-ui') { setTyphoonMode(!active, { source }) }
@@ -85,25 +85,25 @@ export function initTyphoon() {
     expandConsole()
     scheduleConsoleCollapse(MESSAGE_PEEK_MS)
   })
-  window.addEventListener('bailongma:chat-pin', (event) => {
+  window.addEventListener('arkbrain:chat-pin', (event) => {
     if (!active) return
     if (event?.detail?.pinned) expandConsole()
     else scheduleConsoleCollapse()
   })
-  window.addEventListener('bailongma:hotspot-mode', (event) => { if (event?.detail?.active && active) setTyphoonMode(false, { source: 'hotspot_open' }) })
-  window.addEventListener('bailongma:worldcup-mode', (event) => { if (event?.detail?.active && active) setTyphoonMode(false, { source: 'worldcup_open' }) })
+  window.addEventListener('arkbrain:hotspot-mode', (event) => { if (event?.detail?.active && active) setTyphoonMode(false, { source: 'hotspot_open' }) })
+  window.addEventListener('arkbrain:worldcup-mode', (event) => { if (event?.detail?.active && active) setTyphoonMode(false, { source: 'worldcup_open' }) })
   window.addEventListener('message', (event) => {
     if (event?.data?.type !== 'typhoon-ptt' || !active) return
     const { phase } = event.data
     if (phase === 'down') {
       try { window.stopTTS?.() } catch {}
-      window.bailongmaVoice?.pttStart?.()
+      window.arkbrainVoice?.pttStart?.()
       expandConsole()
     } else if (phase === 'up') {
-      window.bailongmaVoice?.pttEnd?.()
+      window.arkbrainVoice?.pttEnd?.()
       scheduleConsoleCollapse(MESSAGE_PEEK_MS)
     } else if (phase === 'cancel') {
-      window.bailongmaVoice?.pttEnd?.({ send: false })
+      window.arkbrainVoice?.pttEnd?.({ send: false })
       scheduleConsoleCollapse()
     }
   })

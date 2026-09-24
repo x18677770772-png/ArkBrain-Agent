@@ -1,6 +1,6 @@
 {
-  "name": "bailongma",
-  "productName": "Bailongma",
+  "name": "arkbrain-agent",
+  "productName": "ArkBrain-Agent",
   "version": "2.2.120",
   "description": "A continuously running digital consciousness framework",
   "type": "module",
@@ -75,18 +75,18 @@
     "test:lan-access": "node ./src/test-lan-access.js",
     "test:multi-client-chat": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:ELECTRON_RUN_AS_NODE='1'; .\\node_modules\\.bin\\electron.cmd .\\src\\test-multi-client-chat.js\"",
     "test:web-access": "node ./src/test-web-read.js && node ./src/test-web-search.js",
-    "test:chrome-devtools": "node ./src/mcp/test-chrome-devtools-server.js && node ./electron/test-bailongma-chrome.cjs",
+    "test:chrome-devtools": "node ./src/mcp/test-chrome-devtools-server.js && node ./electron/test-arkbrain-chrome.cjs",
     "test:browser-packaging": "node ./scripts/test-playwright-packaging.mjs",
     "test:windows-build": "node ./scripts/test-windows-build.mjs",
     "test:linux-build": "node ./scripts/test-linux-build.mjs",
     "test:update-publish": "node ./scripts/test-macos-updater-config.mjs && node ./scripts/test-publish-updates.mjs",
     "test:native-deps": "node ./scripts/test-native-dependency-versions.mjs",
-    "test:browser-core": "node ./src/test-web-url-policy.js && node ./src/mcp/test-chrome-devtools-server.js && node ./electron/test-bailongma-chrome.cjs && node ./src/test-browser-display.js && node ./src/test-browser-agent-integration.js && node ./src/test-browser-challenge-guard.js && node ./src/test-web-read.js && node ./src/test-web-search.js",
+    "test:browser-core": "node ./src/test-web-url-policy.js && node ./src/mcp/test-chrome-devtools-server.js && node ./electron/test-arkbrain-chrome.cjs && node ./src/test-browser-display.js && node ./src/test-browser-agent-integration.js && node ./src/test-browser-challenge-guard.js && node ./src/test-web-read.js && node ./src/test-web-search.js",
     "test:network-audit": "node ./electron/test-network-audit-utils.cjs && node ./electron/test-network-diagnostics.cjs && node ./scripts/test-compare-network-captures.mjs",
     "test:network-audit:real": "electron ./electron/test-network-diagnostics-real.cjs",
     "network-audit:compare": "node ./scripts/compare-network-captures.mjs",
     "network-audit:record-chrome": "node ./scripts/record-chrome-network.mjs",
-    "network-audit:record-bailongma": "electron ./electron/record-bailongma-network.cjs",
+    "network-audit:record-arkbrain": "electron ./electron/record-arkbrain-network.cjs",
     "test:browser-real": "electron ./electron/test-browser-real-workflow.cjs",
     "smoke:mac-artifacts": "node ./scripts/smoke-mac-artifacts.mjs",
     "smoke:win-artifacts": "node ./scripts/smoke-win-artifacts.mjs",
@@ -124,8 +124,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.xiaoyuanda.bailongma",
-    "productName": "Bailongma",
+    "appId": "com.xiaoyuanda.arkbrain-agent",
+    "productName": "ArkBrain-Agent",
     "artifactName": "${productName}-Setup-${version}.${ext}",
     "npmRebuild": false,
     "asar": {
@@ -188,7 +188,7 @@
       "!src/**/test-*",
       "!electron/test-*",
       "!electron/network-diagnostics.cjs",
-      "!electron/record-bailongma-network.cjs",
+      "!electron/record-arkbrain-network.cjs",
       "!src/mcp/playwright-server.js",
       "!scripts/smoke-*.mjs",
       "!src/**/__pycache__/**",
@@ -227,7 +227,7 @@
         "!src/**/test-*",
         "!electron/test-*",
         "!electron/network-diagnostics.cjs",
-        "!electron/record-bailongma-network.cjs",
+        "!electron/record-arkbrain-network.cjs",
         "!src/mcp/playwright-server.js",
         "!scripts/smoke-*.mjs",
         "!src/**/__pycache__/**",
@@ -278,7 +278,7 @@
       "uninstallerSidebar": "build/uninstallerSidebar.bmp",
       "createDesktopShortcut": false,
       "createStartMenuShortcut": true,
-      "shortcutName": "Bailongma"
+      "shortcutName": "ArkBrain-Agent"
     },
     "mac": {
       "icon": "build/icon.icns",
@@ -313,9 +313,9 @@
       ],
       "category": "public.app-category.productivity",
       "extendInfo": {
-        "NSMicrophoneUsageDescription": "Bailongma uses the microphone for voice input when you enable voice features.",
-        "NSSpeechRecognitionUsageDescription": "Bailongma may use speech recognition for voice input features.",
-        "NSAppleEventsUsageDescription": "Bailongma uses Apple Events only when you ask it to read or control playback in Music.app."
+        "NSMicrophoneUsageDescription": "ArkBrain-Agent uses the microphone for voice input when you enable voice features.",
+        "NSSpeechRecognitionUsageDescription": "ArkBrain-Agent may use speech recognition for voice input features.",
+        "NSAppleEventsUsageDescription": "ArkBrain-Agent uses Apple Events only when you ask it to read or control playback in Music.app."
       },
       "artifactName": "${productName}-${version}-mac-${arch}.${ext}"
     },
@@ -376,7 +376,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://updates.bailongma.ai/stable/${os}/${arch}",
+        "url": "https://updates.arkbrain.ai/stable/${os}/${arch}",
         "channel": "latest"
       }
     ],

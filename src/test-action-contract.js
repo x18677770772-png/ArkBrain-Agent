@@ -4,8 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blm-action-contract-'))
-process.env.BAILONGMA_USER_DIR = tmp
-process.env.BAILONGMA_RESOURCES_DIR = process.cwd()
+process.env.ARKBRAIN_USER_DIR = tmp
+process.env.ARKBRAIN_RESOURCES_DIR = process.cwd()
 
 let closeDBForTest = null
 const itemText = item => String(item?.content ?? item?.output ?? '')
@@ -773,7 +773,7 @@ try {
   assert.deepEqual(webContract.requiredTools, ['browser_navigate'], 'fresh web lookup requires real Playwright navigation')
   assert.equal(webContract.requiredTools.some(name => ['web_search', 'web_read', 'fetch_url', 'browser_read'].includes(name)), false)
   const newsContract = classifyActionContract(
-    '小白龙，帮我上网看看今天有什么 AI 新闻，挑三条重要的告诉我，链接也发我一下。',
+    '方舟大脑，帮我上网看看今天有什么 AI 新闻，挑三条重要的告诉我，链接也发我一下。',
   )
   assert.equal(newsContract?.id, 'web_research', 'ordinary current-news wording activates verified web research')
   assert.deepEqual(newsContract.requiredTools, ['browser_navigate', 'browser_click'])

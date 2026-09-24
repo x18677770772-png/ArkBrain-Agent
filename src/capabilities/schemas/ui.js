@@ -6,7 +6,7 @@ export const uiSchemas = {
     type: 'function',
     function: {
       name: 'browser_clear_data',
-      description: 'Destructively clear selected data from BaiLongma dedicated Google Chrome only. It never accesses the user\'s computer/default Chrome profile. This tool is forbidden unless the CURRENT user message explicitly asks to delete/clear Bailongma\'s, the Agent\'s, or "your" browser data. Never call it when closing the browser, switching sizes, recovering from an error, signing out of a website, or doing routine cleanup. browser_close does not delete profile data. Dedicated-Chrome deletion is all-time only; ask a clarifying question when the requested data types or time range are ambiguous.',
+      description: 'Destructively clear selected data from ArkBrain-Agent dedicated Google Chrome only. It never accesses the user\'s computer/default Chrome profile. This tool is forbidden unless the CURRENT user message explicitly asks to delete/clear ArkBrain-Agent\'s, the Agent\'s, or "your" browser data. Never call it when closing the browser, switching sizes, recovering from an error, signing out of a website, or doing routine cleanup. browser_close does not delete profile data. Dedicated-Chrome deletion is all-time only; ask a clarifying question when the requested data types or time range are ambiguous.',
       parameters: {
         type: 'object',
         properties: {
@@ -20,7 +20,7 @@ export const uiSchemas = {
           time_range: {
             type: 'string',
             enum: ['last_hour', 'last_day', 'last_7_days', 'last_30_days', 'all_time', 'custom'],
-            description: 'Must be all_time for BaiLongma dedicated Chrome. The user\'s default browser is never in scope.',
+            description: 'Must be all_time for ArkBrain-Agent dedicated Chrome. The user\'s default browser is never in scope.',
           },
           since: {
             type: 'string',
@@ -46,7 +46,7 @@ export const uiSchemas = {
     type: 'function',
     function: {
       name: 'system_browser_open',
-      description: 'Open an HTTP(S) URL in the browser installed on the user\'s computer (the macOS/Windows/Linux default browser). This user-owned surface is completely separate from BaiLongma\'s managed live WebContentsView in card/window mode. Use it only when the user explicitly says "用我电脑上的浏览器", "电脑浏览器", "系统/默认浏览器", or an equivalent phrase. Bailongma cannot inspect, click, or continue controlling that external browser after opening it, and their cookies/history are not shared. Do not use browser_navigate or browser_set_display_mode as a substitute for this explicit request.',
+      description: 'Open an HTTP(S) URL in the browser installed on the user\'s computer (the macOS/Windows/Linux default browser). This user-owned surface is completely separate from ArkBrain-Agent\'s managed live WebContentsView in card/window mode. Use it only when the user explicitly says "用我电脑上的浏览器", "电脑浏览器", "系统/默认浏览器", or an equivalent phrase. ArkBrain-Agent cannot inspect, click, or continue controlling that external browser after opening it, and their cookies/history are not shared. Do not use browser_navigate or browser_set_display_mode as a substitute for this explicit request.',
       parameters: {
         type: 'object',
         properties: {
@@ -64,7 +64,7 @@ export const uiSchemas = {
     type: 'function',
     function: {
       name: 'browser_set_display_mode',
-      description: 'Choose the presentation of BaiLongma\'s single live managed WebContentsView without navigating or reloading it. Ordinary browser work already defaults to card, so call this only when the user requests a particular size or when window is required for user takeover, account login, Google OAuth, QR login, CAPTCHA, video, or careful interaction. window means an independent large window, not operating-system fullscreen. URL, history, title, and webContents id remain continuous. Neither mode is the computer\'s default browser. The Agent must never enter credentials, MFA, CAPTCHA, or OAuth consent.',
+      description: 'Choose the presentation of ArkBrain-Agent\'s single live managed WebContentsView without navigating or reloading it. Ordinary browser work already defaults to card, so call this only when the user requests a particular size or when window is required for user takeover, account login, Google OAuth, QR login, CAPTCHA, video, or careful interaction. window means an independent large window, not operating-system fullscreen. URL, history, title, and webContents id remain continuous. Neither mode is the computer\'s default browser. The Agent must never enter credentials, MFA, CAPTCHA, or OAuth consent.',
       parameters: {
         type: 'object',
         properties: {
@@ -87,7 +87,7 @@ export const uiSchemas = {
     type: 'function',
     function: {
       name: 'capability_demo',
-      description: 'Start BaiLongma\'s visual and spoken capability showcase. When the user is asking what you/BaiLongma can do, or explicitly requests a capability/function demo/showcase, call this tool; it sends and speaks the intro itself while the visual sequence starts, and returns terminal_delivery=true, so do not send a second introduction. Do not call for ordinary feasibility questions like "这个能做吗" or "能不能做 X". The demo runs as a paced sequence: weather card, streamed Chinese article writing, a maximized real Windows CMD window filling the screen with harmless random numbers for about 5 seconds, hotspot panel, then cleanup.',
+      description: 'Start ArkBrain-Agent\'s visual and spoken capability showcase. When the user is asking what you/ArkBrain-Agent can do, or explicitly requests a capability/function demo/showcase, call this tool; it sends and speaks the intro itself while the visual sequence starts, and returns terminal_delivery=true, so do not send a second introduction. Do not call for ordinary feasibility questions like "这个能做吗" or "能不能做 X". The demo runs as a paced sequence: weather card, streamed Chinese article writing, a maximized real Windows CMD window filling the screen with harmless random numbers for about 5 seconds, hotspot panel, then cleanup.',
       parameters: {
         type: 'object',
         properties: {
@@ -162,7 +162,7 @@ export const uiSchemas = {
           topic: {
             type: 'string',
             enum: ['voice_asr', 'voice_tts', 'voice_config', 'model_config', 'wechat_config', 'self_architecture', 'ui_design'],
-            description: 'Required when action=open. Choose one topic: voice_asr, voice_tts, voice_config, model_config, wechat_config, self_architecture (how BaiLongma works internally), or ui_design (BaiLongma\'s interface / Scene UI design). Do not invent other values. Optional when action=close.'
+            description: 'Required when action=open. Choose one topic: voice_asr, voice_tts, voice_config, model_config, wechat_config, self_architecture (how ArkBrain-Agent works internally), or ui_design (ArkBrain-Agent\'s interface / Scene UI design). Do not invent other values. Optional when action=close.'
           },
           reason: { type: 'string', description: 'Optional short reason.' },
         },
@@ -302,7 +302,7 @@ export const uiSchemas = {
           placement: {
             type: 'string',
             enum: ['auto', 'right', 'left', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'],
-            description: 'Optional window placement. Default auto avoids the main Bailongma window when possible; call status first if you need exact screen/window bounds.'
+            description: 'Optional window placement. Default auto avoids the main ArkBrain-Agent window when possible; call status first if you need exact screen/window bounds.'
           },
           bounds: {
             type: 'object',

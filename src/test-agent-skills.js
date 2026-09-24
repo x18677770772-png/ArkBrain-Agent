@@ -9,7 +9,7 @@ fs.rmSync(sandboxSkillDir, { recursive: true, force: true })
 fs.mkdirSync(sandboxSkillDir, { recursive: true })
 fs.writeFileSync(path.join(sandboxSkillDir, 'SKILL.md'), `---
 name: Sandbox Test Skill
-description: Test-only skill installed from inside Bailongma sandbox.
+description: Test-only skill installed from inside ArkBrain-Agent sandbox.
 aliases:
   - sandbox skill test
 ---
@@ -25,7 +25,7 @@ assert.ok(skills.length >= 1, 'expected at least one skill to be discovered')
 const agentSkill = skills.find(s => s.id === 'agent-skills' || s.name === 'Agent Skills')
 assert.ok(agentSkill, 'expected bundled Agent Skills helper skill')
 assert.equal(agentSkill.name, 'Agent Skills')
-assert.ok(agentSkill.description.includes('Bailongma Agent Skills'))
+assert.ok(agentSkill.description.includes('ArkBrain-Agent Agent Skills'))
 
 const humanWebSearchSkill = skills.find(s => s.id === 'human-web-search')
 assert.ok(humanWebSearchSkill, 'expected bundled human-style web search skill')

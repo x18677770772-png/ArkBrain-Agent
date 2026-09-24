@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer, webFrame } = require('electron')
 
-contextBridge.exposeInMainWorld('bailongma', {
+contextBridge.exposeInMainWorld('arkbrain', {
   platform: process.platform,
   isElectron: true,
   getVersion: () => ipcRenderer.invoke('app:get-version'),
@@ -37,7 +37,7 @@ contextBridge.exposeInMainWorld('bailongma', {
     ipcRenderer.on('updater:status', listener)
     return () => ipcRenderer.removeListener('updater:status', listener)
   },
-  // 语音唤醒:命中「小白龙」由主进程经 wake:hit 通知本渲染层(唤醒会话编排见 voice-wake.js);
+  // 语音唤醒:命中「方舟大脑」由主进程经 wake:hit 通知本渲染层(唤醒会话编排见 voice-wake.js);
   // 悬浮球窗口由本渲染层经下列命令驱动(主进程转发给球窗)。
   wake: {
     onHit: (handler) => {

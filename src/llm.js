@@ -829,7 +829,7 @@ function createToolLoopState() {
 
 // send_message/express 是 agent 向用户"汇报 blocker"的唯一通道，必须绕开跨工具的全局熔断计数。
 // 否则当 exec_command/fetch_url 等连续失败触发熔断后，agent 想 send_message 解释失败也会被一并挡掉，
-// 出现"工具调不动 + 嘴也被堵住"的死锁（lessons-bailongma-silent-exit 的镜像问题）。
+// 出现"工具调不动 + 嘴也被堵住"的死锁（lessons-arkbrain-silent-exit 的镜像问题）。
 // 同指纹反复失败仍由 sameFailureCounts / recentFingerprints 拦截，安全网完好。
 const REPORT_CHANNEL_TOOLS = new Set(['send_message', 'express'])
 
@@ -1303,7 +1303,7 @@ export async function callLLM({ systemPrompt, message, messages: inputMessages =
       // A successful side effect does not make every surrounding claim true.
       // In particular, system_browser_open verifies only a handoff to the OS
       // default browser; it cannot identify the application, and the two
-      // Bailongma display modes still share one live page/profile.
+      // ArkBrain-Agent display modes still share one live page/profile.
       if (mustReply && actionContract && actionContractSatisfied && allContent.trim()) {
         if (actionContract.id === 'browser_screenshot'
             && screenshotDeliveryAttempted && !screenshotDeliverySucceeded) {
@@ -1338,7 +1338,7 @@ export async function callLLM({ systemPrompt, message, messages: inputMessages =
                 ? `The web research is not complete enough to answer yet: ${completionIssue} Continue with browser_navigate or browser_click and open the distinct original article/source pages. Search-result snippets do not count. After enough pages load, answer with only links that were actually verified in this turn and avoid duplicate underlying events.${INTERNAL_NUDGE_SUFFIX}`
                 : actionContract.id === 'browser_screenshot'
                   ? `The screenshot capture is not delivered yet: ${completionIssue} Call send_message now with the exact screenshot.image_path returned by browser_take_screenshot. Do not substitute a text acknowledgement or the live browser card.${INTERNAL_NUDGE_SUFFIX}`
-                : `The requested action succeeded, but your draft added an unsupported or incorrect claim: ${completionIssue} Reply from verified evidence only. Say that the URL was handed to the computer's system default browser; do not name Safari, Chrome, Edge, or any other application. If you explain the three forms, state that Bailongma's compact and large modes share the same live page/profile, while only the computer browser is separate.${INTERNAL_NUDGE_SUFFIX}`,
+                : `The requested action succeeded, but your draft added an unsupported or incorrect claim: ${completionIssue} Reply from verified evidence only. Say that the URL was handed to the computer's system default browser; do not name Safari, Chrome, Edge, or any other application. If you explain the three forms, state that ArkBrain-Agent's compact and large modes share the same live page/profile, while only the computer browser is separate.${INTERNAL_NUDGE_SUFFIX}`,
             })
             continue
           }
@@ -1881,7 +1881,7 @@ export async function callLLM({ systemPrompt, message, messages: inputMessages =
       }
     }
 
-    // Responses is stateless in Bailongma: replay the exact model output Items,
+    // Responses is stateless in ArkBrain-Agent: replay the exact model output Items,
     // then append one function_call_output Item for every executed local tool.
     const terminalInternalRound = isTerminalInternalToolRound(effectiveToolCalls, { mustReply })
     appendRoundOutput()

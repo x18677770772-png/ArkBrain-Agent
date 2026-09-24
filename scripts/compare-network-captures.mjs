@@ -17,8 +17,8 @@ function parseArgs(argv) {
     options[name] = value
     index += 1
   }
-  if (!options.chrome || !options.bailongma) {
-    throw new Error('usage: --chrome <baseline.har|json> --bailongma <bailongma.json|har> [--baseline-label <label>] [--output <report.md>] [--json-output <comparison.json>]')
+  if (!options.chrome || !options.arkbrain) {
+    throw new Error('usage: --chrome <baseline.har|json> --arkbrain <arkbrain.json|har> [--baseline-label <label>] [--output <report.md>] [--json-output <comparison.json>]')
   }
   return options
 }
@@ -43,71 +43,71 @@ function compactList(values, limit = 12) {
   return values.length > limit ? `${visible}，另有 ${values.length - limit} 项` : visible
 }
 
-function renderComparisonReport(comparison, { chromeFile, bailongmaFile, baselineLabel = '普通 Chrome' }) {
+function renderComparisonReport(comparison, { chromeFile, arkbrainFile, baselineLabel = '普通 Chrome' }) {
   const chrome = comparison.chrome
-  const bailongma = comparison.bailongma
+  const arkbrain = comparison.arkbrain
   const differences = comparison.differences
   const riskRows = comparison.riskSignals.map(item => (
     `| ${item.level} | ${item.fact ? '事实' : '推断'} | ${item.signal} |`
   )).join('\n')
   const endpointOnlyChrome = differences.materialEndpointsOnlyInChrome
-  const endpointOnlyBailongma = differences.materialEndpointsOnlyInBailongma
+  const endpointOnlyArkBrain = differences.materialEndpointsOnlyInArkBrain
   const normalizedNoiseCount = differences.normalizedEndpointNoise.chrome.length
-    + differences.normalizedEndpointNoise.bailongma.length
+    + differences.normalizedEndpointNoise.arkbrain.length
 
-  return `# ${baselineLabel}与白龙马 Electron/Playwright 网络请求对比
+  return `# ${baselineLabel}与方舟大脑 Electron/Playwright 网络请求对比
 
 ## 执行摘要
 
-本报告由脱敏比较工具生成。${baselineLabel}样本包含 ${chrome.requests} 个请求，白龙马样本包含 ${bailongma.requests} 个请求。风险信号仅表示当前证据支持的可区分性；没有发现信号不等于平台无法通过未采集的请求正文、前端脚本或服务端关联数据识别自动化。
+本报告由脱敏比较工具生成。${baselineLabel}样本包含 ${chrome.requests} 个请求，方舟大脑样本包含 ${arkbrain.requests} 个请求。风险信号仅表示当前证据支持的可区分性；没有发现信号不等于平台无法通过未采集的请求正文、前端脚本或服务端关联数据识别自动化。
 
 ## 采集条件
 
-| 项目 | ${baselineLabel} | 白龙马 |
+| 项目 | ${baselineLabel} | 方舟大脑 |
 | --- | --- | --- |
-| 输入文件 | ${code(path.basename(chromeFile))} | ${code(path.basename(bailongmaFile))} |
-| 格式/来源 | ${code(chrome.source)} | ${code(bailongma.source)} |
-| 请求数 | ${chrome.requests} | ${bailongma.requests} |
-| 缓存命中 | disk=${chrome.cache.disk}, SW=${chrome.cache.serviceWorker}, prefetch=${chrome.cache.prefetch} | disk=${bailongma.cache.disk}, SW=${bailongma.cache.serviceWorker}, prefetch=${bailongma.cache.prefetch} |
+| 输入文件 | ${code(path.basename(chromeFile))} | ${code(path.basename(arkbrainFile))} |
+| 格式/来源 | ${code(chrome.source)} | ${code(arkbrain.source)} |
+| 请求数 | ${chrome.requests} | ${arkbrain.requests} |
+| 缓存命中 | disk=${chrome.cache.disk}, SW=${chrome.cache.serviceWorker}, prefetch=${chrome.cache.prefetch} | disk=${arkbrain.cache.disk}, SW=${arkbrain.cache.serviceWorker}, prefetch=${arkbrain.cache.prefetch} |
 
 采集文件在内存中读取，并在写出比较结果前再次脱敏。URL 查询值、动态路径段、Cookie、Authorization、Token、签名、账号标识候选值及 Payload 原文均不写入报告或比较 JSON。
 
 ## 可确认事实
 
 - ${baselineLabel} User-Agent：${compactList(chrome.fingerprintHeaders.userAgent)}
-- 白龙马 User-Agent：${compactList(bailongma.fingerprintHeaders.userAgent)}
+- 方舟大脑 User-Agent：${compactList(arkbrain.fingerprintHeaders.userAgent)}
 - ${baselineLabel} sec-ch-ua：${compactList(chrome.fingerprintHeaders.secChUa)}
-- 白龙马 sec-ch-ua：${compactList(bailongma.fingerprintHeaders.secChUa)}
+- 方舟大脑 sec-ch-ua：${compactList(arkbrain.fingerprintHeaders.secChUa)}
 - ${baselineLabel} 协议分布：${code(chrome.protocols)}
-- 白龙马协议分布：${code(bailongma.protocols)}
-- ${baselineLabel} Cookie 请求头出现于 ${chrome.cookies.requestHeaderPresent} 个请求；白龙马为 ${bailongma.cookies.requestHeaderPresent} 个。
+- 方舟大脑协议分布：${code(arkbrain.protocols)}
+- ${baselineLabel} Cookie 请求头出现于 ${chrome.cookies.requestHeaderPresent} 个请求；方舟大脑为 ${arkbrain.cookies.requestHeaderPresent} 个。
 - 基线 HAR 中 hasUserGesture 通常不可用；本表中的 ${code(differences.hasUserGesture.chrome)} 应结合格式限制解释。
 
 ## 请求差异表
 
-| 比较项 | ${baselineLabel} | 白龙马 | 解释边界 |
+| 比较项 | ${baselineLabel} | 方舟大脑 | 解释边界 |
 | --- | --- | --- | --- |
-| 独有归一化端点数 | ${endpointOnlyChrome.length} | ${endpointOnlyBailongma.length} | 推荐流、广告、实验和缓存可制造随机差异 |
-| 已归为噪声的端点差异 | ${differences.normalizedEndpointNoise.chrome.length} | ${differences.normalizedEndpointNoise.bailongma.length} | 共 ${normalizedNoiseCount} 项，不进入高风险结论 |
-| 独有请求头字段 | ${compactList(differences.requestHeadersOnlyInChrome)} | ${compactList(differences.requestHeadersOnlyInBailongma)} | 字段集合差异是事实，成因需结合端点逐项判断 |
-| Accept-Language | ${compactList(chrome.fingerprintHeaders.acceptLanguage)} | ${compactList(bailongma.fingerprintHeaders.acceptLanguage)} | 值不同可形成稳定分组特征 |
-| sec-ch-ua-platform | ${compactList(chrome.fingerprintHeaders.secChUaPlatform)} | ${compactList(bailongma.fingerprintHeaders.secChUaPlatform)} | 应与 UA、实际平台一致 |
-| Origin | ${compactList(chrome.diagnosticHeaders.origin)} | ${compactList(bailongma.diagnosticHeaders.origin)} | 已对 URL 查询值和动态路径脱敏 |
-| Referer | ${compactList(chrome.diagnosticHeaders.referer)} | ${compactList(bailongma.diagnosticHeaders.referer)} | 已对 URL 查询值和动态路径脱敏 |
-| sec-fetch-* | ${compactList([chrome.diagnosticHeaders['sec-fetch-site'], chrome.diagnosticHeaders['sec-fetch-mode'], chrome.diagnosticHeaders['sec-fetch-dest']].flat())} | ${compactList([bailongma.diagnosticHeaders['sec-fetch-site'], bailongma.diagnosticHeaders['sec-fetch-mode'], bailongma.diagnosticHeaders['sec-fetch-dest']].flat())} | 比较字段存在性与安全值 |
-| URL query 字段名 | ${compactList(chrome.queryParameterNames)} | ${compactList(bailongma.queryParameterNames)} | query 值已丢弃，仅保留字段名和元数据 |
-| 连接复用 | ${chrome.transport.reusedConnections} reused / ${chrome.transport.newConnections} new | ${bailongma.transport.reusedConnections} reused / ${bailongma.transport.newConnections} new | HAR/CDP 暴露程度不同，不能直接等价于线上连接 |
-| TLS 协议 | ${code(chrome.transport.tlsProtocols)} | ${code(bailongma.transport.tlsProtocols)} | 仅记录 CDP/HAR 可见元数据，不是 TLS 指纹 |
-| 请求间隔中位数 | ${code(chrome.timeline.interRequestGapMs.median)} ms | ${code(bailongma.timeline.interRequestGapMs.median)} ms | 包含页面自动请求，不能单独代表人工节奏 |
-| 首个 hasUserGesture 请求 | ${code(chrome.timeline.firstUserGestureRequestMs)} ms | ${code(bailongma.timeline.firstUserGestureRequestMs)} ms | HAR 侧通常缺失，且并非所有交互请求都会携带该标记 |
+| 独有归一化端点数 | ${endpointOnlyChrome.length} | ${endpointOnlyArkBrain.length} | 推荐流、广告、实验和缓存可制造随机差异 |
+| 已归为噪声的端点差异 | ${differences.normalizedEndpointNoise.chrome.length} | ${differences.normalizedEndpointNoise.arkbrain.length} | 共 ${normalizedNoiseCount} 项，不进入高风险结论 |
+| 独有请求头字段 | ${compactList(differences.requestHeadersOnlyInChrome)} | ${compactList(differences.requestHeadersOnlyInArkBrain)} | 字段集合差异是事实，成因需结合端点逐项判断 |
+| Accept-Language | ${compactList(chrome.fingerprintHeaders.acceptLanguage)} | ${compactList(arkbrain.fingerprintHeaders.acceptLanguage)} | 值不同可形成稳定分组特征 |
+| sec-ch-ua-platform | ${compactList(chrome.fingerprintHeaders.secChUaPlatform)} | ${compactList(arkbrain.fingerprintHeaders.secChUaPlatform)} | 应与 UA、实际平台一致 |
+| Origin | ${compactList(chrome.diagnosticHeaders.origin)} | ${compactList(arkbrain.diagnosticHeaders.origin)} | 已对 URL 查询值和动态路径脱敏 |
+| Referer | ${compactList(chrome.diagnosticHeaders.referer)} | ${compactList(arkbrain.diagnosticHeaders.referer)} | 已对 URL 查询值和动态路径脱敏 |
+| sec-fetch-* | ${compactList([chrome.diagnosticHeaders['sec-fetch-site'], chrome.diagnosticHeaders['sec-fetch-mode'], chrome.diagnosticHeaders['sec-fetch-dest']].flat())} | ${compactList([arkbrain.diagnosticHeaders['sec-fetch-site'], arkbrain.diagnosticHeaders['sec-fetch-mode'], arkbrain.diagnosticHeaders['sec-fetch-dest']].flat())} | 比较字段存在性与安全值 |
+| URL query 字段名 | ${compactList(chrome.queryParameterNames)} | ${compactList(arkbrain.queryParameterNames)} | query 值已丢弃，仅保留字段名和元数据 |
+| 连接复用 | ${chrome.transport.reusedConnections} reused / ${chrome.transport.newConnections} new | ${arkbrain.transport.reusedConnections} reused / ${arkbrain.transport.newConnections} new | HAR/CDP 暴露程度不同，不能直接等价于线上连接 |
+| TLS 协议 | ${code(chrome.transport.tlsProtocols)} | ${code(arkbrain.transport.tlsProtocols)} | 仅记录 CDP/HAR 可见元数据，不是 TLS 指纹 |
+| 请求间隔中位数 | ${code(chrome.timeline.interRequestGapMs.median)} ms | ${code(arkbrain.timeline.interRequestGapMs.median)} ms | 包含页面自动请求，不能单独代表人工节奏 |
+| 首个 hasUserGesture 请求 | ${code(chrome.timeline.firstUserGestureRequestMs)} ms | ${code(arkbrain.timeline.firstUserGestureRequestMs)} ms | HAR 侧通常缺失，且并非所有交互请求都会携带该标记 |
 
 ${baselineLabel}独有端点：${compactList(endpointOnlyChrome)}
 
-白龙马独有端点：${compactList(endpointOnlyBailongma)}
+方舟大脑独有端点：${compactList(endpointOnlyArkBrain)}
 
 已归一化的推荐/广告/实验/缓存敏感端点噪声：${compactList([
     ...differences.normalizedEndpointNoise.chrome,
-    ...differences.normalizedEndpointNoise.bailongma,
+    ...differences.normalizedEndpointNoise.arkbrain,
   ].map(item => `${item.kind}:${item.endpoint}`))}
 
 请求头顺序只来自 HAR 数组或 CDP 对象枚举；它不是最终 HTTP/2/HTTP/3 线序，不能据此确认 Header 在线顺序差异。
@@ -127,7 +127,7 @@ ${riskRows}
 
 ## 采集工具自身污染
 
-- 白龙马记录器附加 Electron debugger、启用 Network 域，并在开始/结束各执行一次只读页面环境表达式；不启用 Fetch、路由、代理、缓存禁用或请求重放。
+- 方舟大脑记录器附加 Electron debugger、启用 Network 域，并在开始/结束各执行一次只读页面环境表达式；不启用 Fetch、路由、代理、缓存禁用或请求重放。
 - 打开 DevTools 会改变焦点、可见性和窗口尺寸，也可能使 Electron debugger 断开，因此不可与快捷键记录器同时使用。
 - 人工基线浏览器的开发工具打开状态本身也可能改变 viewport、缓存和页面 focus；两侧应统一开发工具停靠方式与缓存设置。
 - HAR 与原生 CDP JSON 的字段覆盖不同，这是工具差异，不应误判为浏览器差异。
@@ -157,11 +157,11 @@ function writeAtomic(filename, content) {
 
 export function runComparison(options) {
   const chromeFile = path.resolve(options.chrome)
-  const bailongmaFile = path.resolve(options.bailongma)
-  const comparison = compareCaptures(readJson(chromeFile), readJson(bailongmaFile))
+  const arkbrainFile = path.resolve(options.arkbrain)
+  const comparison = compareCaptures(readJson(chromeFile), readJson(arkbrainFile))
   const report = renderComparisonReport(comparison, {
     chromeFile,
-    bailongmaFile,
+    arkbrainFile,
     baselineLabel: options['baseline-label'] || '普通 Chrome',
   })
   const outputs = {}

@@ -52,7 +52,7 @@ function broadRootLabel(candidate) {
     ['Desktop', path.join(HOME_DIR, 'Desktop')],
     ['Documents', path.join(HOME_DIR, 'Documents')],
     ['Downloads', path.join(HOME_DIR, 'Downloads')],
-    ['BaiLongma sandbox root', SANDBOX_ROOT],
+    ['ArkBrain-Agent sandbox root', SANDBOX_ROOT],
   ]
   return known.find(([, dir]) => samePath(resolved, dir))?.[0] || ''
 }
@@ -173,7 +173,7 @@ export function analyzeLocalServiceCommand(command, {
     blocked = true
     code = 'SERVICE_ROOT_TOO_BROAD'
     reason = `the static server would expose the ${broadRoot}, including files unrelated to the current task`
-    hint = 'Create a dedicated project subdirectory inside the BaiLongma sandbox, place only this task\'s site files there, and serve that directory.'
+    hint = 'Create a dedicated project subdirectory inside the ArkBrain-Agent sandbox, place only this task\'s site files there, and serve that directory.'
   }
 
   if (!blocked && (bind === 'all_interfaces' || bind === 'network')) {

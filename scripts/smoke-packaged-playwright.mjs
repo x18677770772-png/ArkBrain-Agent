@@ -18,20 +18,20 @@ function packagedTarget(platform = process.platform, arch = process.arch) {
       platform,
       arch,
       hostPlatform: 'win64',
-      exe: path.join(unpacked, 'Bailongma.exe'),
+      exe: path.join(unpacked, 'ArkBrain-Agent.exe'),
       resources: path.join(unpacked, 'resources'),
       chromiumExecutableParts: ['chrome-win64', 'chrome.exe'],
-      artifactPattern: /^Bailongma-Setup-.*\.exe$/i,
+      artifactPattern: /^ArkBrain-Setup-.*\.exe$/i,
     }
   }
   if (platform === 'darwin' && ['x64', 'arm64'].includes(arch)) {
     const unpacked = path.join(distDir, arch === 'arm64' ? 'mac-arm64' : 'mac')
-    const appBundle = path.join(unpacked, 'Bailongma.app')
+    const appBundle = path.join(unpacked, 'ArkBrain-Agent.app')
     return {
       platform,
       arch,
       hostPlatform: arch === 'arm64' ? 'mac15-arm64' : 'mac15',
-      exe: path.join(appBundle, 'Contents', 'MacOS', 'Bailongma'),
+      exe: path.join(appBundle, 'Contents', 'MacOS', 'ArkBrain-Agent'),
       resources: path.join(appBundle, 'Contents', 'Resources'),
       chromiumExecutableParts: [
         `chrome-mac-${arch}`,
@@ -40,7 +40,7 @@ function packagedTarget(platform = process.platform, arch = process.arch) {
         'MacOS',
         'Google Chrome for Testing',
       ],
-      artifactPattern: new RegExp(`^Bailongma-.*-mac-${arch}\\.dmg$`, 'i'),
+      artifactPattern: new RegExp(`^ArkBrain-.*-mac-${arch}\\.dmg$`, 'i'),
     }
   }
   if (platform === 'linux' && arch === 'x64') {
@@ -49,10 +49,10 @@ function packagedTarget(platform = process.platform, arch = process.arch) {
       platform,
       arch,
       hostPlatform: 'ubuntu24.04-x64',
-      exe: path.join(unpacked, 'bailongma'),
+      exe: path.join(unpacked, 'arkbrain'),
       resources: path.join(unpacked, 'resources'),
       chromiumExecutableParts: ['chrome-linux64', 'chrome'],
-      artifactPattern: /^Bailongma-.*-linux-x64\.AppImage$/i,
+      artifactPattern: /^ArkBrain-.*-linux-x64\.AppImage$/i,
     }
   }
   throw new Error(`packaged Playwright MCP smoke is not configured for ${platform}-${arch}`)
@@ -139,7 +139,7 @@ assert.deepEqual(packagedChromiumRevisions, [`chromium-${chromium.revision}`],
   'package must contain exactly the MCP-pinned Chromium revision')
 requireFile(chromiumExe, `packaged MCP Chromium revision ${chromium.revision}`)
 
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-packaged-playwright-mcp-'))
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-packaged-playwright-mcp-'))
 const userDir = path.join(tempRoot, 'user')
 const probeFile = path.join(tempRoot, 'probe.mjs')
 fs.mkdirSync(userDir, { recursive: true })
@@ -153,13 +153,13 @@ import path from 'node:path'
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 
-const appAsar = process.env.BAILONGMA_SMOKE_APP_ASAR
-const resources = process.env.BAILONGMA_PACKAGED_RESOURCES
-const userDir = process.env.BAILONGMA_USER_DIR
-const expectedChromium = path.resolve(process.env.BAILONGMA_EXPECTED_CHROMIUM)
-const targetPlatform = process.env.BAILONGMA_SMOKE_PLATFORM
-const targetArch = process.env.BAILONGMA_SMOKE_ARCH
-const expectedHostPlatform = process.env.BAILONGMA_SMOKE_HOST_PLATFORM
+const appAsar = process.env.ARKBRAIN_SMOKE_APP_ASAR
+const resources = process.env.ARKBRAIN_PACKAGED_RESOURCES
+const userDir = process.env.ARKBRAIN_USER_DIR
+const expectedChromium = path.resolve(process.env.ARKBRAIN_EXPECTED_CHROMIUM)
+const targetPlatform = process.env.ARKBRAIN_SMOKE_PLATFORM
+const targetArch = process.env.ARKBRAIN_SMOKE_ARCH
+const expectedHostPlatform = process.env.ARKBRAIN_SMOKE_HOST_PLATFORM
 assert.ok(appAsar.includes('app.asar'), 'probe must import production code from app.asar')
 assert.equal(path.resolve(process.env.PLAYWRIGHT_BROWSERS_PATH), path.join(resources, 'playwright-browsers'))
 assert.ok(!process.env.NODE_PATH, 'NODE_PATH must be empty so repository dependencies cannot be borrowed')
@@ -186,7 +186,7 @@ packagedRuntime.configurePackagedPlaywright({
   arch: targetArch,
 })
 assert.equal(process.env.PLAYWRIGHT_HOST_PLATFORM_OVERRIDE, expectedHostPlatform)
-assert.equal(process.env.BAILONGMA_BUNDLED_PLAYWRIGHT, '1')
+assert.equal(process.env.ARKBRAIN_BUNDLED_PLAYWRIGHT, '1')
 
 const [{ Client }, { StdioClientTransport }] = await Promise.all([
   import(pathToFileURL(sdkClientEntry).href),
@@ -211,7 +211,7 @@ const childEnv = Object.fromEntries(Object.entries({
   ELECTRON_RUN_AS_NODE: '1',
   PLAYWRIGHT_BROWSERS_PATH: path.join(resources, 'playwright-browsers'),
   PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: expectedHostPlatform,
-  BAILONGMA_BROWSER_PRIVATE_NETWORK: '1',
+  ARKBRAIN_BROWSER_PRIVATE_NETWORK: '1',
 }).filter(([, value]) => typeof value === 'string'))
 const transport = new StdioClientTransport({
   command: process.execPath,
@@ -234,7 +234,7 @@ const transport = new StdioClientTransport({
 let mcpStderr = ''
 transport.stderr?.setEncoding?.('utf8')
 transport.stderr?.on?.('data', chunk => { mcpStderr += chunk })
-const client = new Client({ name: 'bailongma-packaged-smoke', version: '1.0.0' })
+const client = new Client({ name: 'arkbrain-packaged-smoke', version: '1.0.0' })
 const textResult = result => (result.content || []).filter(item => item.type === 'text').map(item => item.text).join('\n')
 const call = (name, args = {}) => client.callTool(
   { name, arguments: args },
@@ -373,13 +373,13 @@ async function runProbe() {
       NODE_PATH: '',
       PLAYWRIGHT_BROWSERS_PATH: browsersDir,
       PLAYWRIGHT_HOST_PLATFORM_OVERRIDE: target.hostPlatform,
-      BAILONGMA_USER_DIR: userDir,
-      BAILONGMA_PACKAGED_RESOURCES: resources,
-      BAILONGMA_SMOKE_APP_ASAR: appAsar,
-      BAILONGMA_EXPECTED_CHROMIUM: chromiumExe,
-      BAILONGMA_SMOKE_PLATFORM: target.platform,
-      BAILONGMA_SMOKE_ARCH: target.arch,
-      BAILONGMA_SMOKE_HOST_PLATFORM: target.hostPlatform,
+      ARKBRAIN_USER_DIR: userDir,
+      ARKBRAIN_PACKAGED_RESOURCES: resources,
+      ARKBRAIN_SMOKE_APP_ASAR: appAsar,
+      ARKBRAIN_EXPECTED_CHROMIUM: chromiumExe,
+      ARKBRAIN_SMOKE_PLATFORM: target.platform,
+      ARKBRAIN_SMOKE_ARCH: target.arch,
+      ARKBRAIN_SMOKE_HOST_PLATFORM: target.hostPlatform,
       // A bogus cache makes accidental reliance on a user's browser cache fail.
       LOCALAPPDATA: path.join(tempRoot, 'empty-local-app-data'),
       USERPROFILE: path.join(tempRoot, 'empty-profile'),
@@ -429,12 +429,12 @@ function packagedChromiumPids() {
   }
   const result = spawnSync('powershell.exe', [
     '-NoProfile', '-NonInteractive', '-Command',
-    "$expected=[IO.Path]::GetFullPath($env:BAILONGMA_EXPECTED_CHROMIUM); Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $expected } | Select-Object -ExpandProperty ProcessId",
+    "$expected=[IO.Path]::GetFullPath($env:ARKBRAIN_EXPECTED_CHROMIUM); Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | Where-Object { $_.ExecutablePath -and [IO.Path]::GetFullPath($_.ExecutablePath) -ieq $expected } | Select-Object -ExpandProperty ProcessId",
   ], {
     encoding: 'utf8',
     timeout: 15_000,
     windowsHide: true,
-    env: { ...process.env, BAILONGMA_EXPECTED_CHROMIUM: chromiumExe },
+    env: { ...process.env, ARKBRAIN_EXPECTED_CHROMIUM: chromiumExe },
   })
   if (result.error) throw result.error
   if (result.status !== 0) {

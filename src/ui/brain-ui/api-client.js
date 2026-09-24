@@ -1,5 +1,5 @@
-const API_TOKEN_STORAGE_KEY = "bailongma-api-token";
-const UI_CLIENT_ID_SESSION_KEY = "bailongma-ui-client-id";
+const API_TOKEN_STORAGE_KEY = "arkbrain-api-token";
+const UI_CLIENT_ID_SESSION_KEY = "arkbrain-ui-client-id";
 const HTTP_PROTOCOL = /^https?:$/;
 const browserWindow = globalThis.window;
 const browserStorage = globalThis.localStorage;
@@ -106,8 +106,8 @@ if (browserWindow?.fetch) {
     const headers = new Headers(input instanceof Request ? input.headers : undefined);
     new Headers(init.headers || {}).forEach((value, key) => headers.set(key, value));
     if (token && !headers.has("Authorization")) headers.set("Authorization", `Bearer ${token}`);
-    if (!headers.has("X-Bailongma-Client-ID")) {
-      headers.set("X-Bailongma-Client-ID", getUiClientId());
+    if (!headers.has("X-ArkBrain-Client-ID")) {
+      headers.set("X-ArkBrain-Client-ID", getUiClientId());
     }
     return nativeFetch(input, { ...init, headers });
   };
@@ -156,8 +156,8 @@ function base64UrlEncode(value) {
 }
 
 export function apiWebSocketProtocols() {
-  const protocols = ["bailongma.v1"];
+  const protocols = ["arkbrain.v1"];
   const token = getApiToken();
-  if (token) protocols.push(`bailongma.auth.${base64UrlEncode(token)}`);
+  if (token) protocols.push(`arkbrain.auth.${base64UrlEncode(token)}`);
   return protocols;
 }

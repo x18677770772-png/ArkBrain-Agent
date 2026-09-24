@@ -46,7 +46,7 @@ for (const messageBody of [
   'search the web for the current Chrome DevTools MCP documentation',
   '总结网页正文 https://example.com/article',
   '读取这个 JavaScript 动态网页正文',
-  '小白龙，帮我上网看看今天有什么 AI 新闻，挑三条重要的告诉我，链接也发我一下。',
+  '方舟大脑，帮我上网看看今天有什么 AI 新闻，挑三条重要的告诉我，链接也发我一下。',
   '今天 AI 圈有什么新鲜事？',
   '看看网上最近都在聊什么 AI 新闻',
   '最近苹果有什么消息？',

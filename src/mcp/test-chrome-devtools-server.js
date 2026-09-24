@@ -4,8 +4,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const userDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-chrome-mcp-'))
-process.env.BAILONGMA_USER_DIR = userDir
+const userDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-chrome-mcp-'))
+process.env.ARKBRAIN_USER_DIR = userDir
 
 const {
   BUILTIN_BROWSER_ALLOWED_TOOLS,
@@ -70,10 +70,10 @@ class FakeClient {
     const name = request.name
     if (name === 'list_pages') return {
       content: [{ type: 'text', text: hideManagedPage
-        ? '## Pages\n99: Bailongma UI (http://127.0.0.1:3721/) [selected]'
+        ? '## Pages\n99: ArkBrain-Agent UI (http://127.0.0.1:3721/) [selected]'
         : `## Pages\n0: test page (${pageUrl}) [selected]` }],
       structuredContent: { pages: hideManagedPage
-        ? [{ id: 99, url: 'http://127.0.0.1:3721/', title: 'Bailongma UI', selected: true }]
+        ? [{ id: 99, url: 'http://127.0.0.1:3721/', title: 'ArkBrain-Agent UI', selected: true }]
         : [{ id: 0, url: pageUrl, title: 'test page', selected: true }] },
     }
     if (name === 'navigate_page') {
@@ -90,7 +90,7 @@ class FakeClient {
     }
     if (name === 'take_snapshot') return { content: [{ type: 'text', text: `- Page URL: ${pageUrl}\n- Page Title: ${pageUrl.includes('x.com/home') ? 'X Home' : 'test page'}` }] }
     if (name === 'evaluate_script') {
-      if (String(request.arguments?.function || '').includes('__bailongmaSearchSubmit')) {
+      if (String(request.arguments?.function || '').includes('__arkbrainSearchSubmit')) {
         const beforeUrl = pageUrl
         pageUrl = 'https://example.com/search?q=OpenAI'
         return { content: [{ type: 'text', text: `Script ran on page and returned:\n\`\`\`json\n${JSON.stringify({ submitted: true, method: 'requestSubmit', before_url: beforeUrl })}\n\`\`\`` }] }
@@ -178,7 +178,7 @@ try {
   const cli = resolveChromeDevtoolsCli()
   check(cli.includes('chrome-devtools-mcp') && fs.existsSync(cli),
     'the Chrome DevTools MCP executable comes from the installed pinned dependency', cli)
-  const packedCli = path.join('/Applications/Bailongma.app/Contents/Resources/app.asar', 'node_modules', 'chrome-devtools-mcp', 'build', 'src', 'bin', 'chrome-devtools-mcp.js')
+  const packedCli = path.join('/Applications/ArkBrain-Agent.app/Contents/Resources/app.asar', 'node_modules', 'chrome-devtools-mcp', 'build', 'src', 'bin', 'chrome-devtools-mcp.js')
   const unpackedCli = packedCli.replace(`${path.sep}app.asar${path.sep}`, `${path.sep}app.asar.unpacked${path.sep}`)
   check(resolveStandaloneNodeModulePath(packedCli, { existsSync: value => value === unpackedCli }) === unpackedCli,
     'standalone Node is redirected from Electron ASAR to the unpacked Chrome DevTools MCP entry')
@@ -354,7 +354,7 @@ try {
   check(closedPage?.browser_preview?.page_closed === true && closedPage?.browser_preview?.state === 'closed'
     && bridge.closeCalls === 1
     && calls.every(call => call.name !== 'new_page' && call.name !== 'close_page'),
-  'browser_close destroys the managed live page without touching Bailongma UI targets', JSON.stringify(closedPage))
+  'browser_close destroys the managed live page without touching ArkBrain-Agent UI targets', JSON.stringify(closedPage))
 
   const firstClient = clients.at(-1)
   firstClient.onclose?.()
@@ -362,7 +362,7 @@ try {
   await executeBuiltInChromeTool('browser_snapshot', {}, context)
   check(clients.length === beforeReconnect + 1,
     'an MCP connection close is recovered by reconnecting to the same loopback Chrome endpoint')
-  bridge.error = new Error('BaiLongma Chrome window was closed')
+  bridge.error = new Error('ArkBrain-Agent Chrome window was closed')
   const closedWindow = parse(await executeBuiltInChromeTool('browser_snapshot', {}, context))
   check(closedWindow?.ok === false && closedWindow?.code === 'MCP_DISCONNECTED'
     && /Recovery:/i.test(closedWindow?.error || ''),
@@ -375,7 +375,7 @@ try {
     && /browserEmbed/.test(preloadSource),
   'compact mode exposes the real managed WebContentsView instead of a screenshot')
   check(inferBrowserSurface('用我电脑上的浏览器打开 https://example.com') === 'system'
-    && inferBrowserSurface('请打开白龙马专用 Chrome') === 'chrome',
+    && inferBrowserSurface('请打开方舟大脑专用 Chrome') === 'chrome',
   'system/default browser remains a separate uncontrollable surface')
 } catch (error) {
   failed += 1

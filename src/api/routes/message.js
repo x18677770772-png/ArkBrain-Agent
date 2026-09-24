@@ -61,7 +61,7 @@ export async function handleMessageRoutes(req, res, url) {
       const clientId = normalizeUiClientId(
         body.client_id
           ?? body.clientId
-          ?? req.headers['x-bailongma-client-id']
+          ?? req.headers['x-arkbrain-client-id']
           ?? '',
       )
       const resources = persistDroppedChatResources(body.resources)
@@ -130,7 +130,7 @@ export async function handleMessageRoutes(req, res, url) {
     const clientId = normalizeUiClientId(
       body.client_id
         ?? body.clientId
-        ?? req.headers['x-bailongma-client-id']
+        ?? req.headers['x-arkbrain-client-id']
         ?? '',
     )
     claim = claimInboundMessage({ fromId: from_id, channel, content: queuedContent, clientMessageId })

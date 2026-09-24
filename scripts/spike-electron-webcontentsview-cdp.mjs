@@ -19,7 +19,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const fixturePath = path.join(root, 'scripts', 'fixtures', 'electron-webcontentsview-cdp-fixture.cjs')
 const electronPath = path.join(root, 'node_modules', '.bin', 'electron')
 const mcpCliPath = path.join(root, 'node_modules', '@playwright', 'mcp', 'cli.js')
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-webcontentsview-cdp-'))
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-webcontentsview-cdp-'))
 const records = []
 
 function record(label, detail = '') {
@@ -72,9 +72,9 @@ async function launchFixture(label, userDataDir) {
   const readyFile = path.join(tempRoot, `${label}-ready.json`)
   const childEnv = {
     ...process.env,
-    BAILONGMA_CDP_SPIKE_PORT: String(port),
-    BAILONGMA_CDP_SPIKE_READY_FILE: readyFile,
-    BAILONGMA_CDP_SPIKE_USER_DATA: userDataDir,
+    ARKBRAIN_CDP_SPIKE_PORT: String(port),
+    ARKBRAIN_CDP_SPIKE_READY_FILE: readyFile,
+    ARKBRAIN_CDP_SPIKE_USER_DATA: userDataDir,
   }
   delete childEnv.ELECTRON_RUN_AS_NODE
   const child = spawn(electronPath, [fixturePath], {
@@ -185,7 +185,7 @@ async function directAndInMemoryTest(userDataDir) {
         snapshot: { mode: 'none' },
         imageResponses: 'omit',
       }, async () => surface.context)
-      naiveClient = new Client({ name: 'bailongma-naive-context-spike', version: '1.0.0' })
+      naiveClient = new Client({ name: 'arkbrain-naive-context-spike', version: '1.0.0' })
       await Promise.all([
         naiveServer.connect(serverTransport),
         naiveClient.connect(clientTransport),
@@ -194,8 +194,8 @@ async function directAndInMemoryTest(userDataDir) {
         name: 'browser_tabs',
         arguments: { action: 'list' },
       }))
-      assert.match(naiveTabs, /Bailongma Brain UI spike/)
-      assert.match(naiveTabs, /Bailongma browser surface spike/)
+      assert.match(naiveTabs, /ArkBrain-Agent Brain UI spike/)
+      assert.match(naiveTabs, /ArkBrain-Agent browser surface spike/)
       record(
         'a raw contextGetter is insufficient because it exposes Brain UI as an MCP tab',
         naiveTabs.replaceAll('\n', ' | '),
@@ -226,8 +226,8 @@ async function directAndInMemoryTest(userDataDir) {
       name: 'browser_tabs',
       arguments: { action: 'list' },
     }))
-    assert.match(tabsBefore, /Bailongma browser surface spike/)
-    assert.doesNotMatch(tabsBefore, /Bailongma Brain UI spike/)
+    assert.match(tabsBefore, /ArkBrain-Agent browser surface spike/)
+    assert.doesNotMatch(tabsBefore, /ArkBrain-Agent Brain UI spike/)
     record(
       'the production sidecar exposes only the exact targetId page',
       tabsBefore.replaceAll('\n', ' | '),
@@ -235,12 +235,12 @@ async function directAndInMemoryTest(userDataDir) {
 
     const navigation = resultText(await mcpClient.callTool({
       name: 'browser_navigate',
-      arguments: { url: 'https://example.com/?bailongma-mcp=in-memory' },
+      arguments: { url: 'https://example.com/?arkbrain-mcp=in-memory' },
     }))
     assert.match(navigation, /Example Domain/)
     const brainState = await pollJson(`${fixture.ready.contentBaseUrl}/state`)
     assert.match(brainState.brainUrl, /target=brain-ui/)
-    assert.match(brainState.browserUrl, /bailongma-mcp=in-memory/)
+    assert.match(brainState.browserUrl, /arkbrain-mcp=in-memory/)
     record(
       'official Playwright MCP navigates the embedded page without touching Brain UI',
       `browser=${brainState.browserUrl}; brain=${brainState.brainUrl}`,
@@ -248,11 +248,11 @@ async function directAndInMemoryTest(userDataDir) {
 
     const marker = `persist-${Date.now()}`
     await surface.page.evaluate(value => {
-      document.cookie = `bailongma_cdp_spike=${value}; expires=${new Date(Date.now() + 86_400_000).toUTCString()}; path=/; SameSite=Lax`
+      document.cookie = `arkbrain_cdp_spike=${value}; expires=${new Date(Date.now() + 86_400_000).toUTCString()}; path=/; SameSite=Lax`
     }, marker)
     const stateWithCookie = await pollJson(`${fixture.ready.contentBaseUrl}/state`)
     assert.equal(
-      stateWithCookie.exampleCookies.find(cookie => cookie.name === 'bailongma_cdp_spike')?.value,
+      stateWithCookie.exampleCookies.find(cookie => cookie.name === 'arkbrain_cdp_spike')?.value,
       marker,
       `surface document cookie did not reach its Electron session: ${JSON.stringify(stateWithCookie)}`,
     )
@@ -290,12 +290,12 @@ async function persistenceTest(userDataDir, marker) {
     assert.ok(surface)
     const state = await pollJson(`${fixture.ready.contentBaseUrl}/state`)
     assert.equal(
-      state.exampleCookies.find(cookie => cookie.name === 'bailongma_cdp_spike')?.value,
+      state.exampleCookies.find(cookie => cookie.name === 'arkbrain_cdp_spike')?.value,
       marker,
     )
     record(
       'the WebContentsView persistent session survives an Electron restart',
-      `cookie bailongma_cdp_spike=${marker}`,
+      `cookie arkbrain_cdp_spike=${marker}`,
     )
   } finally {
     await stopFixture(fixture)
@@ -322,14 +322,14 @@ async function cliCdpRiskTest(userDataDir) {
       },
       stderr: 'pipe',
     })
-    client = new Client({ name: 'bailongma-cli-cdp-spike', version: '1.0.0' })
+    client = new Client({ name: 'arkbrain-cli-cdp-spike', version: '1.0.0' })
     await client.connect(transport)
     const tabs = resultText(await client.callTool({
       name: 'browser_tabs',
       arguments: { action: 'list' },
     }))
-    const selectedBrain = tabs.includes('Bailongma Brain UI spike')
-    const selectedSurface = tabs.includes('Bailongma browser surface spike')
+    const selectedBrain = tabs.includes('ArkBrain-Agent Brain UI spike')
+    const selectedSurface = tabs.includes('ArkBrain-Agent browser surface spike')
     assert.ok(selectedBrain || selectedSurface, `CLI MCP returned no known Electron target: ${tabs}`)
     record(
       'CLI --cdp-endpoint attaches, but blindly chooses contexts()[0]',

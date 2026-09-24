@@ -17,7 +17,7 @@ const BROWSER_NAVIGATION_URL_RE = /(?:https?:\/\/|www\.|(?:[\w-]+\.)+(?:com|cn|o
 const BROWSER_INFORMATION_ACTION_RE = /(?:搜索|查询|查找|浏览(?!器)|阅读|播放|观看)|(?:search|browse|read|play|watch)\b/i
 const BROWSER_OPEN_TARGET_RE = /(?:打开|访问|进入|前往|加载)\s*(?:一下\s*)?(?!这个(?:网页|页面)|当前(?:网页|页面)|刚才(?:的)?(?:网页|页面)|$)[\p{L}\p{N}]/iu
 const BROWSER_OPEN_TARGET_EN_RE = /(?:open|visit|go\s+to|navigate\s+to|load)\s+(?!(?:this|the current|the previous)\s+(?:page|webpage)\b)[a-z0-9]/i
-const BROWSER_CLOSE_RE = /(?:(?:关闭|关掉|退出).{0,12}(?:你的浏览器|白龙马浏览器|agent\s*浏览器|小窗口浏览器|大窗口浏览器|小浏览器|大浏览器|当前网页|当前页面|浏览器|网页|页面)|(?:你的浏览器|白龙马浏览器|agent\s*浏览器|小窗口浏览器|大窗口浏览器|小浏览器|大浏览器|浏览器).{0,8}(?:关一下|关了|关闭|关掉)|(?:close|quit|exit)\s+(?:your|the\s+bailongma|the\s+agent|the\s+current)?\s*(?:browser|webpage|page)\b)/i
+const BROWSER_CLOSE_RE = /(?:(?:关闭|关掉|退出).{0,12}(?:你的浏览器|方舟大脑浏览器|agent\s*浏览器|小窗口浏览器|大窗口浏览器|小浏览器|大浏览器|当前网页|当前页面|浏览器|网页|页面)|(?:你的浏览器|方舟大脑浏览器|agent\s*浏览器|小窗口浏览器|大窗口浏览器|小浏览器|大浏览器|浏览器).{0,8}(?:关一下|关了|关闭|关掉)|(?:close|quit|exit)\s+(?:your|the\s+arkbrain|the\s+agent|the\s+current)?\s*(?:browser|webpage|page)\b)/i
 const BROWSER_SCREENSHOT_RE = /(?:(?:截|截图)(?:一?张|个)?(?:当前|现在|这个|网页|页面|浏览器|这一屏|整页)?.{0,16}(?:图|给我|发我|看看|看一下)?|(?:给我|发我|让我看看).{0,12}(?:截图|截屏)|take\s+(?:a\s+)?screenshot)/i
 const BROWSER_PAGE_SCOPE_RE = /(?:这个|当前|现在|本|这一个)(?:网页|页面)|(?:这|当前)页|(?:网页|页面)(?:里|内|中|上)|(?:this|current)\s+(?:page|webpage)/i
 const BROWSER_PAGE_FIND_ACTION_RE = /(?:有没有|有无|是否(?:有|包含)|包含|找(?:一下|一找)?|查找|搜(?:一下|索)?|出现(?:了)?(?:几|多少|\d+)?(?:次|处)?|几处|几次|多少次|find|look\s+for|contain|occur|how\s+many)/i
@@ -665,7 +665,7 @@ const CONTRACTS = [
   },
   {
     id: 'browser_open_in_display_mode',
-    label: '使用指定的白龙马浏览器打开网页',
+    label: '使用指定的方舟大脑浏览器打开网页',
     // Navigation already runs through the display mode selected
     // deterministically for this turn. Its browser_preview.mode is observable
     // evidence that both the requested presentation and navigation happened;
@@ -678,7 +678,7 @@ const CONTRACTS = [
   },
   {
     id: 'browser_close',
-    label: '真正关闭白龙马浏览器页面',
+    label: '真正关闭方舟大脑浏览器页面',
     tools: ['browser_close'],
     match: text => !explicitlyKeepsBrowserOpen(text) && BROWSER_CLOSE_RE.test(text),
     resolve: text => {
@@ -1137,7 +1137,7 @@ export function actionContractCompletionIssue(contract, text = '', options = {})
   }
   if (/(?:三个|三种).{0,16}浏览器.{0,20}(?:各自|彼此|互相|完全)?.{0,10}(?:独立|不共享|互不影响)/i.test(value)
       || /(?:你的浏览器).{0,30}(?:我的浏览器).{0,30}(?:各自独立|彼此独立|互不影响|不共享)/i.test(value)) {
-    return 'Bailongma compact and large modes share one live page/profile; only the computer browser is separate.'
+    return 'ArkBrain-Agent compact and large modes share one live page/profile; only the computer browser is separate.'
   }
   return ''
 }
@@ -1204,7 +1204,7 @@ export function verifiedActionContractReply(contract, evidence = {}, options = {
     if (parsed?.url) url = String(parsed.url)
   } catch {}
   const target = url ? `链接 \`${url}\`` : '链接'
-  return `已将${target}交给电脑的系统默认浏览器打开。白龙马的“小窗口浏览器”和“大窗口浏览器”是同一个实时页面的两种显示形态；电脑浏览器与它们独立。`
+  return `已将${target}交给电脑的系统默认浏览器打开。方舟大脑的“小窗口浏览器”和“大窗口浏览器”是同一个实时页面的两种显示形态；电脑浏览器与它们独立。`
 }
 
 export function containsUnsupportedCompletionClaim(text = '', contract = null) {

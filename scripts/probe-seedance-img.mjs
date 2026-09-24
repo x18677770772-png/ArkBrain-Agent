@@ -3,14 +3,14 @@
 import fs from 'fs'
 import path from 'path'
 
-const CONFIG = path.join(process.env.APPDATA, 'Bailongma', 'config.json')
+const CONFIG = path.join(process.env.APPDATA, 'ArkBrain-Agent', 'config.json')
 const seed = JSON.parse(fs.readFileSync(CONFIG, 'utf-8')).seedance || {}
 const apiKey = String(seed.apiKey || '').trim()
 const model = String(seed.model || '').trim() || 'doubao-seedance-2-0-260128'
 const baseURL = String(seed.baseURL || '').trim() || 'https://ark.cn-beijing.volces.com/api/v3'
 
 const imgPath = process.argv[2] || 'src/ui/brain-ui/vendor/earth/earth_atmos_2048.jpg'
-const abs = path.resolve('D:/claude/BaiLongma', imgPath)
+const abs = path.resolve('D:/claude/ArkBrain-Agent', imgPath)
 const bytes = fs.readFileSync(abs)
 const ext = path.extname(abs).slice(1).toLowerCase().replace('jpg', 'jpeg')
 const dataUrl = `data:image/${ext};base64,${bytes.toString('base64')}`

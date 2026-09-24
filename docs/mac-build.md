@@ -1,12 +1,12 @@
 # macOS 构建与安装排障
 
-本文档面向 Bailongma 的开发者和维护者，用于构建、检查和排查 macOS 桌面安装包问题。
+本文档面向 ArkBrain-Agent 的开发者和维护者，用于构建、检查和排查 macOS 桌面安装包问题。
 
 内容基于当前项目脚本和 `package.json` 中的 `electron-builder` 配置。除共享脚本会影响 macOS 构建的部分外，本文不展开 Windows 打包流程。
 
 ## 适用范围
 
-- 项目根目录：`/Users/xyf/code/bailongma`
+- 项目根目录：`/Users/xyf/code/arkbrain`
 - Electron 入口：`electron/main.cjs`
 - 运行时路径抽象：`src/paths.js`
 - macOS 语音 helper 源码：`src/voice/macos-speech.swift`
@@ -18,7 +18,7 @@
 排障时不要删除或重置用户数据目录：
 
 ```text
-/Users/xyf/Library/Application Support/Bailongma
+/Users/xyf/Library/Application Support/ArkBrain-Agent
 ```
 
 仓库根目录下的 `voice/*.json` 是本地语音配置文件，已被 git 忽略。不要把这些文件内容复制到文档、issue、日志或发布说明中。
@@ -41,8 +41,8 @@
 以版本 `2.1.436` 为例，预期 DMG 文件名为：
 
 ```text
-dist/Bailongma-2.1.436-mac-arm64.dmg
-dist/Bailongma-2.1.436-mac-x64.dmg
+dist/ArkBrain-2.1.436-mac-arm64.dmg
+dist/ArkBrain-2.1.436-mac-x64.dmg
 ```
 
 `electron-builder` 也可能写入相关元数据文件，例如：
@@ -56,7 +56,7 @@ dist/builder-debug.yml
 打包后的 app bundle 位于挂载后的 DMG 内：
 
 ```text
-Bailongma.app
+ArkBrain-Agent.app
 ```
 
 应用启用了 `asar: true`。以下文件需要作为可执行文件或原生模块在运行时加载，因此会被显式解包：
@@ -116,7 +116,7 @@ MACOSX_DEPLOYMENT_TARGET=10.15
 
 ## Apple Silicon 与 Intel 架构差异
 
-Bailongma 当前为 Intel 和 Apple Silicon 分别构建 macOS DMG。
+ArkBrain-Agent 当前为 Intel 和 Apple Silicon 分别构建 macOS DMG。
 
 构建包装脚本支持的架构为：
 
@@ -183,7 +183,7 @@ node -p "process.platform + ' ' + process.arch"
 xcode-select -p
 ```
 
-不要通过删除用户数据来修依赖问题。依赖状态位于仓库工作区，主要是 `node_modules/`，不在 Bailongma 用户数据目录中。
+不要通过删除用户数据来修依赖问题。依赖状态位于仓库工作区，主要是 `node_modules/`，不在 ArkBrain-Agent 用户数据目录中。
 
 ## 本地开发启动
 
@@ -207,17 +207,17 @@ npm run start:backend
 npm run dev
 ```
 
-开发模式下，如果没有设置 `BAILONGMA_USER_DIR`，`src/paths.js` 会默认把可写数据路径指向仓库根目录。打包后的 Electron 应用中，`electron/main.cjs` 会注入：
+开发模式下，如果没有设置 `ARKBRAIN_USER_DIR`，`src/paths.js` 会默认把可写数据路径指向仓库根目录。打包后的 Electron 应用中，`electron/main.cjs` 会注入：
 
 ```text
-BAILONGMA_USER_DIR=<Electron app.getPath('userData')>
-BAILONGMA_RESOURCES_DIR=<Electron app.getAppPath()>
+ARKBRAIN_USER_DIR=<Electron app.getPath('userData')>
+ARKBRAIN_RESOURCES_DIR=<Electron app.getAppPath()>
 ```
 
 在 macOS 上，打包应用的用户数据路径通常是：
 
 ```text
-~/Library/Application Support/Bailongma
+~/Library/Application Support/ArkBrain-Agent
 ```
 
 ## macOS 打包命令
@@ -300,7 +300,7 @@ npm run smoke:mac-artifacts
 该检查会使用 `hdiutil` 以只读方式挂载每个 DMG，然后验证：
 
 - DMG 文件存在；
-- 挂载镜像内存在 `Bailongma.app`；
+- 挂载镜像内存在 `ArkBrain-Agent.app`；
 - 存在 `Contents/Info.plist`；
 - app 可执行文件是预期的单一架构；
 - `build/native-speech-recognizer` 是预期的单一架构；
@@ -311,10 +311,10 @@ npm run smoke:mac-artifacts
 常用手动检查命令：
 
 ```bash
-hdiutil attach -readonly -nobrowse dist/Bailongma-2.1.436-mac-arm64.dmg
-lipo -archs "/Volumes/<mounted-volume>/Bailongma.app/Contents/MacOS/Bailongma"
-lipo -archs "/Volumes/<mounted-volume>/Bailongma.app/Contents/Resources/app.asar.unpacked/build/native-speech-recognizer"
-lipo -archs "/Volumes/<mounted-volume>/Bailongma.app/Contents/Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+hdiutil attach -readonly -nobrowse dist/ArkBrain-2.1.436-mac-arm64.dmg
+lipo -archs "/Volumes/<mounted-volume>/ArkBrain-Agent.app/Contents/MacOS/ArkBrain-Agent"
+lipo -archs "/Volumes/<mounted-volume>/ArkBrain-Agent.app/Contents/Resources/app.asar.unpacked/build/native-speech-recognizer"
+lipo -archs "/Volumes/<mounted-volume>/ArkBrain-Agent.app/Contents/Resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node"
 hdiutil detach "/Volumes/<mounted-volume>"
 ```
 
@@ -329,13 +329,13 @@ Apple 公证仍需在发布环境中配置相应凭据；代码签名成功不�
 没有 Developer ID 签名和公证时，用户可能会看到类似提示：
 
 ```text
-"Bailongma.app" cannot be opened because Apple cannot check it for malicious software.
+"ArkBrain-Agent.app" cannot be opened because Apple cannot check it for malicious software.
 ```
 
 或：
 
 ```text
-"Bailongma.app" is damaged and can't be opened. You should move it to the Trash.
+"ArkBrain-Agent.app" is damaged and can't be opened. You should move it to the Trash.
 ```
 
 本地测试时，要把这些 Gatekeeper 提示和构建失败区分开。一个 DMG 可以在结构上完全有效，同时仍然触发 macOS 安全提示。
@@ -343,15 +343,15 @@ Apple 公证仍需在发布环境中配置相应凭据；代码签名成功不�
 开发机上常用检查命令：
 
 ```bash
-spctl --assess --verbose "/Applications/Bailongma.app"
-codesign --verify --deep --strict --verbose=2 "/Applications/Bailongma.app"
-xattr -lr "/Applications/Bailongma.app" | rg com.apple.quarantine
+spctl --assess --verbose "/Applications/ArkBrain-Agent.app"
+codesign --verify --deep --strict --verbose=2 "/Applications/ArkBrain-Agent.app"
+xattr -lr "/Applications/ArkBrain-Agent.app" | rg com.apple.quarantine
 ```
 
 移除 quarantine 只是本地测试绕过手段，不是发布流程：
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Bailongma.app"
+xattr -dr com.apple.quarantine "/Applications/ArkBrain-Agent.app"
 ```
 
 公开分发时，应定义真实的签名和公证策略，而不是要求用户绕过 Gatekeeper。
@@ -444,7 +444,7 @@ npm install
 这只会删除仓库依赖，不会触碰：
 
 ```text
-~/Library/Application Support/Bailongma
+~/Library/Application Support/ArkBrain-Agent
 ```
 
 ### Apple Silicon、Intel 与 Rosetta 架构不匹配
@@ -477,7 +477,7 @@ npm ls electron electron-builder better-sqlite3
 打包后的 Electron 使用 `app.getPath('userData')`，通常应解析为：
 
 ```text
-~/Library/Application Support/Bailongma
+~/Library/Application Support/ArkBrain-Agent
 ```
 
 该目录下的重要文件和目录包括：
@@ -490,7 +490,7 @@ voice/
 sandbox/
 skills/
 music/
-logs/bailongma.log
+logs/arkbrain.log
 ```
 
 不要把删除该目录作为构建排障步骤。更新或重装 app bundle 不应要求清空用户数据。
@@ -498,7 +498,7 @@ logs/bailongma.log
 查看启动日志：
 
 ```bash
-tail -n 200 "$HOME/Library/Application Support/Bailongma/logs/bailongma.log"
+tail -n 200 "$HOME/Library/Application Support/ArkBrain-Agent/logs/arkbrain.log"
 ```
 
 不要把配置文件中的密钥粘贴到 bug 报告中。
@@ -526,7 +526,7 @@ macOS speech recognizer is unavailable
 - Privacy & Security -> Speech Recognition
 - Privacy & Security -> Accessibility，适用于需要自动化或 UI 控制的功能
 
-如果本地测试时权限弹窗不再出现，只重置相关的 macOS 隐私权限条目。不要为了修复 TCC 权限状态而清空 Bailongma 用户数据。
+如果本地测试时权限弹窗不再出现，只重置相关的 macOS 隐私权限条目。不要为了修复 TCC 权限状态而清空 ArkBrain-Agent 用户数据。
 
 ### Gatekeeper 或 quarantine
 
@@ -535,14 +535,14 @@ macOS speech recognizer is unavailable
 检查：
 
 ```bash
-xattr -lr "/Applications/Bailongma.app" | rg com.apple.quarantine
-spctl --assess --verbose "/Applications/Bailongma.app"
+xattr -lr "/Applications/ArkBrain-Agent.app" | rg com.apple.quarantine
+spctl --assess --verbose "/Applications/ArkBrain-Agent.app"
 ```
 
 仅本地开发测试时可使用：
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Bailongma.app"
+xattr -dr com.apple.quarantine "/Applications/ArkBrain-Agent.app"
 ```
 
 正式发布应使用 Developer ID 签名和 Apple 公证。
@@ -563,10 +563,10 @@ node scripts/prebuild-clean.mjs
 
 - 构建产物位于 `dist/`。
 - 构建资源位于 `build/`。
-- 运行时用户数据位于 `~/Library/Application Support/Bailongma`。
+- 运行时用户数据位于 `~/Library/Application Support/ArkBrain-Agent`。
 - 仓库中的运行时数据目录，例如 `data/`、`sandbox/` 和 `voice/*.json`，已被 git 忽略，不应出现在发布示例中。
 - 本地 API key、Provider 配置和语音配置不要粘贴到文档或 issue 评论里。
-- 重装或替换 `/Applications/Bailongma.app` 和删除用户数据是两件不同的事，排障时要分开处理。
+- 重装或替换 `/Applications/ArkBrain-Agent.app` 和删除用户数据是两件不同的事，排障时要分开处理。
 
 ## 发布前检查清单
 
@@ -608,8 +608,8 @@ npm run smoke:mac-artifacts
 - 检查签名和 Gatekeeper 行为：
 
 ```bash
-spctl --assess --verbose "/Applications/Bailongma.app"
-codesign --verify --deep --strict --verbose=2 "/Applications/Bailongma.app"
+spctl --assess --verbose "/Applications/ArkBrain-Agent.app"
+codesign --verify --deep --strict --verbose=2 "/Applications/ArkBrain-Agent.app"
 ```
 
 - 确认没有本地专用文件被 staged：

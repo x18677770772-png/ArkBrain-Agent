@@ -1,11 +1,11 @@
 'use strict'
 
-// Lifecycle for the one Chrome instance that BaiLongma is allowed to control.
+// Lifecycle for the one Chrome instance that ArkBrain-Agent is allowed to control.
 //
 // This intentionally does not use Electron's WebContents or the user's normal
-// browser profile. A visible Chromium runtime bundled with Bailongma is the
+// browser profile. A visible Chromium runtime bundled with ArkBrain-Agent is the
 // primary browser; a locally installed stable Chrome is only a development
-// fallback. Both use the same isolated Bailongma profile and loopback CDP.
+// fallback. Both use the same isolated ArkBrain-Agent profile and loopback CDP.
 
 const childProcess = require('child_process')
 const fs = require('fs')
@@ -16,13 +16,13 @@ const { resolveBundledChromiumExecutable } = require('./playwright-runtime.cjs')
 
 const LOOPBACK_HOST = '127.0.0.1'
 const DEVTOOLS_ACTIVE_PORT_FILE = 'DevToolsActivePort'
-const PROFILE_DIRECTORY_NAME = 'bailongma-chrome'
+const PROFILE_DIRECTORY_NAME = 'arkbrain-chrome'
 const STARTUP_TIMEOUT_MS = 20_000
 
-class BaiLongmaChromeError extends Error {
+class ArkBrainChromeError extends Error {
   constructor(code, message, cause) {
     super(message)
-    this.name = 'BaiLongmaChromeError'
+    this.name = 'ArkBrainChromeError'
     this.code = code
     if (cause) this.cause = cause
   }
@@ -40,7 +40,7 @@ function pathExists(candidate, existsSync = fs.existsSync) {
 }
 
 function chromeCandidates(platform = process.platform, env = process.env) {
-  const configured = String(env.BAILONGMA_GOOGLE_CHROME_PATH || '').trim()
+  const configured = String(env.ARKBRAIN_GOOGLE_CHROME_PATH || '').trim()
   const candidates = configured ? [configured] : []
   if (platform === 'darwin') {
     candidates.push('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
@@ -63,7 +63,7 @@ function resolveGoogleChromeExecutable({
   bundledBrowserRoot,
   existsSync = fs.existsSync,
 } = {}) {
-  const configured = String(env.BAILONGMA_BROWSER_PATH || '').trim()
+  const configured = String(env.ARKBRAIN_BROWSER_PATH || '').trim()
   if (configured && pathExists(configured, existsSync)) return path.resolve(configured)
   const bundled = resolveBundledChromiumExecutable({
     root: bundledBrowserRoot,
@@ -75,15 +75,15 @@ function resolveGoogleChromeExecutable({
   for (const candidate of chromeCandidates(platform, env)) {
     if (isGoogleChromeExecutable(candidate) && pathExists(candidate, existsSync)) return candidate
   }
-  throw new BaiLongmaChromeError(
+  throw new ArkBrainChromeError(
     'CHROME_NOT_INSTALLED',
-    'BaiLongma built-in browser is missing or damaged. Reinstall Bailongma, then try the browser again.',
+    'ArkBrain-Agent built-in browser is missing or damaged. Reinstall ArkBrain-Agent, then try the browser again.',
   )
 }
 
 function resolveDedicatedProfileDir(userDataDir) {
   const raw = String(userDataDir || '').trim()
-  if (!raw) throw new BaiLongmaChromeError('PROFILE_UNAVAILABLE', 'BaiLongma application data directory is unavailable.')
+  if (!raw) throw new ArkBrainChromeError('PROFILE_UNAVAILABLE', 'ArkBrain-Agent application data directory is unavailable.')
   const root = path.resolve(raw)
   return path.join(root, 'browser-profiles', PROFILE_DIRECTORY_NAME)
 }
@@ -96,7 +96,7 @@ function isPathWithin(root, target) {
 function assertDedicatedProfileDir(profileDir, userDataDir) {
   const expected = resolveDedicatedProfileDir(userDataDir)
   if (path.resolve(profileDir) !== expected || !isPathWithin(path.dirname(expected), profileDir)) {
-    throw new BaiLongmaChromeError('PROFILE_ISOLATION_FAILED', 'Refusing to use a Chrome profile outside BaiLongma application data.')
+    throw new ArkBrainChromeError('PROFILE_ISOLATION_FAILED', 'Refusing to use a Chrome profile outside ArkBrain-Agent application data.')
   }
   return expected
 }
@@ -113,7 +113,7 @@ function isLoopbackDevtoolsUrl(value) {
 function devtoolsUrl(port) {
   const numeric = Number(port)
   if (!Number.isInteger(numeric) || numeric < 1 || numeric > 65535) {
-    throw new BaiLongmaChromeError('DEBUG_PORT_INVALID', 'Chrome DevTools port is invalid.')
+    throw new ArkBrainChromeError('DEBUG_PORT_INVALID', 'Chrome DevTools port is invalid.')
   }
   return `http://${LOOPBACK_HOST}:${numeric}`
 }
@@ -146,7 +146,7 @@ function requestJson(url, pathname = '/json/version', {
   timeoutMs = 2_000,
 } = {}) {
   if (!isLoopbackDevtoolsUrl(url)) {
-    return Promise.reject(new BaiLongmaChromeError('DEBUG_ENDPOINT_UNSAFE', 'Chrome DevTools must use the 127.0.0.1 loopback endpoint.'))
+    return Promise.reject(new ArkBrainChromeError('DEBUG_ENDPOINT_UNSAFE', 'Chrome DevTools must use the 127.0.0.1 loopback endpoint.'))
   }
   const endpoint = new URL(url)
   return new Promise((resolve, reject) => {
@@ -160,11 +160,11 @@ function requestJson(url, pathname = '/json/version', {
       response.on('data', chunk => chunks.push(chunk))
       response.on('end', () => {
         if (response.statusCode !== 200) {
-          reject(new BaiLongmaChromeError('DEBUG_ENDPOINT_UNAVAILABLE', `Chrome DevTools returned HTTP ${response.statusCode}.`))
+          reject(new ArkBrainChromeError('DEBUG_ENDPOINT_UNAVAILABLE', `Chrome DevTools returned HTTP ${response.statusCode}.`))
           return
         }
         try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))) }
-        catch (error) { reject(new BaiLongmaChromeError('DEBUG_ENDPOINT_INVALID', 'Chrome DevTools returned invalid JSON.', error)) }
+        catch (error) { reject(new ArkBrainChromeError('DEBUG_ENDPOINT_INVALID', 'Chrome DevTools returned invalid JSON.', error)) }
       })
     })
     request.on('timeout', () => request.destroy(new Error('Chrome DevTools request timed out')))
@@ -182,7 +182,7 @@ async function waitForDevtools(url, {
   let lastError = null
   while (Date.now() < deadline) {
     if (isProcessClosed()) {
-      throw new BaiLongmaChromeError('CHROME_CLOSED', 'BaiLongma Chrome was closed before its DevTools connection became ready.')
+      throw new ArkBrainChromeError('CHROME_CLOSED', 'ArkBrain-Agent Chrome was closed before its DevTools connection became ready.')
     }
     try {
       const details = await probe(url)
@@ -192,9 +192,9 @@ async function waitForDevtools(url, {
     }
     await new Promise(resolve => setTimeout(resolve, intervalMs))
   }
-  throw new BaiLongmaChromeError(
+  throw new ArkBrainChromeError(
     'DEBUG_ENDPOINT_UNAVAILABLE',
-    'BaiLongma Chrome started but its local DevTools endpoint did not become available. Close the BaiLongma Chrome window and try again.',
+    'ArkBrain-Agent Chrome started but its local DevTools endpoint did not become available. Close the ArkBrain-Agent Chrome window and try again.',
     lastError,
   )
 }
@@ -210,7 +210,7 @@ function chromeLaunchArgs({ profileDir, port }) {
   ]
 }
 
-function createBaiLongmaChromeManager({
+function createArkBrainChromeManager({
   userDataDir,
   platform = process.platform,
   arch = process.arch,
@@ -234,12 +234,12 @@ function createBaiLongmaChromeManager({
 
   function state() {
     return {
-      surface: 'bailongma_chrome',
+      surface: 'arkbrain_chrome',
       profileDir,
       endpoint: endpoint || null,
       loopbackOnly: true,
       visible: true,
-      ownedByBaiLongma: Boolean(ownedProcess && !ownedProcessClosed),
+      ownedByArkBrain: Boolean(ownedProcess && !ownedProcessClosed),
       status: endpoint ? (ownedProcessClosed ? 'closed' : 'ready') : 'idle',
     }
   }
@@ -267,15 +267,15 @@ function createBaiLongmaChromeManager({
       }
       const executable = resolveExecutable({ platform, arch, env, bundledBrowserRoot, existsSync })
       try { mkdirSync(profileDir, { recursive: true }) } catch (error) {
-        throw new BaiLongmaChromeError('PROFILE_UNAVAILABLE', 'Unable to create BaiLongma Chrome profile directory.', error)
+        throw new ArkBrainChromeError('PROFILE_UNAVAILABLE', 'Unable to create ArkBrain-Agent Chrome profile directory.', error)
       }
       let port
       try {
         port = await findPort()
       } catch (error) {
-        throw new BaiLongmaChromeError(
+        throw new ArkBrainChromeError(
           'DEBUG_PORT_UNAVAILABLE',
-          'Unable to reserve a 127.0.0.1-only Chrome DevTools port. Close the BaiLongma Chrome window or another conflicting local debugger, then retry.',
+          'Unable to reserve a 127.0.0.1-only Chrome DevTools port. Close the ArkBrain-Agent Chrome window or another conflicting local debugger, then retry.',
           error,
         )
       }
@@ -288,22 +288,22 @@ function createBaiLongmaChromeManager({
           windowsHide: true,
         })
       } catch (error) {
-        throw new BaiLongmaChromeError('CHROME_START_FAILED', 'Unable to start the installed Google Chrome browser.', error)
+        throw new ArkBrainChromeError('CHROME_START_FAILED', 'Unable to start the installed Google Chrome browser.', error)
       }
       if (!child || typeof child.on !== 'function') {
-        throw new BaiLongmaChromeError('CHROME_START_FAILED', 'Unable to start the installed Google Chrome browser.')
+        throw new ArkBrainChromeError('CHROME_START_FAILED', 'Unable to start the installed Google Chrome browser.')
       }
       ownedProcess = child
       ownedProcessClosed = false
       child.once('exit', (code, signal) => {
         ownedProcessClosed = true
         if (endpoint === url) endpoint = ''
-        logger.info?.(`[bailongma-chrome] Chrome exited (${code ?? 'unknown'}${signal ? `, ${signal}` : ''})`)
+        logger.info?.(`[arkbrain-chrome] Chrome exited (${code ?? 'unknown'}${signal ? `, ${signal}` : ''})`)
       })
       child.once('error', error => {
         ownedProcessClosed = true
         if (endpoint === url) endpoint = ''
-        logger.warn?.('[bailongma-chrome] Chrome process error:', error?.message || error)
+        logger.warn?.('[arkbrain-chrome] Chrome process error:', error?.message || error)
       })
       try {
         await waitForEndpoint(url, {
@@ -314,9 +314,9 @@ function createBaiLongmaChromeManager({
         if (!ownedProcessClosed) {
           try { child.kill() } catch {}
         }
-        throw error instanceof BaiLongmaChromeError
+        throw error instanceof ArkBrainChromeError
           ? error
-          : new BaiLongmaChromeError('DEBUG_ENDPOINT_UNAVAILABLE', 'Unable to connect to BaiLongma Chrome DevTools.', error)
+          : new ArkBrainChromeError('DEBUG_ENDPOINT_UNAVAILABLE', 'Unable to connect to ArkBrain-Agent Chrome DevTools.', error)
       }
       endpoint = url
       return { ...state(), executable, reused: false }
@@ -332,7 +332,7 @@ function createBaiLongmaChromeManager({
       } catch {
         endpoint = ''
         if (ownedProcess && !ownedProcessClosed) {
-          throw new BaiLongmaChromeError('MCP_DISCONNECTED', 'BaiLongma Chrome DevTools disconnected. Close the BaiLongma Chrome window and try again.')
+          throw new ArkBrainChromeError('MCP_DISCONNECTED', 'ArkBrain-Agent Chrome DevTools disconnected. Close the ArkBrain-Agent Chrome window and try again.')
         }
       }
     }
@@ -357,14 +357,14 @@ function createBaiLongmaChromeManager({
     // directory. It can never touch the user's regular Chrome profile.
     if (selected.size > 0) {
       try { rmSync(profileDir, { recursive: true, force: true }) } catch (error) {
-        throw new BaiLongmaChromeError('CLEAR_FAILED', 'Unable to clear BaiLongma Chrome profile data.', error)
+        throw new ArkBrainChromeError('CLEAR_FAILED', 'Unable to clear ArkBrain-Agent Chrome profile data.', error)
       }
     }
     return {
       cleared_data_types: [...selected],
       profile_dir: profileDir,
       profile_deleted: selected.size > 0,
-      scope: 'bailongma_dedicated_chrome_only',
+      scope: 'arkbrain_dedicated_chrome_only',
     }
   }
 
@@ -379,14 +379,14 @@ function createBaiLongmaChromeManager({
 }
 
 module.exports = {
-  BaiLongmaChromeError,
+  ArkBrainChromeError,
   DEVTOOLS_ACTIVE_PORT_FILE,
   LOOPBACK_HOST,
   PROFILE_DIRECTORY_NAME,
   assertDedicatedProfileDir,
   chromeCandidates,
   chromeLaunchArgs,
-  createBaiLongmaChromeManager,
+  createArkBrainChromeManager,
   devtoolsUrl,
   findLoopbackPort,
   isGoogleChromeExecutable,

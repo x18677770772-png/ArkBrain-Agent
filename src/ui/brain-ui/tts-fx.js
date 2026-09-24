@@ -16,8 +16,8 @@
 
 import { applyContextSink } from './audio-output.js'
 
-const FX_STORAGE_KEY = 'bailongma.ttsfx.v2'      // 音效参数（手感）；v2＝金属感默认调高+新增金属/Flanger参数
-const FX_VOICES_KEY = 'bailongma.ttsfx.voices'   // 哪些音色开启了音效（音色 ID 列表）
+const FX_STORAGE_KEY = 'arkbrain.ttsfx.v2'      // 音效参数（手感）；v2＝金属感默认调高+新增金属/Flanger参数
+const FX_VOICES_KEY = 'arkbrain.ttsfx.voices'   // 哪些音色开启了音效（音色 ID 列表）
 
 // 音效是「按音色」开启的可选功能，默认全关 —— 只有被显式打开的音色才叠加。
 // 默认档＝明显能听出的"贾维斯"质感（可被 localStorage 覆盖后实时生效）。
@@ -109,7 +109,7 @@ export function setFxEnabledForVoice(voiceId, on) {
 //       ② 取时间段还原时间，与设备当前时间比，≤1 小时才解锁（永久）。
 // 注意：纯客户端校验，是付费门槛/君子协议，非强加密保护——读过本文件即可自行构造。
 // 生成器在 scripts/gen-fx-password.mjs，其 RR 规则必须与本处 fxExpectedRR 保持一致。
-const UNLOCK_KEY = 'bailongma.ttsfx.unlocked'
+const UNLOCK_KEY = 'arkbrain.ttsfx.unlocked'
 const PW_WINDOW_MS = 60 * 60 * 1000  // 1 小时有效窗口
 const FX_RR_SEED = 7                  // RR 校验种子（客户端混淆值，非保密密钥）
 

@@ -13,8 +13,8 @@ npm run release:win
 该命令要求 NSIS 安装包具有有效 Authenticode 签名，并检查以下产物：
 
 ```text
-dist/Bailongma-Setup-<version>.exe
-dist/Bailongma-Setup-<version>.exe.blockmap
+dist/ArkBrain-Setup-<version>.exe
+dist/ArkBrain-Setup-<version>.exe.blockmap
 ```
 
 发布目录和清单为：
@@ -46,7 +46,7 @@ npm run release:linux
 构建会检查所有关键原生模块和程序均为 Linux x64 ELF，解包 AppImage 检查内容，并验证内嵌 blockmap。预期产物为：
 
 ```text
-dist/Bailongma-<version>-linux-x64.AppImage
+dist/ArkBrain-<version>-linux-x64.AppImage
 ```
 
 发布目录和清单为：
@@ -83,7 +83,7 @@ npm run upload:linux
 新版客户端请求头仍为：
 
 ```text
-X-Bailongma-Updater: BailongmaUpdater/2
+X-ArkBrain-Updater: ArkBrainUpdater/2
 ```
 
 未携带该请求头的旧版客户端继续使用香港兼容源站。在确认过渡版本覆盖足够用户之前，不得关闭旧版入口。

@@ -129,10 +129,10 @@ function main() {
   if (!fs.existsSync(appImage) || fs.statSync(appImage).size === 0) {
     throw new Error(`AppImage is missing or empty: ${appImage}`)
   }
-  assertElfX64(path.join(projectRoot, 'dist', 'linux-unpacked', pkg.name), 'packaged Bailongma executable')
+  assertElfX64(path.join(projectRoot, 'dist', 'linux-unpacked', pkg.name), 'packaged ArkBrain-Agent executable')
   run(process.execPath, ['scripts/smoke-linux-artifacts.mjs'])
   run(process.execPath, ['scripts/smoke-packaged-playwright.mjs'])
-  console.log(`[build:linux] Bailongma ${pkg.version} Linux x64 build and smoke checks complete`)
+  console.log(`[build:linux] ArkBrain-Agent ${pkg.version} Linux x64 build and smoke checks complete`)
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)

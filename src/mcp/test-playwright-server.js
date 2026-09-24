@@ -2,9 +2,9 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-playwright-mcp-'))
-process.env.BAILONGMA_USER_DIR = tmp
-process.env.BAILONGMA_RESOURCES_DIR = tmp
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-playwright-mcp-'))
+process.env.ARKBRAIN_USER_DIR = tmp
+process.env.ARKBRAIN_RESOURCES_DIR = tmp
 
 let failed = 0
 function assert(condition, label, detail = '') {
@@ -147,7 +147,7 @@ class FakeClient {
       content: [{
         type: 'text',
         text: request.name === 'browser_navigate'
-          ? 'called:browser_navigate\n- Page URL: https://example.com/search?q=bailongma\n- Page Title: Bailongma Search'
+          ? 'called:browser_navigate\n- Page URL: https://example.com/search?q=arkbrain\n- Page Title: ArkBrain-Agent Search'
           : `called:${request.name}`,
       }],
       structuredContent: { called: request.name },
@@ -185,7 +185,7 @@ try {
   assert(interactive.command === '/fake/electron', 'packaged server uses the supplied Electron executable')
   assert(interactive.env.ELECTRON_RUN_AS_NODE === '1', 'packaged Electron child runs in Node mode')
   assert(interactive.env.UNRELATED_SECRET === undefined, 'built-in child receives only explicit Playwright environment')
-  assert(interactive.env.BAILONGMA_BROWSER_PRIVATE_NETWORK === '0',
+  assert(interactive.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK === '0',
     'child request guard defaults to private-network blocked')
   assert(interactive.args.includes('--user-data-dir'), 'interactive server uses a persistent profile')
   assert(interactive.args.includes('--config')
@@ -194,7 +194,7 @@ try {
   'built-in server restores the previous Chromium session when display modes switch')
   assert(interactive.args.includes('--init-page')
     && interactive.args[interactive.args.indexOf('--init-page') + 1].endsWith('src/mcp/playwright-page-guard.cjs'),
-    'built-in server installs Bailongma request-level URL guard')
+    'built-in server installs ArkBrain-Agent request-level URL guard')
   assert(interactive.args.includes('--browser')
     && interactive.args[interactive.args.indexOf('--browser') + 1] === 'chromium',
     'built-in server selects the bundled Chrome for Testing channel')
@@ -209,7 +209,7 @@ try {
   assert(!interactive.args.includes('--headless') && !interactive.args.includes('--isolated'),
     'interactive server remains headed and persistent')
   assert(interactive.cwd === path.join(tmp, 'sandbox', 'browser-output', 'interactive'),
-    'Playwright filesystem scope is rooted in its dedicated Bailongma sandbox output directory')
+    'Playwright filesystem scope is rooted in its dedicated ArkBrain-Agent sandbox output directory')
   assert(listMcpTools().some(tool => tool.name === 'browser_navigate' && tool.builtIn === true)
     && getMcpToolSchema('browser_navigate')?.function?.parameters?.required?.includes('url'),
   'trusted official schemas remain discoverable before the first MCP connection')
@@ -334,8 +334,8 @@ try {
     allowPrivateNetwork: true,
   })
   assert(!privateNetworkServer.args.includes('--blocked-origins'),
-    'explicit Bailongma private-network permission removes the origin guardrail')
-  assert(privateNetworkServer.env.BAILONGMA_BROWSER_PRIVATE_NETWORK === '1',
+    'explicit ArkBrain-Agent private-network permission removes the origin guardrail')
+  assert(privateNetworkServer.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK === '1',
     'explicit private-network permission also disables the request-level guard')
 
   const userServer = {
@@ -412,7 +412,7 @@ try {
   ))
   assert(privateNavigation?.ok === false
     && privateNavigation?.code === 'PRIVATE_NETWORK_BLOCKED',
-    'native browser navigation applies Bailongma private-network URL policy',
+    'native browser navigation applies ArkBrain-Agent private-network URL policy',
     JSON.stringify(privateNavigation))
   assert(FakeClient.calls.length === beforePrivateCall,
     'blocked private-network navigation never reaches MCP client')
@@ -479,7 +479,7 @@ try {
 
   const cardResult = parseJson(await executeMcpTool(
     'browser_navigate',
-    { url: 'https://example.com/search?q=bailongma' },
+    { url: 'https://example.com/search?q=arkbrain' },
     {
       browserDisplayMode: 'card',
       mcpDeps: deps,
@@ -494,8 +494,8 @@ try {
     && cardResult?.browser_preview?.image_url?.startsWith('/browser-preview?file='),
   'card display routes the native browser action through the headless reader and returns a real preview',
   JSON.stringify(cardResult))
-  assert(cardResult?.browser_preview?.url === 'https://example.com/search?q=bailongma'
-    && cardResult?.browser_preview?.title === 'Bailongma Search',
+  assert(cardResult?.browser_preview?.url === 'https://example.com/search?q=arkbrain'
+    && cardResult?.browser_preview?.title === 'ArkBrain-Agent Search',
   'card preview carries current page metadata for the compact browser chrome',
   JSON.stringify(cardResult?.browser_preview))
   const cardCalls = FakeClient.calls.slice(-2)
@@ -710,7 +710,7 @@ try {
     { browserDisplayMode: 'window', mcpDeps: embeddedDeps },
   ))
   assert(blockedPopupClick?.ok === false
-    && blockedPopupClick?.content?.some(item => /blocked by Bailongma URL policy/.test(item?.text || '')),
+    && blockedPopupClick?.content?.some(item => /blocked by ArkBrain-Agent URL policy/.test(item?.text || '')),
   'a dangerous target=_blank click is reported as blocked rather than successful',
   JSON.stringify(blockedPopupClick))
 

@@ -117,8 +117,8 @@ function serveAsset(req, res, assetRoot, relativePrefix) {
 }
 
 export async function handleStaticRoutes(req, res, url) {
-  if (req.method === 'GET' && url.pathname === '/bailongma-lan-root-ca.cer') {
-    const caPath = String(globalThis.process?.env?.BAILONGMA_LAN_CA_CERT || '').trim()
+  if (req.method === 'GET' && url.pathname === '/arkbrain-lan-root-ca.cer') {
+    const caPath = String(globalThis.process?.env?.ARKBRAIN_LAN_CA_CERT || '').trim()
     if (!caPath) {
       res.writeHead(404)
       res.end('LAN root certificate is not configured')

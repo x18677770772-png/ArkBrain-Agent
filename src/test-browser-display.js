@@ -3,8 +3,8 @@ import os from 'os'
 import path from 'path'
 import { Writable } from 'stream'
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-browser-display-'))
-process.env.BAILONGMA_USER_DIR = tmp
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-browser-display-'))
+process.env.ARKBRAIN_USER_DIR = tmp
 
 let failed = 0
 function assert(condition, label, detail = '') {
@@ -53,7 +53,7 @@ class CaptureResponse extends Writable {
 try {
   assert(inferBrowserDisplayMode('帮我查一下 Playwright MCP 最新资料') === 'card',
     'small information lookup uses the compact browser card')
-  assert(inferBrowserDisplayMode('在百度搜索 bailongma') === 'card',
+  assert(inferBrowserDisplayMode('在百度搜索 arkbrain') === 'card',
     'search-engine lookup uses the compact browser card')
   assert(inferBrowserDisplayMode(
     '[ID:000001] 2026-07-26T00:20:03+08:00 [语音识别] 帮我查一下马云是谁',
@@ -84,14 +84,14 @@ try {
   assert(inferBrowserDisplayMode('请用小的窗口打开') === 'card',
     'a natural spoken compact-window request selects the embedded card')
   assert(inferBrowserSurface('用你的浏览器查一下资料') === 'card',
-    '"你的浏览器" means Bailongma compact card')
+    '"你的浏览器" means ArkBrain-Agent compact card')
   assert(inferBrowserSurface('用我的浏览器打开这个视频') === 'window',
-    '"我的浏览器" means Bailongma large window')
-  assert(inferBrowserSurface('请打开白龙马专用 Chrome 让我自己登录') === 'chrome'
-    && inferBrowserDisplayMode('请打开白龙马专用 Chrome 让我自己登录') === 'window',
-  'BaiLongma dedicated Chrome is an explicit controllable surface and uses its visible window')
+    '"我的浏览器" means ArkBrain-Agent large window')
+  assert(inferBrowserSurface('请打开方舟大脑专用 Chrome 让我自己登录') === 'chrome'
+    && inferBrowserDisplayMode('请打开方舟大脑专用 Chrome 让我自己登录') === 'window',
+  'ArkBrain-Agent dedicated Chrome is an explicit controllable surface and uses its visible window')
   assert(inferBrowserDisplayMode('看视频') === 'window',
-    'video normally prefers the large Bailongma window')
+    'video normally prefers the large ArkBrain-Agent window')
   assert(inferBrowserDisplayMode('用你的小窗口浏览器看视频') === 'card',
     'an explicit compact-video request overrides the usual large-window preference')
   for (const phrase of [

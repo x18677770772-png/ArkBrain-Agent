@@ -1,7 +1,7 @@
 // voice-panel.js —— 语音面板编排层
 //
 // 组装共享会话引擎（voice-core）+ 两个模式策略（常开 voice-continuous / 按住空格 voice-ptt），
-// 暴露 initVoicePanel + window.bailongmaVoice（承重墙：app.js 的 TTS 打断与视频/音乐联动依赖它）。
+// 暴露 initVoicePanel + window.arkbrainVoice（承重墙：app.js 的 TTS 打断与视频/音乐联动依赖它）。
 //
 // 解耦结构：
 //   voice-core.js       共享机制——点云渲染 + 麦克风采集 + ASR 传输/转录 + 会话生命周期
@@ -79,7 +79,7 @@ export function initVoicePanel({
     cancelAutoSend: continuous.cancelAutoSend,
   });
 
-  // 唤醒会话编排（命中「小白龙」→ 悬浮球入场 → 10s 无话退场）。非 Electron 环境内部自动失能。
+  // 唤醒会话编排（命中「方舟大脑」→ 悬浮球入场 → 10s 无话退场）。非 Electron 环境内部自动失能。
   const wake = createWakeFlow(core);
 
   // 安装模式策略钩子：continuous = 会话默认策略；PTT 通过 core.pttHolding 在其上叠加。
@@ -101,8 +101,8 @@ export function initVoicePanel({
     btn?.classList.toggle('active', core.micActive || core.userWantedMic);
   });
 
-  // ─── 承重墙：window.bailongmaVoice 接口契约（app.js 依赖，不可改形状） ───
-  window.bailongmaVoice = {
+  // ─── 承重墙：window.arkbrainVoice 接口契约（app.js 依赖，不可改形状） ───
+  window.arkbrainVoice = {
     isActive: () => core.micActive,
     // app.js 的模型事件流驱动：键盘/语音/心跳入口共用同一个思考视觉状态。
     setThinking: (active) => core.setThinking(active),
@@ -121,19 +121,19 @@ export function initVoicePanel({
     pttEnd: ptt.pttEnd,
   };
 
-  window.addEventListener('bailongma:video-mode', (event) => {
+  window.addEventListener('arkbrain:video-mode', (event) => {
     if (event.detail?.active) {
-      window.bailongmaVoice.suspendForMedia();
+      window.arkbrainVoice.suspendForMedia();
     } else {
-      window.bailongmaVoice.resumeAfterMedia();
+      window.arkbrainVoice.resumeAfterMedia();
     }
   });
 
-  window.addEventListener('bailongma:music-mode', (event) => {
+  window.addEventListener('arkbrain:music-mode', (event) => {
     if (event.detail?.active) {
-      window.bailongmaVoice.suspendForMedia();
+      window.arkbrainVoice.suspendForMedia();
     } else {
-      window.bailongmaVoice.resumeAfterMedia();
+      window.arkbrainVoice.resumeAfterMedia();
     }
   });
 

@@ -34,7 +34,7 @@ function waitForSubmission(id) {
   return new Promise((resolve, reject) => {
     const child = spawn('xcrun', [
       'notarytool', 'wait', id,
-      '--keychain-profile', process.env.BAILONGMA_NOTARY_PROFILE || 'BailongmaNotary',
+      '--keychain-profile', process.env.ARKBRAIN_NOTARY_PROFILE || 'ArkBrainNotary',
       '--team-id', DEVELOPER_TEAM,
       '--output-format', 'json',
     ], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
@@ -50,7 +50,7 @@ function waitForSubmission(id) {
       const detail = `${stdout}\n${stderr}`.trim()
       const logResult = spawnSync('xcrun', [
         'notarytool', 'log', id,
-        '--keychain-profile', process.env.BAILONGMA_NOTARY_PROFILE || 'BailongmaNotary',
+        '--keychain-profile', process.env.ARKBRAIN_NOTARY_PROFILE || 'ArkBrainNotary',
         '--team-id', DEVELOPER_TEAM,
       ], { cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 })
       const log = `${logResult.stdout || ''}\n${logResult.stderr || ''}`.trim().slice(0, 24_000)
@@ -73,7 +73,7 @@ await Promise.all(archs.map(async arch => {
 
 if (kind === 'dmg') {
   for (const arch of archs) {
-    const prefix = path.join(dist, `Bailongma-${JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).version}-mac-${arch}`)
+    const prefix = path.join(dist, `ArkBrain-${JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).version}-mac-${arch}`)
     rebuildBlockmap(`${prefix}.dmg`)
     rebuildBlockmap(`${prefix}.zip`)
   }

@@ -3,7 +3,7 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
-const NOTICE_TITLE = 'BaiLongma 安全存储说明'
+const NOTICE_TITLE = 'ArkBrain-Agent 安全存储说明'
 const CONSENT_VERSION = 1
 const KNOWN_PURPOSES = new Set(['browser-profile', 'saved-secrets'])
 
@@ -12,8 +12,8 @@ function noticeContent(purpose = 'secure-data') {
     return {
       message: '是否启用受保护的浏览器登录状态？',
       detail: [
-        'BaiLongma 即将使用 macOS 钥匙串读取和保存自带浏览器的 Cookie、会话及网站登录状态。',
-        'macOS 随后可能要求输入你的 Mac 登录密码。密码只由 macOS 验证，BaiLongma 无法读取，也不会上传。',
+        'ArkBrain-Agent 即将使用 macOS 钥匙串读取和保存自带浏览器的 Cookie、会话及网站登录状态。',
+        'macOS 随后可能要求输入你的 Mac 登录密码。密码只由 macOS 验证，ArkBrain-Agent 无法读取，也不会上传。',
         '如果暂不使用安全存储，仍可继续浏览网页，但将使用本次运行的临时会话，退出后不保留网站登录状态。',
       ].join('\n\n'),
       continueLabel: '继续使用浏览器',
@@ -21,10 +21,10 @@ function noticeContent(purpose = 'secure-data') {
   }
 
   return {
-    message: 'BaiLongma 需要访问受保护的本地密钥',
+    message: 'ArkBrain-Agent 需要访问受保护的本地密钥',
     detail: [
       '此操作用于加密或读取你已保存的 API 密钥、访问令牌等本地机密信息。',
-      'macOS 随后可能要求输入你的 Mac 登录密码。密码只由 macOS 验证，BaiLongma 无法读取，也不会上传。',
+      'macOS 随后可能要求输入你的 Mac 登录密码。密码只由 macOS 验证，ArkBrain-Agent 无法读取，也不会上传。',
       '如果暂不使用安全存储，新密钥会改用权限受限的本地文件加密；已有的钥匙串加密内容暂时无法读取。',
     ].join('\n\n'),
     continueLabel: '继续访问密钥',

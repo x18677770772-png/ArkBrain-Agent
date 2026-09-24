@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 const { default: installPageGuard } = require('./playwright-page-guard.cjs')
-const previousPrivateNetwork = process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK
+const previousPrivateNetwork = process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK
 
 function fakePage() {
   const page = {
@@ -46,7 +46,7 @@ function fakeWebSocket(url) {
 }
 
 try {
-  process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK = '0'
+  process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK = '0'
   const guarded = fakePage()
   await installPageGuard({ page: guarded.page })
   await installPageGuard({ page: guarded.page })
@@ -73,15 +73,15 @@ try {
   assert.equal(publicSocket.connected, true, 'public WebSocket is connected')
   assert.equal(publicSocket.closed, false)
 
-  process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK = '1'
+  process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK = '1'
   const unrestricted = fakePage()
   await installPageGuard({ page: unrestricted.page })
   assert.equal(unrestricted.page.routeCalls, 0,
     'explicit private-network permission bypasses the request guard')
   assert.equal(unrestricted.page.webSocketRouteCalls, 0)
 } finally {
-  if (previousPrivateNetwork === undefined) delete process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK
-  else process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK = previousPrivateNetwork
+  if (previousPrivateNetwork === undefined) delete process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK
+  else process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK = previousPrivateNetwork
 }
 
 console.log('test-playwright-page-guard passed')

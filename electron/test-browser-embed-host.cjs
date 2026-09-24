@@ -209,7 +209,7 @@ async function run() {
   assert.equal(primedState.zoomFactor, 1)
   assert.deepEqual(
     FakeWebContentsView.instances[0].webContents.loadCalls,
-    ['about:blank#bailongma-browser-42'],
+    ['about:blank#arkbrain-browser-42'],
     'prime must commit a renderer before Playwright attaches over CDP',
   )
   const cardState = await host.update(mainWindow, {
@@ -581,7 +581,7 @@ async function run() {
   assert.equal(interruptedView.webContents.loadCalls.length, 1, 'an interrupted reversal must not reload the page')
   interruptHost.destroyAll()
 
-  const temporaryPartition = 'bailongma-browser-temporary-test'
+  const temporaryPartition = 'arkbrain-browser-temporary-test'
   const temporaryHost = createBrowserEmbedHost({
     WebContentsView: FakeWebContentsView,
     View: FakeView,

@@ -6,9 +6,9 @@ import readline from 'node:readline/promises'
 import zlib from 'node:zlib'
 import { spawnSync } from 'node:child_process'
 
-const BUCKET = 'bailongma-updates-hk-prod'
-const UPDATE_ORIGIN = 'https://updates.bailongma.ai'
-const UPDATER_HEADER = 'BailongmaUpdater/2'
+const BUCKET = 'arkbrain-updates-hk-prod'
+const UPDATE_ORIGIN = 'https://updates.arkbrain.ai'
+const UPDATER_HEADER = 'ArkBrainUpdater/2'
 const SSH_OPTIONS = ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10']
 
 export function parseNumericVersion(value) {
@@ -32,7 +32,7 @@ function parseArgs(argv, supportedArchs) {
     dryRun: false,
     skipSmoke: false,
     yes: false,
-    host: process.env.BAILONGMA_UPDATE_SSH_HOST || 'xiaobailong-update-hk',
+    host: process.env.ARKBRAIN_UPDATE_SSH_HOST || 'xiaobailong-update-hk',
   }
 
   for (const arg of argv) {
@@ -274,7 +274,7 @@ platform=$1
 manifest=$2
 shift 2
 for arch in "$@"; do
-  file="/srv/bailongma-updates/stable/$platform/$arch/$manifest"
+  file="/srv/arkbrain-updates/stable/$platform/$arch/$manifest"
   value=""
   if [ -f "$file" ]; then
     value=$(sed -n 's/^version:[[:space:]]*//p' "$file" | head -n 1 | tr -d "'\"")
@@ -346,7 +346,7 @@ inventory_name=$7
 shift 7
 
 case "$stage" in
-  /srv/bailongma-release-staging.*) ;;
+  /srv/arkbrain-release-staging.*) ;;
   *) echo "unsafe staging directory" >&2; exit 2 ;;
 esac
 case "$platform" in mac|win|linux) ;; *) echo "unsafe platform" >&2; exit 2 ;; esac
@@ -360,12 +360,12 @@ command -v flock >/dev/null
 command -v ossutil >/dev/null
 command -v sha512sum >/dev/null
 
-exec 9>/run/lock/bailongma-update-publish.lock
+exec 9>/run/lock/arkbrain-update-publish.lock
 flock -x 9
 
 for arch in "$@"; do
   case "$arch" in x64|arm64) ;; *) echo "unsafe architecture" >&2; exit 2 ;; esac
-  current_file="/srv/bailongma-updates/stable/$platform/$arch/$manifest_name"
+  current_file="/srv/arkbrain-updates/stable/$platform/$arch/$manifest_name"
   if [ -f "$current_file" ]; then
     current=$(sed -n 's/^version:[[:space:]]*//p' "$current_file" | head -n 1 | tr -d "'\"")
     comparison=$(awk -v a="$version" -v b="$current" 'BEGIN {
@@ -409,7 +409,7 @@ done < "$inventory"
 
 while IFS="$tab" read -r arch kind stage_name remote_name expected_hash expected_size content_type; do
   [ "$kind" = artifact ] || continue
-  origin_dir="/srv/bailongma-updates/stable/$platform/$arch"
+  origin_dir="/srv/arkbrain-updates/stable/$platform/$arch"
   origin_file="$origin_dir/$remote_name"
   object="oss://$bucket/stable/$platform/$arch/$remote_name"
   test ! -e "$origin_file" || { echo "origin artifact already exists: $platform/$arch/$remote_name" >&2; exit 3; }
@@ -422,7 +422,7 @@ done < "$inventory"
 while IFS="$tab" read -r arch kind stage_name remote_name expected_hash expected_size content_type; do
   [ "$kind" = artifact ] || continue
   file="$stage/$stage_name"
-  origin_dir="/srv/bailongma-updates/stable/$platform/$arch"
+  origin_dir="/srv/arkbrain-updates/stable/$platform/$arch"
   object="oss://$bucket/stable/$platform/$arch/$remote_name"
   install -d -m 755 "$origin_dir"
   ossutil cp "$file" "$object" --meta "Cache-Control:public, max-age=31536000, immutable#Content-Type:$content_type"
@@ -439,13 +439,13 @@ while IFS="$tab" read -r arch kind stage_name remote_name expected_hash expected
   ossutil cp "oss://$bucket/stable/$platform/$arch/$remote_name" "$downloaded"
   test "$(sha512sum "$downloaded" | awk '{print $1}')" = "$expected_hash"
   test "$(wc -c < "$downloaded" | tr -d ' ')" = "$expected_size"
-  test "$(sha512sum "/srv/bailongma-updates/stable/$platform/$arch/$remote_name" | awk '{print $1}')" = "$expected_hash"
+  test "$(sha512sum "/srv/arkbrain-updates/stable/$platform/$arch/$remote_name" | awk '{print $1}')" = "$expected_hash"
 done < "$inventory"
 
 while IFS="$tab" read -r arch kind stage_name remote_name expected_hash expected_size content_type; do
   [ "$kind" = manifest ] || continue
   file="$stage/$stage_name"
-  origin_dir="/srv/bailongma-updates/stable/$platform/$arch"
+  origin_dir="/srv/arkbrain-updates/stable/$platform/$arch"
   object="oss://$bucket/stable/$platform/$arch/$remote_name"
   ossutil cp -f "$file" "$object" --meta "Cache-Control:no-store, no-cache, must-revalidate#Content-Type:$content_type"
   downloaded="$verify_dir/$arch-$remote_name"
@@ -468,7 +468,7 @@ async function requestFollowingRedirects(url, { headers = {}, expectedFinalStatu
   let current = new URL(url)
   for (let redirect = 0; redirect <= 5; redirect += 1) {
     const requestHeaders = { ...headers }
-    if (current.hostname !== 'updates.bailongma.ai') delete requestHeaders['X-Bailongma-Updater']
+    if (current.hostname !== 'updates.arkbrain.ai') delete requestHeaders['X-ArkBrain-Updater']
     let response
     try {
       response = await fetch(current, { headers: requestHeaders, redirect: 'manual' })
@@ -479,7 +479,7 @@ async function requestFollowingRedirects(url, { headers = {}, expectedFinalStatu
       const location = response.headers.get('location')
       if (!location) throw new Error('Update gateway returned a redirect without Location')
       current = new URL(location, current)
-      if (!['updates.bailongma.ai', 'download.bailongma.ai'].includes(current.hostname)) {
+      if (!['updates.arkbrain.ai', 'download.arkbrain.ai'].includes(current.hostname)) {
         throw new Error(`Update gateway redirected to unexpected host: ${current.hostname}`)
       }
       continue
@@ -511,14 +511,14 @@ async function verifyPublished(config, artifacts) {
       expectedFinalStatus: 200,
     })
     const accelerated = await requestFollowingRedirects(`${baseUrl}/${config.manifestName}`, {
-      headers: { 'X-Bailongma-Updater': UPDATER_HEADER },
+      headers: { 'X-ArkBrain-Updater': UPDATER_HEADER },
       expectedFinalStatus: 200,
     })
     if (legacy.text.trim() !== expectedMetadata) throw new Error(`${artifact.arch} origin metadata verification failed`)
     if (accelerated.text.trim() !== expectedMetadata) throw new Error(`${artifact.arch} OSS metadata verification failed`)
 
     const fullDownload = await requestFollowingRedirects(`${baseUrl}/${artifact.primary.remoteName}`, {
-      headers: { 'X-Bailongma-Updater': UPDATER_HEADER },
+      headers: { 'X-ArkBrain-Updater': UPDATER_HEADER },
       expectedFinalStatus: 200,
       body: 'hash',
     })
@@ -527,7 +527,7 @@ async function verifyPublished(config, artifacts) {
     }
 
     const range = await requestFollowingRedirects(`${baseUrl}/${artifact.primary.remoteName}`, {
-      headers: { 'X-Bailongma-Updater': UPDATER_HEADER, Range: 'bytes=0-1023' },
+      headers: { 'X-ArkBrain-Updater': UPDATER_HEADER, Range: 'bytes=0-1023' },
       expectedFinalStatus: 206,
       body: 'none',
     })
@@ -569,7 +569,7 @@ export async function publishUpdates({
   releaseOptions = {},
   onEvent = () => {},
 }) {
-  const productName = String(pkg.productName || 'Bailongma').trim()
+  const productName = String(pkg.productName || 'ArkBrain-Agent').trim()
   const version = String(pkg.version || '').trim()
   validateReleaseIdentity(productName, version)
   const config = platformConfig(platform, { root, productName, version })
@@ -594,7 +594,7 @@ export async function publishUpdates({
     emit('check', { name: 'artifact-smoke', status: 'passed' })
   }
 
-  const metadataDir = fs.mkdtempSync(path.join(root, 'dist', `.bailongma-${platform}-release-`))
+  const metadataDir = fs.mkdtempSync(path.join(root, 'dist', `.arkbrain-${platform}-release-`))
   let remoteDir = ''
   try {
     const releaseDate = new Date().toISOString()
@@ -653,10 +653,10 @@ export async function publishUpdates({
 
     remoteDir = run(
       'ssh',
-      [...SSH_OPTIONS, options.host, 'mktemp', '-d', '/srv/bailongma-release-staging.XXXXXX'],
+      [...SSH_OPTIONS, options.host, 'mktemp', '-d', '/srv/arkbrain-release-staging.XXXXXX'],
       { capture: true, cwd: root },
     )
-    if (!/^\/srv\/bailongma-release-staging\.[A-Za-z0-9]+$/.test(remoteDir)) {
+    if (!/^\/srv\/arkbrain-release-staging\.[A-Za-z0-9]+$/.test(remoteDir)) {
       throw new Error(`Unexpected remote staging directory: ${remoteDir}`)
     }
 

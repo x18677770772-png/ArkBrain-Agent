@@ -7,7 +7,7 @@ const path = require('node:path')
 const { createBrowserDataStore, normalizeClearRequest } = require('./browser-data.cjs')
 
 async function run() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-browser-data-'))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-browser-data-'))
   const nowMs = Date.parse('2026-07-26T05:00:00.000Z')
   const clearCalls = []
   const targetSession = {

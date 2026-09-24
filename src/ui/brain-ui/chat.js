@@ -38,7 +38,7 @@ export function initChat({
   onUserMessage = null,
   openSettings = null,
 } = {}) {
-  const CHAT_PIN_STORAGE_KEY = "bailongma-chat-pinned";
+  const CHAT_PIN_STORAGE_KEY = "arkbrain-chat-pinned";
   const chatHistory = document.getElementById("chat-history");
   const chatMessages = document.getElementById("chat-messages");
   const msgInput = document.getElementById("msg-input");
@@ -278,7 +278,7 @@ export function initChat({
       chatHistory.classList.add("open");
       chatArea.classList.remove("wc-collapsed", "ty-collapsed");
     }
-    window.dispatchEvent(new CustomEvent("bailongma:chat-pin", {
+    window.dispatchEvent(new CustomEvent("arkbrain:chat-pin", {
       detail: { pinned: chatPinned },
     }));
   }
@@ -975,7 +975,7 @@ export function initChat({
       if (prepared.attachments.length && backendText === content) payload.attachments = prepared.attachments;
       if (channel) payload.channel = channel;
       if (String(channel || "").toUpperCase() === "VOICE" || channel === "语音识别") {
-        window.bailongmaVoiceDiag?.("voice-message-post", {
+        window.arkbrainVoiceDiag?.("voice-message-post", {
           client_id: payload.client_id,
           client_message_id: clientMessageId,
           channel,
@@ -997,7 +997,7 @@ export function initChat({
       }
       const responseBody = await resp.json();
       if (String(channel || "").toUpperCase() === "VOICE" || channel === "语音识别") {
-        window.bailongmaVoiceDiag?.("voice-message-accepted", {
+        window.arkbrainVoiceDiag?.("voice-message-accepted", {
           client_id: responseBody.client_id || payload.client_id,
           client_message_id: responseBody.client_message_id || clientMessageId,
           conversation_id: responseBody.conversation_id || 0,
@@ -1059,7 +1059,7 @@ export function initChat({
     }
   });
   sendBtn.addEventListener("click", () => send());
-  window.addEventListener("bailongma:space-ptt-change", () => {
+  window.addEventListener("arkbrain:space-ptt-change", () => {
     if (!inputLocked) msgInput.placeholder = idlePlaceholder();
   });
 

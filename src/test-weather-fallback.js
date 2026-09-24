@@ -4,8 +4,8 @@ import os from 'node:os'
 import path from 'node:path'
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blm-weather-fallback-'))
-process.env.BAILONGMA_USER_DIR = tmp
-process.env.BAILONGMA_RESOURCES_DIR = process.cwd()
+process.env.ARKBRAIN_USER_DIR = tmp
+process.env.ARKBRAIN_RESOURCES_DIR = process.cwd()
 
 const originalFetch = globalThis.fetch
 let closeDBForTest = null

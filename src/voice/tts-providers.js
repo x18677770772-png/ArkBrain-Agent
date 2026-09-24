@@ -263,7 +263,7 @@ async function streamDoubao({
     method: 'POST',
     headers,
     body: JSON.stringify({
-      user: { uid: 'bailongma' },
+      user: { uid: 'arkbrain' },
       req_params: reqParams,
     }),
   })
@@ -370,7 +370,7 @@ async function streamVolcano({ text, voiceId = 'BV001_streaming', appId, token }
     },
     body: JSON.stringify({
       app: { appid: appId, token, cluster: 'volcano_tts' },
-      user: { uid: 'bailongma' },
+      user: { uid: 'arkbrain' },
       audio: {
         voice_type: voiceId,
         encoding: 'mp3',

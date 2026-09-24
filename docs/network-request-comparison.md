@@ -1,35 +1,35 @@
-# Safari 人工访问与白龙马 Electron/Playwright 网络请求对比审计
+# Safari 人工访问与方舟大脑 Electron/Playwright 网络请求对比审计
 
 审计日期：2026-07-26
 
 ## 执行摘要
 
-本次在同一台 Mac、同一网络、相邻时间内，对 `https://www.baidu.com/` 做了两次只读首页访问：用户在 Safari 26.5.2 中人工输入地址；白龙马通过真实 Electron `WebContentsView` 和当前 Playwright MCP 的 `browser_navigate` 打开同一地址。Safari 记录 71 个请求，白龙马记录 79 个请求。
+本次在同一台 Mac、同一网络、相邻时间内，对 `https://www.baidu.com/` 做了两次只读首页访问：用户在 Safari 26.5.2 中人工输入地址；方舟大脑通过真实 Electron `WebContentsView` 和当前 Playwright MCP 的 `browser_navigate` 打开同一地址。Safari 记录 71 个请求，方舟大脑记录 79 个请求。
 
 结论如下：
 
-1. 白龙马最强、成本最低的可识别信号是请求 UA 直接包含 `Electron/33.4.11`。服务端只需字符串匹配即可识别 Electron，无需高级风控。
-2. 白龙马页面环境快照中的 `navigator.webdriver` 为 `true`。Safari HAR 不包含该 JS 属性，因而本次不能把它写成两侧实测差异；但网页脚本能够直接读取白龙马的该值，它仍是极高风险信号。
-3. 初始白龙马样本有 76/79 个请求包含 `Cache-Control: no-cache` 和 `Pragma: no-cache`。将 embedded 页的私网防护从 Playwright `page.route('**/*')` 迁移到 Electron 原生 `session.webRequest` 后，同一流程仍为 79 个请求，但上述两个字段都从 76 降到 0。因此可以确认它们是 Playwright 路由层造成的采集路径副作用，现已消除；SSRF、重定向与 WebSocket 私网防护仍保留。
-4. 两侧绝大多数百度业务端点相同。白龙马没有独有的验证码、挑战、设备注册或明显风险控制端点；Safari 独有一个 `ps_fp.htm` 指纹样式端点，但单次样本不足以判断其用途或自动化含义。
+1. 方舟大脑最强、成本最低的可识别信号是请求 UA 直接包含 `Electron/33.4.11`。服务端只需字符串匹配即可识别 Electron，无需高级风控。
+2. 方舟大脑页面环境快照中的 `navigator.webdriver` 为 `true`。Safari HAR 不包含该 JS 属性，因而本次不能把它写成两侧实测差异；但网页脚本能够直接读取方舟大脑的该值，它仍是极高风险信号。
+3. 初始方舟大脑样本有 76/79 个请求包含 `Cache-Control: no-cache` 和 `Pragma: no-cache`。将 embedded 页的私网防护从 Playwright `page.route('**/*')` 迁移到 Electron 原生 `session.webRequest` 后，同一流程仍为 79 个请求，但上述两个字段都从 76 降到 0。因此可以确认它们是 Playwright 路由层造成的采集路径副作用，现已消除；SSRF、重定向与 WebSocket 私网防护仍保留。
+4. 两侧绝大多数百度业务端点相同。方舟大脑没有独有的验证码、挑战、设备注册或明显风险控制端点；Safari 独有一个 `ps_fp.htm` 指纹样式端点，但单次样本不足以判断其用途或自动化含义。
 5. Safari/WebKit 与 Electron/Chromium 是不同浏览器引擎。`sec-ch-ua`、伪首部、协议字段暴露、资源分类等大量差异首先是引擎差异，不能直接归因于 Playwright 或 CDP。
 6. 本轮只有“打开首页”，没有搜索、点击或输入，所以不能检验默认中心点击、无按下延迟、`fill()` 整段输入、逐键事件或首次交互时间。也不能把本轮百度结果直接外推为小红书违规警告的原因。
 
 ## 采集条件
 
-| 条件 | Safari 人工访问 | 白龙马 Electron/Playwright |
+| 条件 | Safari 人工访问 | 方舟大脑 Electron/Playwright |
 | --- | --- | --- |
 | 时间 | 2026-07-26 18:47（Asia/Shanghai） | 初始 18:48；原生守卫控制组 19:23（Asia/Shanghai） |
 | 页面 | `https://www.baidu.com/` | `https://www.baidu.com/` |
 | 动作 | 用户人工在地址栏输入并回车，等待约 10 秒 | MCP `browser_navigate`，等待 10 秒 |
 | 浏览器 | Safari 26.5.2 / WebKit 605.1.15 | Electron 33.4.11 / Chromium 130.0.6723.191 / Playwright MCP 0.0.78 |
-| 会话 | 用户日常 Safari 会话，可能有既有 Cookie/缓存 | 临时干净 `persist:bailongma-browser` 分区 |
+| 会话 | 用户日常 Safari 会话，可能有既有 Cookie/缓存 | 临时干净 `persist:arkbrain-browser` 分区 |
 | 采集 | Safari Web Inspector Network 导出 HAR | Electron DevTools Protocol Network 域，只读观察 |
 | HTTPS 代理 | 无 | 无 |
 | 请求拦截 | 未配置 | 诊断记录器不拦截；产品私网安全守卫使用 Electron `session.webRequest` 只做允许/取消决策 |
 | 请求数 | 71（GET 67 / POST 4） | 79（GET 74 / POST 5） |
 
-原始 Safari HAR 位于用户下载目录，不纳入版本库。白龙马原始记录与脱敏对比产物位于 `data/network-audits/`。比较工具丢弃请求/响应正文，并对 URL 查询值、动态路径、Cookie、Authorization、Set-Cookie、Token、签名、账号标识候选值及远端地址做脱敏或聚合。
+原始 Safari HAR 位于用户下载目录，不纳入版本库。方舟大脑原始记录与脱敏对比产物位于 `data/network-audits/`。比较工具丢弃请求/响应正文，并对 URL 查询值、动态路径、Cookie、Authorization、Set-Cookie、Token、签名、账号标识候选值及远端地址做脱敏或聚合。
 
 ## 对仓库已知情况的代码核验
 
@@ -43,18 +43,18 @@
 ## 可确认事实
 
 - Safari UA：`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5.2 Safari/605.1.15`。
-- 白龙马 UA：`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.191 Electron/33.4.11 Safari/537.36`。
-- Safari 没有发送 Chromium Client Hints；白龙马发送 `sec-ch-ua: "Not?A_Brand";v="99", "Chromium";v="130"`、`sec-ch-ua-mobile: ?0`、`sec-ch-ua-platform: "macOS"`。
-- Safari `Accept-Language` 为 `zh-CN,zh-Hans;q=0.9`；白龙马为 `zh-CN`。
-- Safari 有 14 个请求包含 Cookie 请求头；原生守卫后的白龙马为 20 个。Safari HAR 不含被阻止 Cookie 和分区键详情；白龙马观察到 27 个被阻止的关联 Cookie、75 个响应分区键、0 个分区请求 Cookie。两侧会话状态不同，不能用数量直接判定自动化。
-- Safari 有一个 `304`；白龙马没有 `304`，且记录器报告 0 个磁盘缓存命中。该差异与日常会话对临时干净分区的条件不同一致。
-- 白龙马记录到 HTTP/2 56 个、HTTP/1.1 20 个；Safari HAR 只有 17/71 个请求带可用协议字段。字段覆盖不同，不能据此断言传输栈差异。
-- 白龙马没有 WebSocket 事件。Safari HAR 也未呈现 WebSocket 会话。
+- 方舟大脑 UA：`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.6723.191 Electron/33.4.11 Safari/537.36`。
+- Safari 没有发送 Chromium Client Hints；方舟大脑发送 `sec-ch-ua: "Not?A_Brand";v="99", "Chromium";v="130"`、`sec-ch-ua-mobile: ?0`、`sec-ch-ua-platform: "macOS"`。
+- Safari `Accept-Language` 为 `zh-CN,zh-Hans;q=0.9`；方舟大脑为 `zh-CN`。
+- Safari 有 14 个请求包含 Cookie 请求头；原生守卫后的方舟大脑为 20 个。Safari HAR 不含被阻止 Cookie 和分区键详情；方舟大脑观察到 27 个被阻止的关联 Cookie、75 个响应分区键、0 个分区请求 Cookie。两侧会话状态不同，不能用数量直接判定自动化。
+- Safari 有一个 `304`；方舟大脑没有 `304`，且记录器报告 0 个磁盘缓存命中。该差异与日常会话对临时干净分区的条件不同一致。
+- 方舟大脑记录到 HTTP/2 56 个、HTTP/1.1 20 个；Safari HAR 只有 17/71 个请求带可用协议字段。字段覆盖不同，不能据此断言传输栈差异。
+- 方舟大脑没有 WebSocket 事件。Safari HAR 也未呈现 WebSocket 会话。
 - 两侧 `hasUserGesture` 都不可用；不能从本次记录判断用户手势差异。
 
 ## 请求差异表
 
-| 比较项 | Safari 人工访问 | 白龙马 | 判断 |
+| 比较项 | Safari 人工访问 | 方舟大脑 | 判断 |
 | --- | --- | --- | --- |
 | 请求数 | 71 | 79 | 低；资源、缓存和会话噪声可解释 |
 | UA | Safari/WebKit 26.5.2 | Chromium 130 + `Electron/33.4.11` | 极高；Electron 明文可直接匹配 |
@@ -78,22 +78,22 @@
 
 | 等级 | 证据性质 | 信号 |
 | --- | --- | --- |
-| 极高 | 事实 | 白龙马网络 UA 明文包含 `Electron/33.4.11`，服务端可用单条低成本规则识别。 |
-| 极高 | 事实 + 基线缺口 | 白龙马 JS 环境 `navigator.webdriver=true`；Safari HAR 不含此字段，但站点脚本可直接读取白龙马值。 |
+| 极高 | 事实 | 方舟大脑网络 UA 明文包含 `Electron/33.4.11`，服务端可用单条低成本规则识别。 |
+| 极高 | 事实 + 基线缺口 | 方舟大脑 JS 环境 `navigator.webdriver=true`；Safari HAR 不含此字段，但站点脚本可直接读取方舟大脑值。 |
 | 高 | 事实 | UA、Chromium 版本、Client Hints 与 Safari/WebKit 完全不同，能被稳定分组；其中大部分是引擎差异。 |
 | 高 | 事实 | `Accept-Language` 和 `navigator.languages` 组合不同，可与 UA/CH 一起形成低成本复合规则。 |
-| 中 | 事实 + 推断 | 白龙马 `focus=true`、内容区 1280×840；Safari HAR 不含等价快照。可见性/窗口特征可能被客户端遥测，但本轮没有上传正文证据。 |
+| 中 | 事实 + 推断 | 方舟大脑 `focus=true`、内容区 1280×840；Safari HAR 不含等价快照。可见性/窗口特征可能被客户端遥测，但本轮没有上传正文证据。 |
 | 中 | 事实 + 推断 | Safari 出现 `ps_fp.htm` 与 `fp` 查询字段；名称暗示指纹流程，但不能从名称证明风险识别目的。 |
 | 中 | 代码事实，未在本轮触发 | 默认 `browser_type` 使用 `fill()`，默认 click 无 delay。搜索/输入场景中可能缺少逐键事件或出现规则化时序，本轮没有输入证据。 |
 | 低 | 事实 | 请求数量、缓存、304、协议计数和 Cookie 数量有差异，但受会话、引擎与 HAR/CDP 字段覆盖影响。 |
 | 低 | 已整改 | Playwright route 曾给 76 个请求增加 `no-cache/Pragma`；原生守卫控制组已降为 0。 |
-| 低 | 未发现 | 没有看到白龙马独有的验证码、挑战、设备注册或明确风控端点，也没有直接的 `Playwright`/`CDP` 请求头。 |
+| 低 | 未发现 | 没有看到方舟大脑独有的验证码、挑战、设备注册或明确风控端点，也没有直接的 `Playwright`/`CDP` 请求头。 |
 
-多个差异组合后，`Electron` UA + `navigator.webdriver=true` + 语言/Client Hints 不一致，仍足以让平台用低成本规则把白龙马请求群与 Safari 人工访问分开。已消除的 `no-cache/Pragma` 不再计入当前组合。这里确认的是“可区分性”，不是“百度或小红书已经采用了这条规则”。
+多个差异组合后，`Electron` UA + `navigator.webdriver=true` + 语言/Client Hints 不一致，仍足以让平台用低成本规则把方舟大脑请求群与 Safari 人工访问分开。已消除的 `no-cache/Pragma` 不再计入当前组合。这里确认的是“可区分性”，不是“百度或小红书已经采用了这条规则”。
 
 ## 事实与推断边界
 
-事实包括：两份记录中的请求、头字段、状态、时间、端点集合；白龙马页面快照；仓库中 CDP、Target、route、click 与 type 的实现路径；以及同一白龙马流程迁移守卫前后 `no-cache/Pragma` 从 76/76 变为 0/0 的控制结果。
+事实包括：两份记录中的请求、头字段、状态、时间、端点集合；方舟大脑页面快照；仓库中 CDP、Target、route、click 与 type 的实现路径；以及同一方舟大脑流程迁移守卫前后 `no-cache/Pragma` 从 76/76 变为 0/0 的控制结果。
 
 推断包括：`ps_fp.htm` 是风险指纹；平台把任一差异用于封禁；本轮差异解释了小红书既有警告。`no-cache/Pragma` 的 route 归因已有控制实验支持，不再列为推断。其余结论仍需要平台侧日志，不能靠接口名称或单次抓包下结论。
 
@@ -101,12 +101,12 @@
 
 ## 采集工具自身造成的污染
 
-- Safari Web Inspector 可能影响焦点和 viewport；本次没有开启 Ignore Cache，但 Safari HAR 显示日常会话缓存状态与白龙马临时分区不同。
+- Safari Web Inspector 可能影响焦点和 viewport；本次没有开启 Ignore Cache，但 Safari HAR 显示日常会话缓存状态与方舟大脑临时分区不同。
 - Safari HAR 和 Electron CDP JSON 的字段覆盖不同，导致资源类型、协议、TLS、Cookie 分区、Initiator 与用户手势不能完全对齐。
-- 白龙马记录器只启用 Network/Runtime 只读事件，不启用 Fetch，不拦截、修改、伪造或重放请求；开始和结束各读取一次页面环境。
-- 白龙马原先为私网安全安装的 Playwright route 会改变缓存行为；该污染已通过 Electron 原生守卫消除。无原生守卫的独立 Playwright备用路径仍保留 route，避免安全降级。
+- 方舟大脑记录器只启用 Network/Runtime 只读事件，不启用 Fetch，不拦截、修改、伪造或重放请求；开始和结束各读取一次页面环境。
+- 方舟大脑原先为私网安全安装的 Playwright route 会改变缓存行为；该污染已通过 Electron 原生守卫消除。无原生守卫的独立 Playwright备用路径仍保留 route，避免安全降级。
 - 主程序的 `remote-debugging-port=0` 与 Playwright 附加均可能影响 `navigator.webdriver`。此前 Chrome for Testing 基线也用 port 0，导致 `webdriver=true`，该轮结果已作废。采集脚本现改用固定临时回环端口，控制检查确认同一 Chrome 二进制回到 `webdriver=false`。
-- Safari 与 Chromium 版本和引擎不匹配，是本轮最大的归因混杂因素。这份对比适合回答“用户日常 Safari 与白龙马是否可区分”，不适合单独回答“纯 Electron、Playwright、CDP 各自贡献多少”。
+- Safari 与 Chromium 版本和引擎不匹配，是本轮最大的归因混杂因素。这份对比适合回答“用户日常 Safari 与方舟大脑是否可区分”，不适合单独回答“纯 Electron、Playwright、CDP 各自贡献多少”。
 
 ## 合规整改建议
 
@@ -121,7 +121,7 @@
 ## 仍缺少的证据
 
 - 同一 Chromium 130 版本下的人工基线，因此不能分离 WebKit/Chromium与 Electron 差异。
-- 人工逐键输入、白龙马 `fill()`、白龙马 `slowly=true` 三组同关键词搜索记录，因此没有输入遥测证据。
+- 人工逐键输入、方舟大脑 `fill()`、方舟大脑 `slowly=true` 三组同关键词搜索记录，因此没有输入遥测证据。
 - 小红书授权账号的只读同条件样本及平台侧风险日志，因此不能判断既有违规警告的具体触发规则。
 - Safari 的页面环境快照。HAR 本身不含 `navigator.webdriver`、focus、visibility、viewport 与完整 Cookie/TLS 元数据。
 

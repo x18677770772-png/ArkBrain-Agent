@@ -25,8 +25,8 @@ function configurePackagedPlaywright({
   env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(resourcesPath, PLAYWRIGHT_BROWSER_RESOURCE_DIR)
   // Keep this contract separate from Playwright's standard cache variable.
   // Developers may point PLAYWRIGHT_BROWSERS_PATH at a shared cache that only
-  // contains the headless shell; packaged Bailongma includes full Chromium.
-  env.BAILONGMA_BUNDLED_PLAYWRIGHT = '1'
+  // contains the headless shell; packaged ArkBrain-Agent includes full Chromium.
+  env.ARKBRAIN_BUNDLED_PLAYWRIGHT = '1'
   // Playwright otherwise identifies an x64 Electron process under Rosetta as arm64.
   env.PLAYWRIGHT_HOST_PLATFORM_OVERRIDE ||= packagedHostPlatform(platform, arch)
   return env.PLAYWRIGHT_BROWSERS_PATH
@@ -86,8 +86,8 @@ function configureBundledNodeRuntime({
   // The backend runs inside Electron and command children inherit this env.
   // Keep the executable contract for MCP, while also making ordinary `node`
   // shell commands resolve against the bundled runtime.
-  env.BAILONGMA_NODE_RUNTIME_PATH = executable
-  env.BAILONGMA_MCP_NODE_PATH = executable
+  env.ARKBRAIN_NODE_RUNTIME_PATH = executable
+  env.ARKBRAIN_MCP_NODE_PATH = executable
   const pathKey = Object.keys(env).find(key => key.toLowerCase() === 'path')
     || (platform === 'win32' ? 'Path' : 'PATH')
   const delimiter = platform === 'win32' ? ';' : ':'

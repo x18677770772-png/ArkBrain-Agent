@@ -29,7 +29,7 @@ const devLight = require('./dev-board-light.cjs')
 const { BROWSER_EMBED_PARTITION, createBrowserEmbedHost } = require('./browser-embed-host.cjs')
 const { createBrowserDataStore } = require('./browser-data.cjs')
 const { createSafeStorageNotice } = require('./safe-storage-notice.cjs')
-const { createBaiLongmaChromeManager } = require('./bailongma-chrome.cjs')
+const { createArkBrainChromeManager } = require('./arkbrain-chrome.cjs')
 const { bundledBrowserRoot, configureBundledNodeRuntime } = require('./playwright-runtime.cjs')
 const { createTrustedWindowSenderGuard } = require('./trusted-window-senders.cjs')
 const { hasPackagedUpdaterConfig } = require('./updater-config.cjs')
@@ -37,10 +37,10 @@ const { hasPackagedUpdaterConfig } = require('./updater-config.cjs')
 // The ESM backend is imported into this Electron main process. Expose the
 // main-process-only permission API without requiring ESM modules to import the
 // special Electron built-in module themselves.
-globalThis.bailongmaSystemPreferences = systemPreferences
+globalThis.arkbrainSystemPreferences = systemPreferences
 
 const IS_DEV = !app.isPackaged
-const WINDOWS_APP_USER_MODEL_ID = 'com.xiaoyuanda.bailongma'
+const WINDOWS_APP_USER_MODEL_ID = 'com.xiaoyuanda.arkbrain'
 const WINDOWS_TITLE_BAR_HEIGHT = 38
 const WINDOWS_TITLE_BAR_THEMES = Object.freeze({
   startup: { color: '#0b0d10', symbolColor: '#e7edf3' },
@@ -59,7 +59,7 @@ function windowsTitleBarOverlay(theme = 'startup') {
 
 function resolvePortableRoot() {
   if (IS_DEV) return null
-  const requestedRoot = process.env.BAILONGMA_PORTABLE_DIR?.trim()
+  const requestedRoot = process.env.ARKBRAIN_PORTABLE_DIR?.trim()
   if (requestedRoot) return path.resolve(requestedRoot)
   const exeDir = path.dirname(process.execPath)
   return fs.existsSync(path.join(exeDir, 'portable.flag')) ? exeDir : null
@@ -71,7 +71,7 @@ const IS_PORTABLE = Boolean(PORTABLE_USER_DIR)
 if (PORTABLE_USER_DIR) {
   try { fs.mkdirSync(PORTABLE_USER_DIR, { recursive: true }) } catch {}
   app.setPath('userData', PORTABLE_USER_DIR)
-  process.env.BAILONGMA_USER_DIR ||= PORTABLE_USER_DIR
+  process.env.ARKBRAIN_USER_DIR ||= PORTABLE_USER_DIR
 }
 
 const USER_DIR = app.getPath('userData')
@@ -142,8 +142,8 @@ const BUNDLED_NODE_EXECUTABLE = configureBundledNodeRuntime({
 
 function isTlsBackend() {
   return Boolean(
-    process.env.BAILONGMA_TLS_PFX
-    || (process.env.BAILONGMA_TLS_CERT && process.env.BAILONGMA_TLS_KEY)
+    process.env.ARKBRAIN_TLS_PFX
+    || (process.env.ARKBRAIN_TLS_CERT && process.env.ARKBRAIN_TLS_KEY)
   )
 }
 
@@ -165,7 +165,7 @@ app.on('certificate-error', (event, _webContents, url, _error, _certificate, cal
 
 const STARTUP_STEPS = [
   { id: 'port', label: '准备本地端口', detail: '锁定 3721 或备用端口' },
-  { id: 'core', label: '启动本地核心', detail: '加载 Bailongma runtime' },
+  { id: 'core', label: '启动本地核心', detail: '加载 ArkBrain-Agent runtime' },
   { id: 'resources', label: '准备工作区', detail: '复制沙箱与音乐资源' },
   { id: 'tools', label: '加载工具槽', detail: '恢复已安装能力' },
   { id: 'api', label: '启动本地 API', detail: 'HTTP / SSE / WebSocket' },
@@ -178,7 +178,7 @@ const startupProgressState = {
   failed: false,
   percent: 0,
   activeStepId: null,
-  message: '正在打开 Bailongma',
+  message: '正在打开 ArkBrain-Agent',
   steps: STARTUP_STEPS.map(step => ({ ...step, status: 'pending', startedAt: null, endedAt: null })),
 }
 
@@ -237,7 +237,7 @@ function emitStartupProgress(update = {}) {
   return cloneStartupProgressState()
 }
 
-global.bailongmaStartupProgress = emitStartupProgress
+global.arkbrainStartupProgress = emitStartupProgress
 
 function getAppIconPath({ trayIcon = false } = {}) {
   if (IS_WIN) return path.join(RESOURCE_ROOT, 'build', 'icon.ico')
@@ -350,12 +350,12 @@ function fileImageToDataUrl(filePath) {
   return `data:${imageMimeForPath(filePath)};base64,${bytes.toString('base64')}`
 }
 
-// 持久化日志：把 console.* 镜像到 USER_DIR/logs/bailongma.log，
+// 持久化日志：把 console.* 镜像到 USER_DIR/logs/arkbrain.log，
 // 安装版没有 stdout 的情况下，卡死/崩溃后还能 tail 这个文件复盘。
 // 简易 rotate：> 5MB 时把当前文件改名 .old（覆盖上一份 .old），下次写入重开。
 const LOG_DIR = path.join(USER_DIR, 'logs')
-const LOG_FILE = path.join(LOG_DIR, 'bailongma.log')
-const LOG_FILE_OLD = path.join(LOG_DIR, 'bailongma.old.log')
+const LOG_FILE = path.join(LOG_DIR, 'arkbrain.log')
+const LOG_FILE_OLD = path.join(LOG_DIR, 'arkbrain.old.log')
 const LOG_MAX_BYTES = 5 * 1024 * 1024
 try { fs.mkdirSync(LOG_DIR, { recursive: true }) } catch {}
 function rotateLogIfNeeded() {
@@ -401,7 +401,7 @@ process.on('unhandledRejection', (reason) => {
 process.on('uncaughtException', (err) => {
   console.error('[uncaughtException]', err?.stack || err?.message || String(err))
 })
-console.log(`[main] Bailongma ${app.getVersion()} starting, logs → ${LOG_FILE}`)
+console.log(`[main] ArkBrain-Agent ${app.getVersion()} starting, logs → ${LOG_FILE}`)
 
 // ── GPU 适配器偏好（Windows 多显卡：核显 + 独显笔记本） ──
 // Windows 的逐应用显卡偏好存在 HKCU\...\DirectX\UserGpuPreferences
@@ -452,12 +452,12 @@ const safeStorageNotice = createSafeStorageNotice({
     mainWindow && !mainWindow.isDestroyed() ? mainWindow : null
   ),
 })
-globalThis.bailongmaRequestSafeStorageAccessSync = purpose => (
+globalThis.arkbrainRequestSafeStorageAccessSync = purpose => (
   safeStorageNotice.requestSync(purpose)
 )
-// The dedicated profile is deliberately under BaiLongma application data and
+// The dedicated profile is deliberately under ArkBrain-Agent application data and
 // never reads, imports, or attaches to the user's daily Chrome profile.
-const bailongmaChrome = createBaiLongmaChromeManager({
+const arkbrainChrome = createArkBrainChromeManager({
   userDataDir: USER_DIR,
   bundledBrowserRoot: bundledBrowserRoot({
     isPackaged: app.isPackaged,
@@ -551,15 +551,15 @@ const focusBannerBridge = new EventEmitter()
 global.focusBannerBridge = focusBannerBridge
 const terminalStreamBridge = new EventEmitter()
 global.terminalStreamBridge = terminalStreamBridge
-global.getBailongmaWindowLayoutSnapshot = getBailongmaWindowLayoutSnapshot
-globalThis.bailongmaChromeBridge = Object.freeze({
+global.getArkBrainWindowLayoutSnapshot = getArkBrainWindowLayoutSnapshot
+globalThis.arkbrainChromeBridge = Object.freeze({
   ensureEndpoint: async () => {
     if (!browserEmbedHost.getTarget() && mainWindow && !mainWindow.isDestroyed()) {
       await browserEmbedHost.prime(mainWindow)
     }
     const target = await resolveBrowserEmbedCdpTarget()
     if (!target?.cdpEndpoint || !target?.targetId) {
-      throw new Error('BaiLongma live browser DevTools target is unavailable')
+      throw new Error('ArkBrain-Agent live browser DevTools target is unavailable')
     }
     return target.cdpEndpoint
   },
@@ -568,7 +568,7 @@ globalThis.bailongmaChromeBridge = Object.freeze({
   recoverPage: async () => {
     browserEmbedHost.closePage()
     if (!mainWindow || mainWindow.isDestroyed()) {
-      throw new Error('BaiLongma main window is unavailable for browser recovery')
+      throw new Error('ArkBrain-Agent main window is unavailable for browser recovery')
     }
     await browserEmbedHost.prime(mainWindow)
     return resolveBrowserEmbedCdpTarget()
@@ -576,7 +576,7 @@ globalThis.bailongmaChromeBridge = Object.freeze({
   clearData: options => browserDataStore.clearData(options),
   getState: () => browserEmbedHost.getState(mainWindow),
 })
-global.bailongmaAppControl = {
+global.arkbrainAppControl = {
   restart() {
     console.log('[main] restart requested')
     app.isQuiting = true
@@ -644,14 +644,14 @@ function validatePackagedNativeModules() {
   }
 
   if (issues.length) {
-    throw new Error(`Packaged native module integrity check failed:\n${issues.join('\n')}\nPlease close Bailongma and reinstall it with the official installer.`)
+    throw new Error(`Packaged native module integrity check failed:\n${issues.join('\n')}\nPlease close ArkBrain-Agent and reinstall it with the official installer.`)
   }
 }
 
 async function bootstrapBackend(port) {
-  process.env.BAILONGMA_USER_DIR ||= USER_DIR
-  process.env.BAILONGMA_RESOURCES_DIR ||= RESOURCE_ROOT
-  process.env.BAILONGMA_PORT = String(port)
+  process.env.ARKBRAIN_USER_DIR ||= USER_DIR
+  process.env.ARKBRAIN_RESOURCES_DIR ||= RESOURCE_ROOT
+  process.env.ARKBRAIN_PORT = String(port)
   validatePackagedNativeModules()
   await import(pathToFileURL(BACKEND_ENTRY).href)
 }
@@ -663,8 +663,8 @@ if (!gotLock) {
 }
 
 function isLanAccessConfigured() {
-  if (/^(1|true|yes|on)$/i.test(String(process.env.BAILONGMA_ALLOW_LAN || '').trim())) return true
-  const userDir = process.env.BAILONGMA_USER_DIR?.trim() || USER_DIR
+  if (/^(1|true|yes|on)$/i.test(String(process.env.ARKBRAIN_ALLOW_LAN || '').trim())) return true
+  const userDir = process.env.ARKBRAIN_USER_DIR?.trim() || USER_DIR
   try {
     const stored = JSON.parse(fs.readFileSync(path.join(userDir, 'config.json'), 'utf8'))
     return stored?.network?.allowLanAccess === true
@@ -752,7 +752,7 @@ async function createWindow({
     minHeight: 480,
     show,
     backgroundColor: '#0b0b0e',
-    title: 'Bailongma',
+    title: 'ArkBrain-Agent',
     icon: getAppIconPath(),
     ...(IS_WIN ? {
       titleBarStyle: 'hidden',
@@ -940,7 +940,7 @@ async function showMainWindow() {
 function setupTray() {
   const trayImage = createTrayImage()
   tray = new Tray(trayImage)
-  tray.setToolTip('Bailongma')
+  tray.setToolTip('ArkBrain-Agent')
 
   refreshTrayContextMenu()
   tray.on('double-click', () => { showMainWindow().catch(() => {}) })
@@ -1075,7 +1075,7 @@ focusBannerBridge.on('hide', () => {
 
 // ─── 语音唤醒:隐藏"耳朵"窗口 + 主进程 KWS ───
 // 隐藏窗口常开麦克风 → AudioWorklet 出 16kHz Float32 → IPC → 主进程 KeywordSpotter。
-// 第一步只检测+写日志(USER_DIR/logs/wake-word.log),命中"白龙马"不做其他动作。
+// 第一步只检测+写日志(USER_DIR/logs/wake-word.log),命中"方舟大脑"不做其他动作。
 const TERMINAL_STREAM_DEFAULT_WIDTH = 560
 const TERMINAL_STREAM_DEFAULT_HEIGHT = 830
 const TERMINAL_STREAM_MIN_WIDTH = 420
@@ -1185,7 +1185,7 @@ function windowSnapshot(win) {
   }
 }
 
-function getBailongmaWindowLayoutSnapshot() {
+function getArkBrainWindowLayoutSnapshot() {
   const { screen } = require('electron')
   const displays = screen.getAllDisplays().map(display => ({
     id: display.id,
@@ -1411,8 +1411,8 @@ function normalizeTerminalStreamId(value = 'default') {
 }
 
 function createTerminalStreamWindow(payload = {}) {
-  const { title = 'Bailongma Terminal Stream', stream_id = 'default' } = payload
-  const cleanTitle = String(title || 'Bailongma Terminal Stream').slice(0, 120)
+  const { title = 'ArkBrain-Agent Terminal Stream', stream_id = 'default' } = payload
+  const cleanTitle = String(title || 'ArkBrain-Agent Terminal Stream').slice(0, 120)
   const streamId = normalizeTerminalStreamId(stream_id)
   const url = backendUrl(backendPort, `/terminal-stream?stream_id=${encodeURIComponent(streamId)}`)
   const focusWindow = payload.focus !== false
@@ -1505,7 +1505,7 @@ ipcMain.on('wake:status', (_e, info) => {
 })
 
 // ─── 语音唤醒第二步:独立置顶悬浮球窗口 ───
-// 命中「小白龙」→ 主窗口渲染层(voice-wake.js)开会话 + 经下列 IPC 驱动这个纯视觉球窗:
+// 命中「方舟大脑」→ 主窗口渲染层(voice-wake.js)开会话 + 经下列 IPC 驱动这个纯视觉球窗:
 // 入场动画 → 镜像球状态 → 10s 无话退场。球窗没有麦克风,真正的开麦/识别/对话仍在主窗口跑。
 // 透明/无边框/置顶/不抢焦点;首次唤醒时懒建,之后 hide 不销毁(下次唤醒即时入场)。
 // backgroundThrottling:false 让隐藏时也能立刻起动画(与主窗口同理)。
@@ -1588,7 +1588,7 @@ function setupAutoUpdater() {
   // Marks updater traffic so the update gateway can issue short-lived OSS URLs.
   // This is an application marker, not a user credential.
   autoUpdater.requestHeaders = {
-    'X-Bailongma-Updater': 'BailongmaUpdater/2',
+    'X-ArkBrain-Updater': 'ArkBrainUpdater/2',
   }
   // Avoid applying an already downloaded update while Windows is shutting down.
   // The renderer still installs explicitly through updater:quit-and-install.
@@ -1816,8 +1816,8 @@ app.on('before-quit', (event) => {
     return
   }
   const shutdowns = [
-    globalThis.shutdownBailongmaMcpClients,
-    () => bailongmaChrome.stopOwnedChrome(),
+    globalThis.shutdownArkBrainMcpClients,
+    () => arkbrainChrome.stopOwnedChrome(),
   ].filter(shutdown => typeof shutdown === 'function')
   if (shutdowns.length === 0) {
     browserShutdownComplete = true
@@ -1861,7 +1861,7 @@ app.whenReady().then(async () => {
   } catch (err) {
     console.error(`[main] Backend startup failed on port ${backendPort || 'unknown'}`, err?.stack || err?.message || err)
     emitStartupProgress({ id: 'core', status: 'error', error: true, message: `启动失败: ${err.message}` })
-    dialog.showErrorBox('Startup failed', `Unable to start the Bailongma backend:\n${err.message}`)
+    dialog.showErrorBox('Startup failed', `Unable to start the ArkBrain-Agent backend:\n${err.message}`)
     app.quit()
     return
   }
@@ -1869,9 +1869,9 @@ app.whenReady().then(async () => {
   try {
     await replaceStartupWithMainApp()
   } catch (err) {
-    console.error('[main] Failed to load Bailongma UI', err?.stack || err?.message || err)
+    console.error('[main] Failed to load ArkBrain-Agent UI', err?.stack || err?.message || err)
     emitStartupProgress({ id: 'interface', status: 'error', error: true, message: `进入界面失败: ${err.message}` })
-    dialog.showErrorBox('Startup failed', `Unable to load the Bailongma interface:\n${err.message}`)
+    dialog.showErrorBox('Startup failed', `Unable to load the ArkBrain-Agent interface:\n${err.message}`)
     app.quit()
     return
   }
@@ -1883,7 +1883,7 @@ app.whenReady().then(async () => {
   try {
     const wakeReady = wakeWord.initWakeWord({ codeRoot: CODE_ROOT, logDir: LOG_DIR })
     if (wakeReady) {
-      // 命中"小白龙"→ ① 开发板灯 0.6s 内闪三次后灭(灯离线则静默忽略);
+      // 命中"方舟大脑"→ ① 开发板灯 0.6s 内闪三次后灭(灯离线则静默忽略);
       //              ② 通知主窗口渲染层启动唤醒会话(开麦+悬浮球入场+10s 监听,见 voice-wake.js)。
       wakeWord.setOnHit(() => {
         devLight.blink()

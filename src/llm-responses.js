@@ -1,6 +1,6 @@
 // OpenAI Responses API wire-format helpers.
 //
-// Bailongma keeps its orchestration state provider-neutral, then converts that
+// ArkBrain-Agent keeps its orchestration state provider-neutral, then converts that
 // state to Responses input Items at the transport boundary.  Model output Items
 // are preserved verbatim and replayed on the next tool round; this is required
 // for stateless reasoning/tool conversations and avoids reconstructing model

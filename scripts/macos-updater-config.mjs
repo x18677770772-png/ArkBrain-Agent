@@ -4,8 +4,8 @@ import yaml from 'js-yaml'
 
 export const MAC_UPDATE_PROVIDER = 'generic'
 export const MAC_UPDATE_CHANNEL = 'latest'
-export const MAC_UPDATER_CACHE_DIR = 'bailongma-updater'
-export const MAC_UPDATE_BASE_URL = 'https://updates.bailongma.ai/stable/mac'
+export const MAC_UPDATER_CACHE_DIR = 'arkbrain-updater'
+export const MAC_UPDATE_BASE_URL = 'https://updates.arkbrain.ai/stable/mac'
 
 const SUPPORTED_ARCHS = new Set(['x64', 'arm64'])
 

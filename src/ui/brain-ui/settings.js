@@ -29,17 +29,17 @@ export function initSettings({
 } = {}) {
 const themeSwitcher = document.getElementById("theme-switcher");
 const uiLanguageSelect = document.getElementById("settings-ui-language");
-const MEMORY_GRAPH_STORAGE_KEY = "bailongma-memory-graph-enabled";
-const VOICE_SPACE_PTT_KEY = "bailongma-voice-space-ptt-enabled";
-const IGNORED_VERSION_KEY = "bailongma_ignored_update_version";
-const SUPPRESS_UPDATES_KEY = "bailongma_suppress_update_notifications";
+const MEMORY_GRAPH_STORAGE_KEY = "arkbrain-memory-graph-enabled";
+const VOICE_SPACE_PTT_KEY = "arkbrain-voice-space-ptt-enabled";
+const IGNORED_VERSION_KEY = "arkbrain_ignored_update_version";
+const SUPPRESS_UPDATES_KEY = "arkbrain_suppress_update_notifications";
 if (uiLanguageSelect) {
   uiLanguageSelect.value = getLocale();
   uiLanguageSelect.addEventListener("change", async () => {
     if (uiLanguageSelect.value === getLocale()) return;
     setLocale(uiLanguageSelect.value);
     try {
-      await globalThis.bailongma?.setUiLanguage?.(uiLanguageSelect.value);
+      await globalThis.arkbrain?.setUiLanguage?.(uiLanguageSelect.value);
     } catch (error) {
       console.warn("[settings] failed to sync the native UI language:", error?.message || error);
     }
@@ -929,7 +929,7 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
 
   lanAddressSelect?.addEventListener("change", showSelectedLanAccessEntry);
 
-  const BAILONGMA_CHROME_BROWSER_TOOL_NAMES = [
+  const ARKBRAIN_CHROME_BROWSER_TOOL_NAMES = [
     "browser_navigate", "browser_navigate_back", "browser_navigate_forward", "browser_reload", "browser_snapshot", "browser_find",
     "browser_click", "browser_type", "browser_fill_form", "browser_select_option",
     "browser_press_key", "browser_hover", "browser_drag", "browser_wait_for",
@@ -947,7 +947,7 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
       document.querySelectorAll(".security-blocked-tool").forEach(cb => {
         const blocked = security.blockedTools || [];
         cb.checked = cb.value === "chrome_devtools_browser"
-          ? BAILONGMA_CHROME_BROWSER_TOOL_NAMES.every(name => blocked.includes(name))
+          ? ARKBRAIN_CHROME_BROWSER_TOOL_NAMES.every(name => blocked.includes(name))
           : blocked.includes(cb.value);
       });
     } catch {}
@@ -1147,12 +1147,12 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
   }
   syncContextWindowControls();
 
-  const VOICE_LANG_KEY       = "bailongma-voice-lang";
-  const VOICE_AUTO_SEND_KEY  = "bailongma-voice-auto-send";
-  const VOICE_AUTO_MIC_KEY   = "bailongma-voice-auto-mic";
-  const VOICE_THRESHOLD_KEY  = "bailongma-voice-threshold";
-  const VOICE_PROVIDER_KEY   = "bailongma-voice-provider";
-  const VOICE_MIC_DEVICE_KEY = "bailongma-voice-mic-device-id";
+  const VOICE_LANG_KEY       = "arkbrain-voice-lang";
+  const VOICE_AUTO_SEND_KEY  = "arkbrain-voice-auto-send";
+  const VOICE_AUTO_MIC_KEY   = "arkbrain-voice-auto-mic";
+  const VOICE_THRESHOLD_KEY  = "arkbrain-voice-threshold";
+  const VOICE_PROVIDER_KEY   = "arkbrain-voice-provider";
+  const VOICE_MIC_DEVICE_KEY = "arkbrain-voice-mic-device-id";
 
   function applyVoiceProviderUI(provider) {
     const panels = {
@@ -1597,8 +1597,8 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
     if (micDeviceId) localStorage.setItem(VOICE_MIC_DEVICE_KEY, micDeviceId);
     else localStorage.removeItem(VOICE_MIC_DEVICE_KEY);
 
-    window.dispatchEvent(new CustomEvent("bailongma:voice-threshold", { detail: { threshold } }));
-    window.dispatchEvent(new CustomEvent("bailongma:space-ptt-change", { detail: { enabled: spacePtt } }));
+    window.dispatchEvent(new CustomEvent("arkbrain:voice-threshold", { detail: { threshold } }));
+    window.dispatchEvent(new CustomEvent("arkbrain:space-ptt-change", { detail: { enabled: spacePtt } }));
     const micLabel = voiceMicSelect?.selectedOptions?.[0]?.textContent || t("voice.defaultMic");
     setVoiceMicStatus(t("format.currentMic", { microphone: micLabel }));
 
@@ -1912,7 +1912,7 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
     }
   });
 
-  window.addEventListener("bailongma:social_status", (e) => {
+  window.addEventListener("arkbrain:social_status", (e) => {
     const d = e.detail;
     if (d?.platform !== "wechat-clawbot") return;
     if (d.status === "connected") {
@@ -1978,7 +1978,7 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
 
   async function loadUpdateSettings() {
     syncUpdateSettings();
-    const bridge = window.bailongma;
+    const bridge = window.arkbrain;
     if (!bridge?.isElectron) {
       if (settingsCurrentVersion) settingsCurrentVersion.textContent = "仅桌面端可用";
       if (settingsCheckUpdateBtn) settingsCheckUpdateBtn.disabled = true;
@@ -2053,7 +2053,7 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
   });
 
   settingsCheckUpdateBtn?.addEventListener("click", async () => {
-    const bridge = window.bailongma;
+    const bridge = window.arkbrain;
     if (!bridge?.isElectron) return;
     setUpdateStatusText("正在检查更新…", "checking");
     setUpdateFeedback("");
@@ -2071,7 +2071,7 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
   });
 
   settingsDownloadUpdateBtn?.addEventListener("click", async () => {
-    const bridge = window.bailongma;
+    const bridge = window.arkbrain;
     if (!bridge?.isElectron) return;
     setUpdateStatusText("开始下载…", "downloading");
     showUpdateButtons({ check: false });
@@ -2084,7 +2084,7 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
   });
 
   settingsInstallUpdateBtn?.addEventListener("click", () => {
-    window.bailongma?.quitAndInstall?.();
+    window.arkbrain?.quitAndInstall?.();
   });
 
   settingsIgnoreUpdateBtn?.addEventListener("click", () => {

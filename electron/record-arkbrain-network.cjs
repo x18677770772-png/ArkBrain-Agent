@@ -11,7 +11,7 @@ const { CdpNetworkRecorder } = require('./network-diagnostics.cjs')
 
 const targetUrl = process.argv[2] || 'https://www.baidu.com/'
 const outputDir = path.resolve(process.argv[3] || path.join(__dirname, '..', 'data', 'network-audits'))
-const testUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-agent-capture-'))
+const testUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-agent-capture-'))
 app.setPath('userData', testUserData)
 app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
 app.commandLine.appendSwitch('remote-debugging-port', '0')
@@ -56,7 +56,7 @@ app.whenReady().then(async () => {
     windowHost = new BaseWindow({ width: 1280, height: 840, show: true })
     view = new WebContentsView({
       webPreferences: {
-        partition: 'persist:bailongma-browser',
+        partition: 'persist:arkbrain-browser',
         sandbox: true,
         nodeIntegration: false,
         contextIsolation: true,
@@ -96,7 +96,7 @@ app.whenReady().then(async () => {
     recorder = new CdpNetworkRecorder({
       webContents: view.webContents,
       outputDir,
-      source: 'bailongma-electron-playwright-cdp',
+      source: 'arkbrain-electron-playwright-cdp',
     })
     await recorder.start()
 
@@ -133,7 +133,7 @@ app.whenReady().then(async () => {
     try { await embeddedHandle?.close() } catch {}
     try { view?.webContents.close() } catch {}
     try { windowHost?.destroy() } catch {}
-    if (path.basename(testUserData).startsWith('bailongma-agent-capture-')) {
+    if (path.basename(testUserData).startsWith('arkbrain-agent-capture-')) {
       try { fs.rmSync(testUserData, { recursive: true, force: true }) } catch {}
     }
     app.quit()

@@ -29,7 +29,7 @@ function normalizeArguments(args = {}) {
     throw new TypeError('since is required when time_range is custom')
   }
   if (timeRange !== 'all_time') {
-    const error = new Error('BaiLongma dedicated Chrome data can only be cleared as all_time; it never accesses the user\'s default Chrome profile.')
+    const error = new Error('ArkBrain-Agent dedicated Chrome data can only be cleared as all_time; it never accesses the user\'s default Chrome profile.')
     error.code = 'PROFILE_TIME_RANGE_UNSUPPORTED'
     throw error
   }
@@ -58,7 +58,7 @@ export async function execBrowserClearData(args = {}, context = {}) {
   if (!isExplicitAgentBrowserDataDeletionRequest(context.currentUserMessage || '')) {
     return failure(
       'EXPLICIT_USER_REQUEST_REQUIRED',
-      'Only an explicit current user request to delete Bailongma/Agent built-in browser data can authorize this tool.',
+      'Only an explicit current user request to delete ArkBrain-Agent/Agent built-in browser data can authorize this tool.',
     )
   }
 
@@ -67,14 +67,14 @@ export async function execBrowserClearData(args = {}, context = {}) {
     return failure(error?.code || 'INVALID_ARGUMENTS', error?.message || String(error))
   }
 
-  const bridge = context.browserDataBridge || globalThis.bailongmaChromeBridge
+  const bridge = context.browserDataBridge || globalThis.arkbrainChromeBridge
   if (!bridge || typeof bridge.closePage !== 'function' || typeof bridge.clearData !== 'function') {
     return failure('BROWSER_DATA_BRIDGE_UNAVAILABLE', 'The built-in browser data service is unavailable.')
   }
 
   const shutdown = context.shutdownBuiltInChromeFn || shutdownBuiltInChrome
   try {
-    // Detach only BaiLongma's DevTools MCP before removing its dedicated
+    // Detach only ArkBrain-Agent's DevTools MCP before removing its dedicated
     // profile. The user's system/default Chrome is never a target here.
     await shutdown()
     await bridge.closePage()
@@ -92,7 +92,7 @@ export async function execBrowserClearData(args = {}, context = {}) {
         state: 'closed',
         action: 'browser_clear_data',
         renderer: 'webcontentsview',
-        surface: 'bailongma_live_browser',
+        surface: 'arkbrain_live_browser',
       },
     }, null, 2)
   } catch (error) {

@@ -299,7 +299,7 @@ const createSettingsModal = () => `
             <div class="settings-section-label">AI 名字</div>
             <div class="settings-row">
               <label class="settings-label" for="settings-agent-name">显示名</label>
-              <input class="settings-input" id="settings-agent-name" type="text" maxlength="32" autocomplete="off" spellcheck="false" placeholder="小白龙">
+              <input class="settings-input" id="settings-agent-name" type="text" maxlength="32" autocomplete="off" spellcheck="false" placeholder="方舟大脑">
             </div>
             <div class="settings-row-action">
               <span class="settings-feedback" id="settings-agent-name-feedback"></span>
@@ -748,7 +748,7 @@ const createSettingsModal = () => `
         <div class="settings-tab" data-tab="mcp">
           <div class="settings-section">
             <div class="settings-section-label">本地 MCP Server（stdio）</div>
-            <p class="settings-hint">点击“应用配置并连接”后，白龙马会启动已启用的 MCP Server、读取工具目录，并通过 find_tool 按需加载工具。command 会直接启动本地程序，请只配置你信任的 Server。环境变量会加密保存在本机；已保存的值显示为 [configured]。</p>
+            <p class="settings-hint">点击“应用配置并连接”后，方舟大脑会启动已启用的 MCP Server、读取工具目录，并通过 find_tool 按需加载工具。command 会直接启动本地程序，请只配置你信任的 Server。环境变量会加密保存在本机；已保存的值显示为 [configured]。</p>
             <textarea
               class="settings-input"
               id="mcp-servers-json"
@@ -808,7 +808,7 @@ const createSettingsModal = () => `
           </div>
           <div class="settings-section">
             <div class="settings-section-label">局域网访问</div>
-            <p class="settings-hint">允许同一局域网内的设备访问本机白龙马。语音输入需要 HTTPS；远程设置和 WebSocket 使用下方口令配对。开启或关闭后需要重启应用生效。</p>
+            <p class="settings-hint">允许同一局域网内的设备访问本机方舟大脑。语音输入需要 HTTPS；远程设置和 WebSocket 使用下方口令配对。开启或关闭后需要重启应用生效。</p>
             <div class="settings-row">
               <label class="settings-label" for="security-lan-access">允许局域网访问</label>
               <label class="settings-toggle">
@@ -840,8 +840,8 @@ const createSettingsModal = () => `
                   </div>
                 </div>
                 <div style="text-align:center;">
-                  <div class="settings-hint" style="margin-bottom:6px;">② 扫码访问白龙马</div>
-                  <img id="security-lan-access-qr" alt="白龙马局域网访问二维码" style="width:200px;height:200px;background:#fff;padding:6px;border-radius:8px;">
+                  <div class="settings-hint" style="margin-bottom:6px;">② 扫码访问方舟大脑</div>
+                  <img id="security-lan-access-qr" alt="方舟大脑局域网访问二维码" style="width:200px;height:200px;background:#fff;padding:6px;border-radius:8px;">
                 </div>
               </div>
             </div>
@@ -851,7 +851,7 @@ const createSettingsModal = () => `
             <div class="settings-section-label">工具黑名单</div>
             <p class="settings-hint">勾选后该工具将被拒绝执行，对话中 Agent 调用时会收到"已被安全策略禁用"错误。</p>
             <div class="settings-row"><label class="settings-label"><input type="checkbox" class="security-blocked-tool" value="run_command"> run_command &nbsp;<span style="color:var(--ink2);font-size:12px;">（执行 shell 命令）</span></label></div>
-            <div class="settings-row"><label class="settings-label"><input type="checkbox" class="security-blocked-tool" value="chrome_devtools_browser"> 白龙马内置浏览器 &nbsp;<span style="color:var(--ink2);font-size:12px;">（Chrome DevTools MCP 的全部网页搜索、读取与浏览器操作）</span></label></div>
+            <div class="settings-row"><label class="settings-label"><input type="checkbox" class="security-blocked-tool" value="chrome_devtools_browser"> 方舟大脑内置浏览器 &nbsp;<span style="color:var(--ink2);font-size:12px;">（Chrome DevTools MCP 的全部网页搜索、读取与浏览器操作）</span></label></div>
             <div class="settings-row"><label class="settings-label"><input type="checkbox" class="security-blocked-tool" value="ui_set"> ui_set &nbsp;<span style="color:var(--ink2);font-size:12px;">（投影声明式界面 surface）</span></label></div>
           </div>
           <div class="settings-section settings-section-action">
@@ -864,7 +864,7 @@ const createSettingsModal = () => `
         <div class="settings-tab" data-tab="advanced">
           <div class="settings-section">
             <div class="settings-section-label">心跳</div>
-            <p class="settings-hint">控制小白龙是否按固定节奏自主思考。关闭后不会再自动触发 L2 心跳，但用户消息和定时提醒仍会正常处理。</p>
+            <p class="settings-hint">控制方舟大脑是否按固定节奏自主思考。关闭后不会再自动触发 L2 心跳，但用户消息和定时提醒仍会正常处理。</p>
             <div class="settings-row">
               <label class="settings-label" for="settings-heartbeat-enabled">启用心跳</label>
               <label class="settings-toggle">

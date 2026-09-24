@@ -65,7 +65,7 @@ export async function execSystemBrowserOpen({ url } = {}, context = {}) {
       surface: 'system',
       url: normalizedUrl,
       controllable: false,
-      shared_with_bailongma_browser: false,
+      shared_with_arkbrain_browser: false,
     })
   } catch (error) {
     return JSON.stringify({

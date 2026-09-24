@@ -6,7 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { assertNativeDependencyVersion } from './check-native-dependency-versions.mjs'
 
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-native-deps-test-'))
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-native-deps-test-'))
 const dependency = 'better-sqlite3'
 
 function writeFixture({ declared = '12.8.0', lockDeclared = declared, locked = declared, installed = declared } = {}) {

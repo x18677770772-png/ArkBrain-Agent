@@ -31,7 +31,7 @@ assert.throws(() => validateWindowsBuildHost({ platform: 'darwin', arch: 'arm64'
 assert.throws(() => validateWindowsBuildHost({ platform: 'win32', arch: 'arm64' }), /targets x64/)
 assert.equal(signingIsRequired([], {}), false)
 assert.equal(signingIsRequired(['--require-signing'], {}), true)
-assert.equal(signingIsRequired([], { BAILONGMA_REQUIRE_WINDOWS_SIGNING: 'true' }), true)
+assert.equal(signingIsRequired([], { ARKBRAIN_REQUIRE_WINDOWS_SIGNING: 'true' }), true)
 
 assert.equal(pkg.scripts['build:win'], 'node scripts/build-win.mjs')
 assert.equal(pkg.scripts['build:win:release'], 'node scripts/build-win.mjs --require-signing')
@@ -60,7 +60,7 @@ assert.doesNotMatch(winBuild, /build-macos-speech/)
 assert.match(winBuild, /'-a', 'x64'/)
 assert.ok(winBuild.indexOf('smoke-win-artifacts.mjs') < winBuild.indexOf('smoke-packaged-playwright.mjs'))
 
-const licenseRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-node-license-'))
+const licenseRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-node-license-'))
 try {
   const executable = path.join(licenseRoot, 'node.exe')
   const license = path.join(licenseRoot, 'LICENSE.txt')

@@ -31,7 +31,7 @@ import {
 import { playBrainUiIntro } from "./brain-ui-intro.js";
 import { formatDateTime, getLocale, localizeDom, observeDomLocalization, t } from "./i18n/index.js";
 
-const BRAIN_UI_ARRIVAL_KEY = "bailongma_brain_ui_arrival_at";
+const BRAIN_UI_ARRIVAL_KEY = "arkbrain_brain_ui_arrival_at";
 
 function consumeBrainUiArrival() {
   try {
@@ -99,19 +99,19 @@ const brainUiArrival = consumeBrainUiArrival();
 const isBrainUiIntroPreview = new URLSearchParams(window.location.search).has("intro-preview");
 const brainUiIntroRequested = brainUiArrival.requested || isBrainUiIntroPreview;
 document.documentElement.classList.toggle("brain-ui-intro-pending", brainUiIntroRequested);
-const hasWindowsTitleBarOverlay = window.bailongma?.isElectron && window.bailongma?.platform === "win32";
+const hasWindowsTitleBarOverlay = window.arkbrain?.isElectron && window.arkbrain?.platform === "win32";
 document.documentElement.classList.toggle("windows-titlebar-overlay", Boolean(hasWindowsTitleBarOverlay));
 if (hasWindowsTitleBarOverlay) {
   const setFullScreenClass = (fullscreen) => {
     document.documentElement.classList.toggle("window-fullscreen", Boolean(fullscreen));
   };
-  window.bailongma.onFullScreenChange?.(setFullScreenClass);
-  window.bailongma.isFullScreen?.().then(setFullScreenClass).catch(() => {});
+  window.arkbrain.onFullScreenChange?.(setFullScreenClass);
+  window.arkbrain.isFullScreen?.().then(setFullScreenClass).catch(() => {});
 }
 renderBrainUiApp(document.body);
 localizeDom(document.body);
 observeDomLocalization(document.body);
-void window.bailongma?.setUiLanguage?.(getLocale());
+void window.arkbrain?.setUiLanguage?.(getLocale());
 if (brainUiIntroRequested) {
   void (async () => {
     try {
@@ -132,23 +132,23 @@ if (brainUiIntroRequested) {
 }
 const THEME_KEY = "jarvis-brain-ui-theme";
 const PHYSICS_STORAGE_KEY = "jarvis-brain-ui-physics";
-const ACTIVATION_WARMUP_KEY = "bailongma_activation_warmup_until";
-const UI_ZOOM_STORAGE_KEY = "bailongma_ui_zoom_factor";
+const ACTIVATION_WARMUP_KEY = "arkbrain_activation_warmup_until";
+const UI_ZOOM_STORAGE_KEY = "arkbrain_ui_zoom_factor";
 const CHAT_HISTORY_PAGE_SIZE = 60;
-const DEFAULT_AGENT_NAME = "小白龙";
+const DEFAULT_AGENT_NAME = "方舟大脑";
 const DEFAULT_UI_ZOOM = 1.1;
 const MIN_UI_ZOOM = 0.8;
 const MAX_UI_ZOOM = 1.8;
 const UI_ZOOM_STEP = 0.1;
 const UI_ZOOM_WHEEL_STEP = 0.05;
-const MEMORY_GRAPH_STORAGE_KEY = "bailongma-memory-graph-enabled";
-const VOICE_SPACE_PTT_KEY = "bailongma-voice-space-ptt-enabled";
+const MEMORY_GRAPH_STORAGE_KEY = "arkbrain-memory-graph-enabled";
+const VOICE_SPACE_PTT_KEY = "arkbrain-voice-space-ptt-enabled";
 const MEMORY_GRAPH_ENABLED = localStorage.getItem(MEMORY_GRAPH_STORAGE_KEY) !== "false";
 const UI_CLIENT_ID = getUiClientId();
-const SSE_LAST_EVENT_KEY = "bailongma-sse-last-event-id";
+const SSE_LAST_EVENT_KEY = "arkbrain-sse-last-event-id";
 const voiceReplyCoordinator = createVoiceReplyCoordinator(UI_CLIENT_ID);
 const voiceDiagnosticLog = [];
-window.bailongmaVoiceDiagnostics = voiceDiagnosticLog;
+window.arkbrainVoiceDiagnostics = voiceDiagnosticLog;
 
 function voiceDiag(stage, detail = {}) {
   const record = {
@@ -163,7 +163,7 @@ function voiceDiag(stage, detail = {}) {
   console.info("[voice-diag]", record);
   return record;
 }
-window.bailongmaVoiceDiag = voiceDiag;
+window.arkbrainVoiceDiag = voiceDiag;
 
 const themeSwitcher = document.getElementById("theme-switcher");
 const resetViewBtn = document.getElementById("reset-view-btn");
@@ -181,8 +181,8 @@ const focusBlockEl = document.getElementById("focus-block");
 const focusStackEl = document.getElementById("focus-stack");
 const focusDepthEl = document.getElementById("focus-depth");
 
-const IGNORED_VERSION_KEY = "bailongma_ignored_update_version";
-const SUPPRESS_UPDATES_KEY = "bailongma_suppress_update_notifications";
+const IGNORED_VERSION_KEY = "arkbrain_ignored_update_version";
+const SUPPRESS_UPDATES_KEY = "arkbrain_suppress_update_notifications";
 
 let agentName = DEFAULT_AGENT_NAME;
 let currentUiZoom = DEFAULT_UI_ZOOM;
@@ -221,7 +221,7 @@ function applyUiZoom(factor, { persist = true } = {}) {
   const nextZoom = clampZoomFactor(factor);
   currentUiZoom = nextZoom;
 
-  const bridge = window.bailongma;
+  const bridge = window.arkbrain;
   if (bridge?.isElectron && typeof bridge.setZoomFactor === "function") {
     bridge.setZoomFactor(nextZoom);
   } else {
@@ -237,7 +237,7 @@ function stepUiZoom(delta) {
 }
 
 function initUiZoom() {
-  const bridge = window.bailongma;
+  const bridge = window.arkbrain;
   const initialZoom = loadSavedUiZoom();
 
   if (!bridge?.isElectron) {
@@ -365,7 +365,7 @@ function applyTheme(theme) {
   document.body.dataset.theme = theme;
   try { localStorage.setItem(THEME_KEY, theme); } catch {}
   if (hasWindowsTitleBarOverlay) {
-    window.bailongma?.setTitleBarTheme?.(theme).catch(() => {});
+    window.arkbrain?.setTitleBarTheme?.(theme).catch(() => {});
   }
   document.querySelectorAll(".theme-dot").forEach(el => {
     el.classList.toggle("active", el.dataset.t === theme);
@@ -759,7 +759,7 @@ function resetGraphLayout({ reseed = true, restartAlpha = 1 } = {}) {
   writeGraphDom();
 }
 
-window.bailongmaGraphLayout = graphLayoutSnapshot;
+window.arkbrainGraphLayout = graphLayoutSnapshot;
 
 function applyPhysicsSettings(restartAlpha = 2) {
   updatePhysicsReadout();
@@ -1130,8 +1130,8 @@ const L2 = new ThoughtStream("si-l2", "warm", {
 // 波形表达真实的意识活动：L2 Tick / 用户消息触发大跳，工具调用触发小跳；
 // 底部计数仍只统计 L2 Tick，SSE 是否在线则由右上角状态灯单独表达。
 // 行动日志只存工具动作的人类可读摘要；完整参数/结果不写入浏览器存储。
-const ACTION_LOG_KEY = "bailongma-action-log-v1";
-const HEARTBEAT_COUNT_KEY = "bailongma-heartbeat-count-v1";
+const ACTION_LOG_KEY = "arkbrain-action-log-v1";
+const HEARTBEAT_COUNT_KEY = "arkbrain-heartbeat-count-v1";
 const ACTION_LOG_LIMIT = 58;
 const ACTION_LOG_IGNORED_TOOLS = new Set(["send_message", "ui_set"]);
 const heartbeatMonitorEl = document.querySelector(".heartbeat-monitor");
@@ -1155,7 +1155,7 @@ const BROWSER_PREVIEW_TRANSITION_MS = 480;
 // The native WebContentsView is the actual page controlled by the browser MCP.
 // It is layered into this DOM slot by the main process, so compact mode remains
 // live and interactive instead of displaying a periodically refreshed image.
-const browserEmbedBridge = window.bailongma?.browserEmbed || null;
+const browserEmbedBridge = window.arkbrain?.browserEmbed || null;
 let browserPreviewObjectUrl = "";
 let browserPreviewLoadToken = 0;
 let browserPreviewActive = false;
@@ -1423,7 +1423,7 @@ function browserEmbedPayload() {
   // devicePixelRatio, which would incorrectly double-scale Retina displays).
   const rendererZoom = Math.max(
     0.25,
-    Math.min(5, Number(window.bailongma?.getZoomFactor?.()) || 1),
+    Math.min(5, Number(window.arkbrain?.getZoomFactor?.()) || 1),
   );
   return {
     mode: "card",
@@ -1896,7 +1896,7 @@ function setL3State(label = t("runtime.l3Standby"), state = "idle") {
 function setVoiceThinking(active) {
   const thinking = Boolean(active);
   document.body.classList.toggle("model-thinking", thinking);
-  window.bailongmaVoice?.setThinking?.(thinking);
+  window.arkbrainVoice?.setThinking?.(thinking);
 }
 
 function revealCognitionStream() {
@@ -2879,10 +2879,10 @@ function handle({ type, data = {}, ts = null }) {
       setAgentName(data.name);
       break;
     case "media_mode":
-      window.dispatchEvent(new CustomEvent("bailongma:media", { detail: data }));
+      window.dispatchEvent(new CustomEvent("arkbrain:media", { detail: data }));
       break;
     case "aivideo_mode":
-      window.dispatchEvent(new CustomEvent("bailongma:aivideo", { detail: data }));
+      window.dispatchEvent(new CustomEvent("arkbrain:aivideo", { detail: data }));
       break;
     case "hotspot_mode":
       setHotspotMode(!!data.active || data.action === "show" || data.action === "open", { source: "agent_event" });
@@ -2908,7 +2908,7 @@ function handle({ type, data = {}, ts = null }) {
       });
       break;
     case "social_status":
-      window.dispatchEvent(new CustomEvent("bailongma:social_status", { detail: data }));
+      window.dispatchEvent(new CustomEvent("arkbrain:social_status", { detail: data }));
       break;
     case "show_wechat_popup":
       showWechatPopup();
@@ -2982,7 +2982,7 @@ let liveTurnSpeak = false;
 
 // 流式语音合成：边下边播，首包到达即出声（后端 /tts/stream 本就分块返回，
 // 这里用 MediaSource 消费，省去"等整段下载完再播"的延迟）。默认开启，可在设置关闭。
-const TTS_STREAMING_KEY = 'bailongma.tts.streaming';
+const TTS_STREAMING_KEY = 'arkbrain.tts.streaming';
 const TTS_RESPONSE_TIMEOUT_MS = 20_000;
 function isTTSStreamingEnabled() {
   try { return localStorage.getItem(TTS_STREAMING_KEY) !== '0'; } catch { return true; } // 默认开启
@@ -3119,7 +3119,7 @@ function activateTTSAudioGraph(graph) {
     try { ttsAudioGraph.teardown?.(); } catch {}
   }
   ttsAudioGraph = graph || null;
-  window.bailongmaVoice?.setTTSAnalyser?.(ttsAudioGraph?.analyser || null);
+  window.arkbrainVoice?.setTTSAnalyser?.(ttsAudioGraph?.analyser || null);
 }
 
 function clearTTSAudioGraph(graph) {
@@ -3134,7 +3134,7 @@ function clearTTSAudioGraph(graph) {
     try { ttsAudioGraph.teardown?.(); } catch {}
     ttsAudioGraph = null;
   }
-  window.bailongmaVoice?.setTTSAnalyser?.(null);
+  window.arkbrainVoice?.setTTSAnalyser?.(null);
 }
 
 // 先抓住元素引用再触发 cancel：cancel 会同步把全局 ttsAudioEl 置空。
@@ -3215,7 +3215,7 @@ async function startTTSAudio(audioEl, revokeUrl, opts = {}) {
     return superseded();
   }
   // 所有异步准备均完成且轮次仍有效后才挂起 ASR，避免被替换的旧播放留下悬挂状态。
-  if (manageMic) window.bailongmaVoice?.suspendForTTS?.();
+  if (manageMic) window.arkbrainVoice?.suspendForTTS?.();
 
   return new Promise(resolve => {
     let settled = false;
@@ -3241,7 +3241,7 @@ async function startTTSAudio(audioEl, revokeUrl, opts = {}) {
         ttsAudioEl = null;
         if (manageMic) {
           ttsCurrentText = "";
-          window.bailongmaVoice?.resumeAfterMedia();
+          window.arkbrainVoice?.resumeAfterMedia();
         }
       }
       resolve({
@@ -3515,7 +3515,7 @@ async function playTTSReply(text, { playbackKey = "", reason = "whole-reply" } =
     if (playbackKey) startedTTSPlaybackKeys.delete(playbackKey);
     clearTTSAudioGraph();
     ttsCurrentText = '';
-    window.bailongmaVoice?.resumeAfterMedia();
+    window.arkbrainVoice?.resumeAfterMedia();
     pendingTTSPlayback = { text: normalized, playbackKey, reason: `${reason}:exception` };
     voiceDiag("tts-playback-failed", {
       playback_key: playbackKey,
@@ -3686,7 +3686,7 @@ async function pumpSttsQueue(expectedEpoch = sttsEpoch) {
   sttsCurSeg = seg;
   sttsCurSegStarted = false;
   // 麦克风只在首段挂起一次（后续段之间保持挂起，避免反复重置 bargein 缓冲/预热计时）
-  if (!sttsMicSuspended) { sttsMicSuspended = true; window.bailongmaVoice?.suspendForTTS?.(); }
+  if (!sttsMicSuspended) { sttsMicSuspended = true; window.arkbrainVoice?.suspendForTTS?.(); }
   try {
     const result = await synthesizeAndPlay(seg, {
       manageMic: false,
@@ -3732,7 +3732,7 @@ function endStreamingTTS() {
   sttsActive = false;
   ttsStreamingMode = false;
   clearTTSAudioGraph();
-  if (sttsMicSuspended) { sttsMicSuspended = false; window.bailongmaVoice?.resumeAfterMedia(); }
+  if (sttsMicSuspended) { sttsMicSuspended = false; window.arkbrainVoice?.resumeAfterMedia(); }
   sttsQueue = []; sttsBuf = ''; sttsCurSeg = ''; sttsSpoken = ''; sttsPlaying = false;
   sttsCurSegStarted = false;
   sttsTurnData = null;
@@ -3790,7 +3790,7 @@ function handleGraphViewportChange() {
 window.addEventListener("resize", handleGraphViewportChange);
 window.addEventListener("orientationchange", () => scheduleGraphLayoutReset(260));
 window.visualViewport?.addEventListener("resize", handleGraphViewportChange);
-window.addEventListener("bailongma:panel-layout-change", () => scheduleGraphLayoutReset(440));
+window.addEventListener("arkbrain:panel-layout-change", () => scheduleGraphLayoutReset(440));
 
 let _lastVisualRefresh = 0;
 d3.timer(() => {
@@ -3911,9 +3911,9 @@ initVoicePanel({
   getChatInput:  () => document.getElementById("msg-input"),
   getSendBtn:    () => document.getElementById("send-btn"),
   getSendMessage: (options) => chat?.send?.(options),
-  getLang:       () => localStorage.getItem("bailongma-voice-lang") || "zh-CN",
-  getAutoSend:   () => localStorage.getItem("bailongma-voice-auto-send") !== "false",
-  getAutoMic:    () => localStorage.getItem("bailongma-voice-auto-mic") === "true",
+  getLang:       () => localStorage.getItem("arkbrain-voice-lang") || "zh-CN",
+  getAutoSend:   () => localStorage.getItem("arkbrain-voice-auto-send") !== "false",
+  getAutoMic:    () => localStorage.getItem("arkbrain-voice-auto-mic") === "true",
 });
 
 // ── 语音输出设备路由 ──

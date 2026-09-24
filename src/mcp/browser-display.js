@@ -17,7 +17,7 @@ const SYSTEM_BROWSER_NEGATION_RE = /(?:不要|别|不用|不使用|无需|不想
 // This is a distinct, controllable browser surface. It is intentionally not
 // folded into the old card/window presentation choice: card is only a preview
 // of the dedicated Chrome page, while window means the user sees real Chrome.
-const BAILONGMA_CHROME_INTENT_RE = /(?:(?:白龙马|bailongma|agent).{0,18}(?:专用|独立|dedicated).{0,12}(?:chrome|浏览器)|(?:专用|独立|dedicated).{0,12}(?:chrome|浏览器).{0,18}(?:白龙马|bailongma|agent)|bailongma\s+(?:dedicated\s+)?chrome)/i
+const ARKBRAIN_CHROME_INTENT_RE = /(?:(?:方舟大脑|arkbrain|agent).{0,18}(?:专用|独立|dedicated).{0,12}(?:chrome|浏览器)|(?:专用|独立|dedicated).{0,12}(?:chrome|浏览器).{0,18}(?:方舟大脑|arkbrain|agent)|arkbrain\s+(?:dedicated\s+)?chrome)/i
 const BROWSER_PREVIEW_FILE_RE = /^brain-ui-preview-\d{13}-\d+\.png$/
 let previewSequence = 0
 
@@ -34,7 +34,7 @@ export function inferBrowserDisplayMode(text = '', { autonomous = false } = {}) 
   // about task complexity. Honor it before generic interaction words or a
   // negated phrase such as "不要使用外部大窗口" can match WINDOW_MODE_RE.
   if (EXPLICIT_CARD_MODE_RE.test(value)) return BROWSER_DISPLAY_CARD
-  if (BAILONGMA_CHROME_INTENT_RE.test(value)) return BROWSER_DISPLAY_WINDOW
+  if (ARKBRAIN_CHROME_INTENT_RE.test(value)) return BROWSER_DISPLAY_WINDOW
   if (WINDOW_MODE_RE.test(value)) return BROWSER_DISPLAY_WINDOW
   if (autonomous || CARD_MODE_RE.test(value) || FACT_LOOKUP_RE.test(value)) return BROWSER_DISPLAY_CARD
   return BROWSER_DISPLAY_CARD
@@ -62,7 +62,7 @@ export function isSystemBrowserRequest(text = '') {
 
 export function inferBrowserSurface(text = '', options = {}) {
   if (isSystemBrowserIntent(text)) return 'system'
-  if (BAILONGMA_CHROME_INTENT_RE.test(normalizeBrowserIntentText(text))) return 'chrome'
+  if (ARKBRAIN_CHROME_INTENT_RE.test(normalizeBrowserIntentText(text))) return 'chrome'
   return inferBrowserDisplayMode(text, options)
 }
 
@@ -117,7 +117,7 @@ export const __internal = {
   EXPLICIT_WINDOW_MODE_RE,
   FACT_LOOKUP_RE,
   WINDOW_MODE_RE,
-  BAILONGMA_CHROME_INTENT_RE,
+  ARKBRAIN_CHROME_INTENT_RE,
   SYSTEM_BROWSER_INTENT_RE,
   SYSTEM_BROWSER_NEGATION_RE,
   SYSTEM_BROWSER_REQUEST_RE,

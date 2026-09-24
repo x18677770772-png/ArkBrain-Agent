@@ -3,7 +3,7 @@ const MAX_EVENT_LATENESS_SECONDS = 0.32;
 
 export const ACTIVATION_INTRO_SOUND_EVENTS = Object.freeze([
   { id: "startup", at: 0, file: "intro-startup.mp3", gain: 0.62 },
-  { id: "bailongma", at: 1.49, file: "intro-bailongma.mp3", gain: 0.52 },
+  { id: "arkbrain", at: 1.49, file: "intro-arkbrain.mp3", gain: 0.52 },
   { id: "task-1", at: 3.34, file: "intro-tasks.mp3", gain: 0.36 },
   { id: "task-2", at: 3.80, file: "intro-tasks.mp3", gain: 0.36 },
   { id: "task-3", at: 4.26, file: "intro-tasks.mp3", gain: 0.36 },

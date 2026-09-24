@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { DEVELOPER_TEAM, signDmg, submitForNotarization } from './macos-signing-lib.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
-const notaryProfile = process.env.BAILONGMA_NOTARY_PROFILE || 'BailongmaNotary'
+const notaryProfile = process.env.ARKBRAIN_NOTARY_PROFILE || 'ArkBrainNotary'
 
 function run(command, args, { json = false } = {}) {
   const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
@@ -36,11 +36,11 @@ export default async function afterAllArtifacts(buildResult) {
   const dmgs = artifacts.filter(filePath => filePath.endsWith('.dmg'))
   for (const dmgPath of dmgs) {
     signDmg(dmgPath)
-    if (process.env.BAILONGMA_NOTARY_MODE === 'skip') {
+    if (process.env.ARKBRAIN_NOTARY_MODE === 'skip') {
       console.log(`[after-artifacts:mac] signed ${path.basename(dmgPath)}; notarization skipped by request`)
       continue
     }
-    const staged = process.env.BAILONGMA_NOTARY_MODE === 'submit'
+    const staged = process.env.ARKBRAIN_NOTARY_MODE === 'submit'
     const submission = submitForNotarization(dmgPath, { profile: notaryProfile, teamId: DEVELOPER_TEAM, cwd: root, wait: !staged })
     if (staged) {
       const arch = path.basename(dmgPath).match(/-mac-(x64|arm64)\.dmg$/)?.[1]
@@ -54,7 +54,7 @@ export default async function afterAllArtifacts(buildResult) {
       run('codesign', ['--verify', '--strict', '--verbose=4', dmgPath])
     }
   }
-  if (process.env.BAILONGMA_NOTARY_MODE === 'submit') return []
+  if (process.env.ARKBRAIN_NOTARY_MODE === 'submit') return []
   for (const artifactPath of artifacts) {
     const { blockmapPath, metadata } = rebuildBlockmap(artifactPath)
     console.log(`[after-artifacts:mac] rebuilt ${path.basename(blockmapPath)} for final ${metadata.size}-byte artifact`)

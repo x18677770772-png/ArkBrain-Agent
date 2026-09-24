@@ -3,7 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import * as z from 'zod'
 
 const server = new McpServer({
-  name: 'bailongma-mcp-test-server',
+  name: 'arkbrain-mcp-test-server',
   version: '1.0.0',
 })
 
@@ -30,7 +30,7 @@ server.registerTool('echo', {
 }))
 
 server.registerTool('mutate', {
-  description: 'A fake destructive tool used to verify Bailongma autonomous policy.',
+  description: 'A fake destructive tool used to verify ArkBrain-Agent autonomous policy.',
   inputSchema: {
     value: z.string().optional(),
   },

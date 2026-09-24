@@ -12,14 +12,14 @@ const profile = buildProfileFromSignals({
     { name: 'Figma' },
   ],
   personMemory: {
-    content: 'User is building Bailongma.',
+    content: 'User is building ArkBrain-Agent.',
     detail: 'Long-running AI agent with memory, context injection, and Electron desktop runtime.',
   },
   memories: [
     { content: 'Discussed LLM prompt/context/memory architecture.', detail: 'Needs user profile injection.' },
   ],
   conversation: [
-    { content: '我要给 bailongma agent 加入用户画像能力，分析一下怎么做' },
+    { content: '我要给 arkbrain agent 加入用户画像能力，分析一下怎么做' },
   ],
   actionLog: [
     { tool: 'read_file', summary: 'read src/prompt.js', detail: 'context injection code' },
@@ -56,10 +56,10 @@ assert.ok(!developerRole || developerRole.confidence <= 0.18 || developerRole.st
 
 const chineseInternalContextEnglishUser = buildProfileFromSignals({
   userId: 'ID:000001',
-  personMemory: { content: '用户正在构建白龙马。' },
+  personMemory: { content: '用户正在构建方舟大脑。' },
   memories: [{ content: '系统记忆、工具说明和启动自检全部是中文。' }],
   conversation: [
-    { role: 'assistant', content: '你好，我是小白龙。' },
+    { role: 'assistant', content: '你好，我是方舟大脑。' },
     { role: 'user', content: "Hello. What's your name?" },
   ],
   actionLog: [{ tool: 'send_message', summary: '已发送中文消息', detail: '中文动作日志' }],

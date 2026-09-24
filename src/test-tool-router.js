@@ -63,7 +63,7 @@ assert.ok(!isolatedEdit.includes('edit_file'), 'a terse edit without file contex
 if (process.platform === 'darwin') {
   const pauseMusic = selectTools({ messageBody: '暂停', isTick: false, senderId: 'ID:000001' })
   assert.ok(pauseMusic.includes('system_music'), 'terse pause exposes macOS system music control immediately')
-  assert.ok(!pauseMusic.includes('music'), 'macOS never exposes Bailongma local music library')
+  assert.ok(!pauseMusic.includes('music'), 'macOS never exposes ArkBrain-Agent local music library')
   const playVideo = selectTools({ messageBody: '播放这个视频', isTick: false, senderId: 'ID:000001' })
   assert.ok(!playVideo.includes('system_music'), 'video playback does not activate macOS system music control')
 }

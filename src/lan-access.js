@@ -41,7 +41,7 @@ export function getLanTlsPaths() {
   return {
     rootKey: path.join(LAN_TLS_DIR, 'root-ca-key.pem'),
     rootCert: path.join(LAN_TLS_DIR, 'root-ca-cert.pem'),
-    rootCer: path.join(LAN_TLS_DIR, 'bailongma-lan-root-ca.cer'),
+    rootCer: path.join(LAN_TLS_DIR, 'arkbrain-lan-root-ca.cer'),
     serverKey: path.join(LAN_TLS_DIR, 'server-key.pem'),
     serverCert: path.join(LAN_TLS_DIR, 'server-cert-chain.pem'),
     metadata: path.join(LAN_TLS_DIR, 'certificate-metadata.json'),
@@ -67,7 +67,7 @@ function createRootCertificate(files) {
   cert.serialNumber = randomSerialNumber()
   cert.validity.notBefore = new Date(Date.now() - 24 * 60 * 60 * 1000)
   cert.validity.notAfter = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000)
-  const attrs = [{ name: 'commonName', value: 'Bailongma LAN Root CA' }]
+  const attrs = [{ name: 'commonName', value: 'ArkBrain-Agent LAN Root CA' }]
   cert.setSubject(attrs)
   cert.setIssuer(attrs)
   cert.setExtensions([
@@ -118,7 +118,7 @@ function createServerCertificate(files, addresses, root) {
   cert.serialNumber = randomSerialNumber()
   cert.validity.notBefore = new Date(Date.now() - 24 * 60 * 60 * 1000)
   cert.validity.notAfter = new Date(Date.now() + 3 * 365 * 24 * 60 * 60 * 1000)
-  cert.setSubject([{ name: 'commonName', value: 'Bailongma LAN' }])
+  cert.setSubject([{ name: 'commonName', value: 'ArkBrain-Agent LAN' }])
   cert.setIssuer(root.cert.subject.attributes)
 
   const altNames = [

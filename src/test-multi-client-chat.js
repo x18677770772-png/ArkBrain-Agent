@@ -5,13 +5,13 @@ import path from 'node:path'
 import { once } from 'node:events'
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blm-multi-client-'))
-process.env.BAILONGMA_USER_DIR = tmp
-process.env.BAILONGMA_RESOURCES_DIR = process.cwd()
-process.env.BAILONGMA_HOST = '127.0.0.1'
-delete process.env.BAILONGMA_ALLOW_LAN
-delete process.env.BAILONGMA_TLS_CERT
-delete process.env.BAILONGMA_TLS_KEY
-delete process.env.BAILONGMA_TLS_PFX
+process.env.ARKBRAIN_USER_DIR = tmp
+process.env.ARKBRAIN_RESOURCES_DIR = process.cwd()
+process.env.ARKBRAIN_HOST = '127.0.0.1'
+delete process.env.ARKBRAIN_ALLOW_LAN
+delete process.env.ARKBRAIN_TLS_CERT
+delete process.env.ARKBRAIN_TLS_KEY
+delete process.env.ARKBRAIN_TLS_PFX
 
 let server = null
 let closeDBForTest = null
@@ -69,7 +69,7 @@ try {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Bailongma-Client-ID': clientA,
+      'X-ArkBrain-Client-ID': clientA,
     },
     body: JSON.stringify({
       from_id: 'ID:000001',

@@ -70,7 +70,7 @@ assert.equal(unavailable.playback_state, 'unavailable')
 
 if (process.platform === 'darwin') {
   assert.ok(getToolSchema('system_music'), 'macOS exposes system_music')
-  assert.equal(getToolSchema('music'), null, 'macOS removes Bailongma local music tool')
+  assert.equal(getToolSchema('music'), null, 'macOS removes ArkBrain-Agent local music tool')
   assert(!getToolSchema('media_mode').function.parameters.properties.mode.enum.includes('music'))
   assert.equal(evaluateToolPolicy('system_music', { action: 'pause' }, { currentUserMessage: '暂停' }).allowed, true)
   assert.equal(evaluateToolPolicy('system_music', { action: 'pause' }, { currentUserMessage: '你好' }).allowed, false)

@@ -12,11 +12,11 @@ import { inspectExternalBlockmap } from './publish-updates-lib.mjs'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const unpacked = path.join(root, 'dist', 'win-unpacked')
-const exe = path.join(unpacked, 'Bailongma.exe')
+const exe = path.join(unpacked, 'ArkBrain-Agent.exe')
 const resources = path.join(unpacked, 'resources')
 const appAsar = path.join(resources, 'app.asar')
 const appUnpacked = `${appAsar}.unpacked`
-const installer = path.join(root, 'dist', `Bailongma-Setup-${pkg.version}.exe`)
+const installer = path.join(root, 'dist', `ArkBrain-Setup-${pkg.version}.exe`)
 const latestYml = path.join(root, 'dist', 'latest.yml')
 const blockmap = `${installer}.blockmap`
 const requireSigning = process.argv.slice(2).includes('--require-signing')
@@ -36,7 +36,7 @@ for (const [file, label] of [
 ]) {
   assert.ok(fs.existsSync(file) && fs.statSync(file).isFile() && fs.statSync(file).size > 0, `${label} is missing or empty: ${file}`)
 }
-assertPeX64(exe, 'packaged Bailongma executable')
+assertPeX64(exe, 'packaged ArkBrain-Agent executable')
 assertPeX64(path.join(resources, 'node-runtime', 'node.exe'), 'bundled Node runtime')
 assertPeX64(path.join(appUnpacked, 'node_modules', 'better-sqlite3', 'build', 'Release', 'better_sqlite3.node'), 'packaged better-sqlite3 binding')
 assertPeX64(path.join(appUnpacked, 'node_modules', 'onnxruntime-node', 'bin', 'napi-v3', 'win32', 'x64', 'onnxruntime_binding.node'), 'packaged ONNX Runtime binding')
@@ -86,12 +86,12 @@ function probeModule(label, source) {
     encoding: 'utf8',
     windowsHide: true,
     timeout: 30_000,
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', BAILONGMA_SMOKE_APP_ASAR: appAsar },
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', ARKBRAIN_SMOKE_APP_ASAR: appAsar },
   })
   assert.equal(result.status, 0, `${label} probe failed:\n${result.stdout || ''}\n${result.stderr || ''}`)
 }
 
-const requirePrelude = "const {createRequire}=require('node:module');const r=createRequire(require('node:path').join(process.env.BAILONGMA_SMOKE_APP_ASAR,'package.json'));"
+const requirePrelude = "const {createRequire}=require('node:module');const r=createRequire(require('node:path').join(process.env.ARKBRAIN_SMOKE_APP_ASAR,'package.json'));"
 probeModule('better-sqlite3', `${requirePrelude}const D=r('better-sqlite3');const d=new D(':memory:');d.exec('select 1');d.close();`)
 probeModule('sharp', `${requirePrelude}const s=r('sharp');if(!s.versions?.sharp)throw new Error('sharp version unavailable');`)
 probeModule('sherpa-onnx', `${requirePrelude}const s=r('sherpa-onnx-node');if(!s)throw new Error('sherpa unavailable');`)

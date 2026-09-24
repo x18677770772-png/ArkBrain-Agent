@@ -105,7 +105,7 @@ function getFreshCache(location, mode) {
 async function fetchWeatherData(location) {
   const url = `https://wttr.in/${encodeURIComponent(location)}?format=j1&lang=zh`
   const res = await globalThis.fetch(url, {
-    headers: { 'User-Agent': 'Bailongma/1.0 (+https://localhost)' },
+    headers: { 'User-Agent': 'ArkBrain-Agent/1.0 (+https://localhost)' },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -120,7 +120,7 @@ async function fetchWeeklyData(lat, lon) {
   url.searchParams.set('forecast_days', '7')
   url.searchParams.set('timezone', 'auto')
   const res = await globalThis.fetch(url, {
-    headers: { 'User-Agent': 'Bailongma/1.0 (+https://localhost)' },
+    headers: { 'User-Agent': 'ArkBrain-Agent/1.0 (+https://localhost)' },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!res.ok) throw new Error(`weekly HTTP ${res.status}`)
@@ -137,7 +137,7 @@ async function resolveOpenMeteoLocation(location) {
   url.searchParams.set('language', 'zh')
   url.searchParams.set('format', 'json')
   const res = await globalThis.fetch(url, {
-    headers: { 'User-Agent': 'Bailongma/1.0 (+https://localhost)' },
+    headers: { 'User-Agent': 'ArkBrain-Agent/1.0 (+https://localhost)' },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!res.ok) throw new Error(`Open-Meteo geocoding HTTP ${res.status}`)
@@ -163,7 +163,7 @@ async function fetchOpenMeteoData(location, mode) {
   url.searchParams.set('forecast_days', mode === 'week' ? '7' : '3')
   url.searchParams.set('timezone', 'auto')
   const res = await globalThis.fetch(url, {
-    headers: { 'User-Agent': 'Bailongma/1.0 (+https://localhost)' },
+    headers: { 'User-Agent': 'ArkBrain-Agent/1.0 (+https://localhost)' },
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })
   if (!res.ok) throw new Error(`Open-Meteo weather HTTP ${res.status}`)

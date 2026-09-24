@@ -10,7 +10,7 @@ const {
 } = require('./safe-storage-notice.cjs')
 
 async function main() {
-  const preferenceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-safe-storage-notice-'))
+  const preferenceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-safe-storage-notice-'))
   const consentFile = path.join(preferenceDir, 'safe-storage-consent.json')
   const mainSource = fs.readFileSync(path.join(__dirname, 'main.cjs'), 'utf8')
   assert.doesNotMatch(
@@ -47,7 +47,7 @@ async function main() {
   assert.equal(calls.length, 1)
   assert.match(calls[0].options.detail, /Cookie、会话及网站登录状态/)
   assert.match(calls[0].options.detail, /Mac 登录密码/)
-  assert.match(calls[0].options.detail, /BaiLongma 无法读取，也不会上传/)
+  assert.match(calls[0].options.detail, /ArkBrain-Agent 无法读取，也不会上传/)
   assert.match(calls[0].options.detail, /仍可继续浏览网页/)
   assert.equal(calls[0].options.buttons[1], '不使用安全存储')
   assert.equal(await notice.request('browser-profile'), true)

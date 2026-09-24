@@ -5,15 +5,15 @@ const os = require('node:os')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
-const stage = process.env.BAILONGMA_PROFILE_TEST_STAGE
+const stage = process.env.ARKBRAIN_PROFILE_TEST_STAGE
 if (!stage) {
   const electronPath = require('electron')
-  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-browser-profile-'))
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-browser-profile-'))
   const run = nextStage => spawnSync(electronPath, [__filename], {
     env: {
       ...process.env,
-      BAILONGMA_PROFILE_TEST_STAGE: nextStage,
-      BAILONGMA_PROFILE_TEST_USER_DATA: userData,
+      ARKBRAIN_PROFILE_TEST_STAGE: nextStage,
+      ARKBRAIN_PROFILE_TEST_USER_DATA: userData,
     },
     encoding: 'utf8',
   })
@@ -42,7 +42,7 @@ if (!stage) {
   const { app, session, safeStorage } = require('electron')
   const { BROWSER_EMBED_PARTITION } = require('./browser-embed-host.cjs')
   const { createBrowserSessionCookieStore } = require('./browser-session-cookies.cjs')
-  app.setPath('userData', process.env.BAILONGMA_PROFILE_TEST_USER_DATA)
+  app.setPath('userData', process.env.ARKBRAIN_PROFILE_TEST_USER_DATA)
   app.whenReady().then(async () => {
     const targetSession = session.fromPartition(BROWSER_EMBED_PARTITION)
     const cookieStore = createBrowserSessionCookieStore({

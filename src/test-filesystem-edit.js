@@ -6,9 +6,9 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-file-edit-'))
-process.env.BAILONGMA_USER_DIR = tempRoot
-process.env.BAILONGMA_RESOURCES_DIR = process.cwd()
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-file-edit-'))
+process.env.ARKBRAIN_USER_DIR = tempRoot
+process.env.ARKBRAIN_RESOURCES_DIR = process.cwd()
 
 const { config } = await import('./config.js')
 const { execEditFile, execReadFile, execWriteFile } = await import('./capabilities/tools/filesystem.js')

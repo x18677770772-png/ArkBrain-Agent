@@ -35,8 +35,8 @@ test('release request requires fixed channel, architectures and exact formal con
 })
 
 test('artifact paths cannot escape dist or select an arbitrary file', () => {
-  const dist = path.resolve('/tmp/bailongma-fixed-dist')
-  const allowed = ['Bailongma-2.1.656-mac-x64.zip']
+  const dist = path.resolve('/tmp/arkbrain-fixed-dist')
+  const allowed = ['ArkBrain-2.1.656-mac-x64.zip']
   assert.equal(resolveDistArtifact(dist, allowed[0], allowed), path.join(dist, allowed[0]))
   assert.throws(() => resolveDistArtifact(dist, '../secret', allowed), /Unsafe/)
   assert.throws(() => resolveDistArtifact(dist, 'package.json', allowed), /fixed release inventory/)
@@ -64,7 +64,7 @@ test('CSRF validation requires exact Host, Origin and constant-time token match'
 })
 
 test('log redaction removes signed OSS URLs, keys and PEM payloads', () => {
-  const raw = 'https://download.bailongma.ai/stable/a.zip?OSSAccessKeyId=LTAIEXAMPLE123&Expires=99&Signature=secret accessKeySecret=hunter2\n-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----'
+  const raw = 'https://download.arkbrain.ai/stable/a.zip?OSSAccessKeyId=LTAIEXAMPLE123&Expires=99&Signature=secret accessKeySecret=hunter2\n-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----'
   const safe = redactLog(raw)
   assert.doesNotMatch(safe, /secret|hunter2|LTAIEXAMPLE123|BEGIN PRIVATE KEY/)
   assert.match(safe, /REDACTED/)

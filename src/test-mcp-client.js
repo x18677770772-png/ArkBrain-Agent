@@ -7,8 +7,8 @@ import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-mcp-'))
-process.env.BAILONGMA_USER_DIR = tmp
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-mcp-'))
+process.env.ARKBRAIN_USER_DIR = tmp
 
 let failed = 0
 function assert(condition, label, detail = '') {
@@ -71,7 +71,7 @@ try {
   const echo = tools.find(tool => tool.remoteName === 'echo')
   const mutate = tools.find(tool => tool.remoteName === 'mutate')
   assert(!!echo?.name?.startsWith('mcp__test_server__echo'), 'MCP tool gets a stable namespaced alias', JSON.stringify(tools))
-  assert(!!getMcpToolSchema(echo?.name)?.function?.parameters?.properties?.text, 'MCP inputSchema adapts to Bailongma function schema')
+  assert(!!getMcpToolSchema(echo?.name)?.function?.parameters?.properties?.text, 'MCP inputSchema adapts to ArkBrain-Agent function schema')
   assert(searchMcpTools('测试 echo').some(tool => tool.name === echo?.name), 'MCP tools participate in catalog search')
 
   const found = parseJson(await executeTool('find_tool', { query: '测试 echo' }, { source: 'test' }))

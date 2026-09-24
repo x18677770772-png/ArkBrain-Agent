@@ -70,8 +70,8 @@ const chromeHar = {
   },
 }
 
-const bailongmaCapture = {
-  kind: 'bailongma-network-audit',
+const arkbrainCapture = {
+  kind: 'arkbrain-network-audit',
   source: 'electron-webcontents-cdp',
   pageSnapshots: [{ value: { navigator: { webdriver: true } } }],
   events: [
@@ -100,9 +100,9 @@ const bailongmaCapture = {
   ],
 }
 
-const comparison = compareCaptures(chromeHar, bailongmaCapture)
+const comparison = compareCaptures(chromeHar, arkbrainCapture)
 assert.equal(comparison.chrome.requests, 1)
-assert.equal(comparison.bailongma.requests, 1)
+assert.equal(comparison.arkbrain.requests, 1)
 assert.ok(comparison.riskSignals.some(item => item.level === '极高' && /Electron/.test(item.signal)))
 assert.ok(comparison.riskSignals.some(item => item.level === '极高' && /webdriver/.test(item.signal)))
 assert.ok(comparison.riskSignals.some(item => /基线 HAR 不含此字段/.test(item.signal)))
@@ -111,10 +111,10 @@ assert.equal(JSON.stringify(comparison).includes('private-cookie-value'), false)
 assert.deepEqual(comparison.differences.endpointsOnlyInChrome, [])
 
 const chromeCdpCapture = {
-  ...bailongmaCapture,
+  ...arkbrainCapture,
   source: 'chrome-cdp-observer',
   pageSnapshots: [{ value: { navigator: { webdriver: true } } }],
-  events: bailongmaCapture.events.map(event => ({
+  events: arkbrainCapture.events.map(event => ({
     ...event,
     data: event.name === 'Network.requestWillBeSent'
       ? {
@@ -124,7 +124,7 @@ const chromeCdpCapture = {
       : event.data,
   })),
 }
-const bothWebdriverTrue = compareCaptures(chromeCdpCapture, bailongmaCapture)
+const bothWebdriverTrue = compareCaptures(chromeCdpCapture, arkbrainCapture)
 assert.equal(
   bothWebdriverTrue.riskSignals.some(item => item.level === '极高' && /webdriver/.test(item.signal)),
   false,
@@ -135,7 +135,7 @@ const explicitChromeFalse = {
   ...chromeCdpCapture,
   pageSnapshots: [{ value: { navigator: { webdriver: false } } }],
 }
-const onlyBailongmaTrue = compareCaptures(explicitChromeFalse, bailongmaCapture)
-assert.ok(onlyBailongmaTrue.riskSignals.some(item => item.level === '极高' && /仅白龙马.*webdriver/.test(item.signal)))
+const onlyArkBrainTrue = compareCaptures(explicitChromeFalse, arkbrainCapture)
+assert.ok(onlyArkBrainTrue.riskSignals.some(item => item.level === '极高' && /仅方舟大脑.*webdriver/.test(item.signal)))
 
 console.log('network audit utility tests passed')

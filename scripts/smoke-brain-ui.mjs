@@ -518,8 +518,8 @@ const executablePath = process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined
 const browser = await chromium.launch(executablePath ? { executablePath } : {})
 const page = await browser.newPage({ viewport: { width: 1280, height: 840 } })
 await page.addInitScript(() => {
-  localStorage.setItem('bailongma-memory-graph-enabled', 'true')
-  localStorage.setItem('bailongma-ui-language', 'zh-CN')
+  localStorage.setItem('arkbrain-memory-graph-enabled', 'true')
+  localStorage.setItem('arkbrain-ui-language', 'zh-CN')
 })
 const errors = []
 page.on('pageerror', err => errors.push(err.message))
@@ -644,8 +644,8 @@ try {
 
   await page.evaluate(() => {
     window.__pttSmoke = { start: 0, end: 0 }
-    window.bailongmaVoice.pttStart = () => { window.__pttSmoke.start += 1 }
-    window.bailongmaVoice.pttEnd = () => { window.__pttSmoke.end += 1 }
+    window.arkbrainVoice.pttStart = () => { window.__pttSmoke.start += 1 }
+    window.arkbrainVoice.pttEnd = () => { window.__pttSmoke.end += 1 }
   })
   await page.focus('#msg-input')
   await page.keyboard.down('Space')
@@ -676,8 +676,8 @@ try {
   }
   await page.fill('#msg-input', '')
   await page.evaluate(() => {
-    localStorage.setItem('bailongma-voice-space-ptt-enabled', 'false')
-    window.dispatchEvent(new CustomEvent('bailongma:space-ptt-change', { detail: { enabled: false } }))
+    localStorage.setItem('arkbrain-voice-space-ptt-enabled', 'false')
+    window.dispatchEvent(new CustomEvent('arkbrain:space-ptt-change', { detail: { enabled: false } }))
   })
   await page.keyboard.press('Space')
   const disabledPttState = await page.evaluate(() => ({
@@ -689,8 +689,8 @@ try {
     throw new Error(`disabled Space PTT did not restore normal typing: ${JSON.stringify(disabledPttState)}`)
   }
   await page.evaluate(() => {
-    localStorage.setItem('bailongma-voice-space-ptt-enabled', 'true')
-    window.dispatchEvent(new CustomEvent('bailongma:space-ptt-change', { detail: { enabled: true } }))
+    localStorage.setItem('arkbrain-voice-space-ptt-enabled', 'true')
+    window.dispatchEvent(new CustomEvent('arkbrain:space-ptt-change', { detail: { enabled: true } }))
   })
   await page.fill('#msg-input', '')
   await page.click('#chat-pin-button')
@@ -700,7 +700,7 @@ try {
     pressed: document.querySelector('#chat-pin-button')?.getAttribute('aria-pressed'),
     pinned: document.querySelector('#chat-area')?.classList.contains('chat-pinned'),
     open: document.querySelector('#chat-history')?.classList.contains('open'),
-    stored: localStorage.getItem('bailongma-chat-pinned'),
+    stored: localStorage.getItem('arkbrain-chat-pinned'),
   }))
   if (pinnedChatState.pressed !== 'true' || !pinnedChatState.pinned || !pinnedChatState.open || pinnedChatState.stored !== '1') {
     throw new Error(`chat pin did not keep history open: ${JSON.stringify(pinnedChatState)}`)
@@ -712,7 +712,7 @@ try {
     pressed: document.querySelector('#chat-pin-button')?.getAttribute('aria-pressed'),
     pinned: document.querySelector('#chat-area')?.classList.contains('chat-pinned'),
     open: document.querySelector('#chat-history')?.classList.contains('open'),
-    stored: localStorage.getItem('bailongma-chat-pinned'),
+    stored: localStorage.getItem('arkbrain-chat-pinned'),
   }))
   if (unpinnedChatState.pressed !== 'false' || unpinnedChatState.pinned || unpinnedChatState.open || unpinnedChatState.stored !== '0') {
     throw new Error(`chat did not restore auto-collapse after unpinning: ${JSON.stringify(unpinnedChatState)}`)
@@ -976,10 +976,10 @@ try {
     }
   })
   await nativePage.addInitScript(() => {
-    localStorage.setItem('bailongma-ui-language', 'zh-CN')
+    localStorage.setItem('arkbrain-ui-language', 'zh-CN')
     const calls = []
     window.__browserEmbedCalls = calls
-    window.bailongma = {
+    window.arkbrain = {
       isElectron: true,
       platform: 'darwin',
       getZoomFactor: () => 1.1,
@@ -1133,7 +1133,7 @@ try {
     const slotStyle = slot ? getComputedStyle(slot) : null
     const previewStyle = getComputedStyle(document.querySelector('#browser-preview'))
     const radius = slotStyle ? parseFloat(slotStyle.borderTopLeftRadius) : 0
-    const zoom = Number(window.bailongma?.getZoomFactor?.()) || 1
+    const zoom = Number(window.arkbrain?.getZoomFactor?.()) || 1
     return {
       calls,
       latest,
@@ -1189,7 +1189,7 @@ try {
       ?.filter(call => call.method === 'update' && call.payload?.mode === 'card')
       .at(-1)?.payload
     const rect = document.querySelector('#browser-preview-native-slot')?.getBoundingClientRect()
-    const zoom = Number(window.bailongma?.getZoomFactor?.()) || 1
+    const zoom = Number(window.arkbrain?.getZoomFactor?.()) || 1
     return Boolean(payload && rect)
       && Math.abs(payload.bounds.x - Math.round(rect.left * zoom)) <= 1
       && Math.abs(payload.bounds.y - Math.round(rect.top * zoom)) <= 1
@@ -1203,7 +1203,7 @@ try {
     const preview = document.querySelector('#browser-preview')
     if (preview) preview.style.transform = 'translateX(-5px)'
     const rect = document.querySelector('#browser-preview-native-slot')?.getBoundingClientRect()
-    const zoom = Number(window.bailongma?.getZoomFactor?.()) || 1
+    const zoom = Number(window.arkbrain?.getZoomFactor?.()) || 1
     window.dispatchEvent(new Event('scroll'))
     return rect ? Math.round(rect.left * zoom) : null
   })
@@ -1216,7 +1216,7 @@ try {
     const preview = document.querySelector('#browser-preview')
     if (preview) preview.style.transform = ''
     const rect = document.querySelector('#browser-preview-native-slot')?.getBoundingClientRect()
-    const zoom = Number(window.bailongma?.getZoomFactor?.()) || 1
+    const zoom = Number(window.arkbrain?.getZoomFactor?.()) || 1
     window.visualViewport?.dispatchEvent(new Event('scroll'))
     return rect ? Math.round(rect.left * zoom) : null
   })
@@ -1662,8 +1662,8 @@ try {
     && !document.querySelector('#si-l1')?.textContent.includes('提醒用户喝水'))
 
   await page.evaluate(() => {
-    localStorage.removeItem('bailongma-action-log-v1')
-    localStorage.removeItem('bailongma-heartbeat-count-v1')
+    localStorage.removeItem('arkbrain-action-log-v1')
+    localStorage.removeItem('arkbrain-heartbeat-count-v1')
   })
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#heartbeat-state[data-state="alive"]')
@@ -1922,7 +1922,7 @@ try {
       && log?.textContent.includes('bulk-59.js')
   })
 
-  await page.evaluate(() => localStorage.removeItem('bailongma-action-log-v1'))
+  await page.evaluate(() => localStorage.removeItem('arkbrain-action-log-v1'))
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#heartbeat-state[data-state="alive"]')
   await page.waitForFunction(() => {
@@ -1993,7 +1993,7 @@ try {
       return bounds
     }, { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity }) : null
     return {
-      layout: window.bailongmaGraphLayout?.(),
+      layout: window.arkbrainGraphLayout?.(),
       leftPanel: rect('#panel-l1'),
       rightPanel: rect('#panel-l2'),
       console: rect('.console'),
@@ -2039,7 +2039,7 @@ try {
   await page.setViewportSize({ width: 1024, height: 768 })
   await page.waitForTimeout(650)
   const resizedGraph = await page.evaluate(() => ({
-    layout: window.bailongmaGraphLayout?.(),
+    layout: window.arkbrainGraphLayout?.(),
     transform: document.querySelector('#graph > g')?.getAttribute('transform') || '',
     nodeCenter: (() => {
       const circles = [...document.querySelectorAll('#graph circle')]
@@ -2162,8 +2162,8 @@ try {
   const englishPage = await browser.newPage({ viewport: { width: 1280, height: 840 } })
   englishPage.on('pageerror', err => errors.push(`English page: ${err.message}`))
   await englishPage.addInitScript(() => {
-    localStorage.setItem('bailongma-ui-language', 'en-US')
-    localStorage.setItem('bailongma-memory-graph-enabled', 'false')
+    localStorage.setItem('arkbrain-ui-language', 'en-US')
+    localStorage.setItem('arkbrain-memory-graph-enabled', 'false')
   })
   await englishPage.goto(`${baseUrl}/brain-ui`, { waitUntil: 'domcontentloaded' })
   await englishPage.waitForSelector('#settings-btn[title="Settings"]')
@@ -2308,8 +2308,8 @@ try {
     submit: document.querySelector('#activate')?.textContent?.trim(),
     customToggle: document.querySelector('#settings-toggle')?.textContent?.trim(),
   }))
-  if (englishActivation.title !== 'Activate Bailongma'
-      || englishActivation.heading !== 'Activate Bailongma'
+  if (englishActivation.title !== 'Activate ArkBrain-Agent'
+      || englishActivation.heading !== 'Activate ArkBrain-Agent'
       || englishActivation.submit !== 'Activate and continue'
       || englishActivation.customToggle !== 'Or use a custom Responses API endpoint') {
     throw new Error(`English activation localization failed: ${JSON.stringify(englishActivation)}`)
@@ -2325,7 +2325,7 @@ try {
     firstStep: document.querySelector('#steps .label')?.textContent?.trim(),
     firstState: document.querySelector('#steps .state')?.textContent?.trim(),
   }))
-  if (englishStartup.title !== 'Bailongma is starting'
+  if (englishStartup.title !== 'ArkBrain-Agent is starting'
       || englishStartup.message !== 'Preparing the startup environment'
       || englishStartup.stepsTitle !== 'Steps in progress'
       || englishStartup.firstStep !== 'Prepare local port'

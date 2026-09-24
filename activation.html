@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bailongma 激活</title>
+  <title>ArkBrain-Agent 激活</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@1,600;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -732,9 +732,9 @@
 </head>
 <body>
   <section id="activation-intro" aria-hidden="true">
-    <div class="intro-kicker">BAILONGMA <i>•</i> INITIALIZING</div>
+    <div class="intro-kicker">ARKBRAIN <i>•</i> INITIALIZING</div>
     <div class="intro-orb-wrap" data-intro-anim>
-      <canvas id="activation-intro-voice-canvas" aria-label="Bailongma 语音球"></canvas>
+      <canvas id="activation-intro-voice-canvas" aria-label="ArkBrain-Agent 语音球"></canvas>
     </div>
     <div class="intro-name" data-intro-anim>
       <div class="intro-name-particles" aria-hidden="true">
@@ -757,7 +757,7 @@
         <i data-intro-anim data-intro-offset=".44" style="--x:94%;--y:57%;--dx:22px;--dy:-22px;--size:2px"></i>
         <i data-intro-anim data-intro-offset=".462" style="--x:98%;--y:30%;--dx:28px;--dy:-31px;--size:3px"></i>
       </div>
-      <div class="intro-name-letters" aria-label="Bailongma">
+      <div class="intro-name-letters" aria-label="ArkBrain-Agent">
         <span class="intro-name-letter" data-intro-anim data-intro-offset="0">B</span>
         <span class="intro-name-letter" data-intro-anim data-intro-offset=".055">a</span>
         <span class="intro-name-letter" data-intro-anim data-intro-offset=".11">i</span>
@@ -810,8 +810,8 @@
     <audio id="activation-intro-audio" preload="auto" src="/src/ui/brain-ui/assets/activation-intro.mp3"></audio>
   </section>
   <main>
-    <h1>激活 Bailongma</h1>
-    <p class="subtitle">输入 API Key，Bailongma 会自动识别官方模型厂商。</p>
+    <h1>激活 ArkBrain-Agent</h1>
+    <p class="subtitle">输入 API Key，ArkBrain-Agent 会自动识别官方模型厂商。</p>
 
     <!-- LLM Key -->
     <div class="row">
@@ -823,7 +823,7 @@
     <!-- AI 名字 -->
     <div class="row">
       <label for="agentName">AI 名字</label>
-      <input id="agentName" type="text" autocomplete="off" spellcheck="false" maxlength="32" placeholder="小白龙（默认）、贾维斯、Friday、小白" />
+      <input id="agentName" type="text" autocomplete="off" spellcheck="false" maxlength="32" placeholder="方舟大脑（默认）、贾维斯、Friday、小白" />
     </div>
 
     <div class="section-divider">可选 可不填</div>
@@ -890,9 +890,9 @@
   </main>
 
   <script type="module">
-    const ACTIVATION_WARMUP_KEY = 'bailongma_activation_warmup_until'
+    const ACTIVATION_WARMUP_KEY = 'arkbrain_activation_warmup_until'
     const ACTIVATION_WARMUP_MS = 2500
-    const BRAIN_UI_ARRIVAL_KEY = 'bailongma_brain_ui_arrival_at'
+    const BRAIN_UI_ARRIVAL_KEY = 'arkbrain_brain_ui_arrival_at'
     const isIntroPreview = new URLSearchParams(window.location.search).has('intro-preview')
 
     const apiKeyInput = document.getElementById('apiKey')

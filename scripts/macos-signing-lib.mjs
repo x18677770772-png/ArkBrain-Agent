@@ -111,14 +111,14 @@ export function assertSingleArchitecture(codePath, expectedArch, label = codePat
 }
 
 export function signAppRecursively(appPath, {
-  identity = process.env.CSC_NAME || process.env.BAILONGMA_CODESIGN_IDENTITY || DEFAULT_SIGNING_IDENTITY,
+  identity = process.env.CSC_NAME || process.env.ARKBRAIN_CODESIGN_IDENTITY || DEFAULT_SIGNING_IDENTITY,
   entitlementsPath,
   speechHelperPath,
   nodeRuntimePath,
 } = {}) {
   if (!fs.existsSync(appPath)) throw new Error(`App bundle is missing: ${appPath}`)
   if (!fs.existsSync(entitlementsPath)) throw new Error(`Entitlements are missing: ${entitlementsPath}`)
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-entitlements-'))
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-entitlements-'))
   try {
     const machOFiles = listMachOFiles(appPath)
     const bundles = listCodeBundles(appPath)
@@ -151,23 +151,23 @@ export function verifySignedApp(appPath, { expectedArch, speechHelperPath, nodeR
   for (const requiredPath of [speechHelperPath, nodeRuntimePath].filter(Boolean)) {
     if (!machOFiles.includes(requiredPath)) throw new Error(`Required signed runtime is missing: ${requiredPath}`)
   }
-  assertReleaseSignature(appPath, 'Bailongma.app')
+  assertReleaseSignature(appPath, 'ArkBrain-Agent.app')
   return { machOCount: machOFiles.length }
 }
 
-export function signDmg(dmgPath, identity = process.env.CSC_NAME || process.env.BAILONGMA_CODESIGN_IDENTITY || DEFAULT_SIGNING_IDENTITY) {
+export function signDmg(dmgPath, identity = process.env.CSC_NAME || process.env.ARKBRAIN_CODESIGN_IDENTITY || DEFAULT_SIGNING_IDENTITY) {
   run('codesign', ['--force', '--sign', identity, '--timestamp', dmgPath])
   run('codesign', ['--verify', '--strict', '--verbose=4', dmgPath])
   assertReleaseSignature(dmgPath, path.basename(dmgPath), { requireRuntime: false })
 }
 
 export function submitForNotarization(filePath, {
-  profile = process.env.BAILONGMA_NOTARY_PROFILE || 'BailongmaNotary',
+  profile = process.env.ARKBRAIN_NOTARY_PROFILE || 'ArkBrainNotary',
   teamId = DEVELOPER_TEAM,
   cwd,
   wait = true,
 } = {}) {
-  const configuredAttempts = Number(process.env.BAILONGMA_NOTARY_SUBMIT_ATTEMPTS || 4)
+  const configuredAttempts = Number(process.env.ARKBRAIN_NOTARY_SUBMIT_ATTEMPTS || 4)
   const maxAttempts = Number.isInteger(configuredAttempts) && configuredAttempts > 0
     ? Math.min(configuredAttempts, 8)
     : 4
@@ -182,7 +182,7 @@ export function submitForNotarization(filePath, {
       '--team-id', teamId,
       // Some networks repeatedly reset Apple's accelerated multipart S3 upload
       // after several parts. The standard S3 path is slower but substantially
-      // more reliable for Bailongma's large bundled-browser archives.
+      // more reliable for ArkBrain-Agent's large bundled-browser archives.
       '--no-s3-acceleration',
       wait ? '--wait' : '--no-wait', '--output-format', 'json',
     ]
@@ -231,7 +231,7 @@ export function submitForNotarization(filePath, {
 }
 
 export function waitForNotarization(submissionId, {
-  profile = process.env.BAILONGMA_NOTARY_PROFILE || 'BailongmaNotary',
+  profile = process.env.ARKBRAIN_NOTARY_PROFILE || 'ArkBrainNotary',
   teamId = DEVELOPER_TEAM,
   cwd,
 } = {}) {

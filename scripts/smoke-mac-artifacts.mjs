@@ -15,7 +15,7 @@ import {
 } from './macos-updater-config.mjs'
 
 const root = path.resolve(import.meta.dirname, '..')
-const productName = pkg.productName || 'Bailongma'
+const productName = pkg.productName || 'ArkBrain-Agent'
 const version = pkg.version
 
 const supportedTargets = [
@@ -135,7 +135,7 @@ function assertEntitlement(filePath, entitlement, label) {
 }
 
 function mountDmg(dmgPath) {
-  const mountPoint = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-dmg-'))
+  const mountPoint = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-dmg-'))
   run('hdiutil', ['attach', '-readonly', '-nobrowse', '-mountpoint', mountPoint, dmgPath])
   return mountPoint
 }
@@ -169,7 +169,7 @@ function smokeTarget(target) {
   verifyExternalBlockmapForArtifact(`${zipPath}.blockmap`, zipPath)
   run('unzip', ['-tq', zipPath])
 
-  const zipPlistDir = fs.mkdtempSync(path.join(os.tmpdir(), `bailongma-${target.label}-zip-`))
+  const zipPlistDir = fs.mkdtempSync(path.join(os.tmpdir(), `arkbrain-${target.label}-zip-`))
   const zipPlist = path.join(zipPlistDir, 'Info.plist')
   const extractedPlist = spawnSync('unzip', [
     '-p',

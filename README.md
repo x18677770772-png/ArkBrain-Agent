@@ -1,8 +1,8 @@
-![Bailongma](https://github.com/xiaoyuanda666-ship-it/BaiLongma/blob/main/images/AGI128k.jpg)
+![ArkBrain-Agent](https://github.com/xiaoyuanda666-ship-it/ArkBrain-Agent/blob/main/images/AGI128k.jpg)
 
-# Bailongma
+# ArkBrain-Agent
 
-Bailongma 是一个持续运行的桌面 AI Agent 项目。它不是一次问答结束就退出的聊天程序，而是由主循环驱动：有用户消息时优先处理，空闲时按节奏继续整理记忆、检查任务、刷新上下文，并把状态实时推送到 Brain UI。
+ArkBrain-Agent 是一个持续运行的桌面 AI Agent 项目。它不是一次问答结束就退出的聊天程序，而是由主循环驱动：有用户消息时优先处理，空闲时按节奏继续整理记忆、检查任务、刷新上下文，并把状态实时推送到 Brain UI。
 
 项目由 Electron 桌面壳、本地 HTTP 服务、LLM 调用层、记忆系统、工具执行器、语音系统、社交连接器和 Brain UI 组成。它的目标是让一个本地 Agent 既能聊天，也能记住、行动、观察自己的运行状态，并通过工具完成文件、网页、媒体、提醒、任务和系统级操作。
 
@@ -64,7 +64,7 @@ npm run start:lan
 - 根证书安装地址；
 - 带局域网配对口令的 HTTPS 访问地址。
 
-iPad 首次使用时，需要安装根证书描述文件，并在“设置 → 通用 → 关于本机 → 证书信任设置”中启用完全信任。配对口令通过 URL fragment 传递，页面保存后会立即从地址栏移除。语音配置仍只保存在运行 BaiLongma 的主机上，不会复制到移动设备。
+iPad 首次使用时，需要安装根证书描述文件，并在“设置 → 通用 → 关于本机 → 证书信任设置”中启用完全信任。配对口令通过 URL fragment 传递，页面保存后会立即从地址栏移除。语音配置仍只保存在运行 ArkBrain-Agent 的主机上，不会复制到移动设备。
 
 也可以直接在桌面端打开“设置 → 安全 → 局域网访问”。开启并重启后，页面会显示可复制的完整访问链接、根证书二维码和访问二维码；如果主机有多个局域网地址，可以在下拉框中切换。
 
@@ -163,7 +163,7 @@ http://127.0.0.1:3721
 
 ## 数据与持久化
 
-Bailongma 的长期状态主要保存在本地 SQLite 数据库中，包括：
+ArkBrain-Agent 的长期状态主要保存在本地 SQLite 数据库中，包括：
 
 - 对话记录、参与者身份和用户画像。
 - 记忆节点、记忆关系、全文检索索引和可见性状态。

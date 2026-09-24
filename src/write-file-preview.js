@@ -123,7 +123,7 @@ function emitTerminalEvent({
 
 function desktopWindowState() {
   try {
-    const reader = globalThis?.getBailongmaWindowLayoutSnapshot
+    const reader = globalThis?.getArkBrainWindowLayoutSnapshot
     if (typeof reader !== 'function') return { known: false, visible: false, streamId: '' }
     const layout = reader()
     const windows = Array.isArray(layout?.windows) ? layout.windows : []
@@ -182,7 +182,7 @@ function renderFileExecutionPreview({
 }
 
 function autoCloseDelayMs() {
-  const override = Number(globalThis?.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS)
+  const override = Number(globalThis?.__ARKBRAIN_WRITE_PREVIEW_AUTO_CLOSE_MS)
   return Number.isFinite(override) && override >= 0 ? override : AUTO_CLOSE_DELAY_MS
 }
 

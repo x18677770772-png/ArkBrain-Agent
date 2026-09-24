@@ -38,7 +38,7 @@ export const BUILTIN_PLAYWRIGHT_ALLOWED_TOOLS = Object.freeze([
 // Playwright documents this blocklist as a guardrail, not a complete network
 // sandbox (notably, redirects need separate validation). It still blocks the
 // most common accidental loopback access while private-network permission is
-// disabled in Bailongma.
+// disabled in ArkBrain-Agent.
 export const BUILTIN_PLAYWRIGHT_BLOCKED_ORIGINS = Object.freeze([
   'http://localhost:*',
   'https://localhost:*',
@@ -113,7 +113,7 @@ function resolveInstalledCli() {
 }
 
 export function resolveBuiltInPlaywrightCli({
-  cliPath = process.env.BAILONGMA_PLAYWRIGHT_MCP_CLI,
+  cliPath = process.env.ARKBRAIN_PLAYWRIGHT_MCP_CLI,
   resourcesDir = paths.resourcesDir,
 } = {}) {
   if (String(cliPath || '').trim()) return path.resolve(String(cliPath).trim())
@@ -128,7 +128,7 @@ export function resolveBuiltInPlaywrightCli({
 }
 
 export function resolveBuiltInPlaywrightPageGuard({
-  guardPath = process.env.BAILONGMA_PLAYWRIGHT_PAGE_GUARD,
+  guardPath = process.env.ARKBRAIN_PLAYWRIGHT_PAGE_GUARD,
   resourcesDir = paths.resourcesDir,
 } = {}) {
   if (String(guardPath || '').trim()) return path.resolve(String(guardPath).trim())
@@ -136,7 +136,7 @@ export function resolveBuiltInPlaywrightPageGuard({
 }
 
 export function resolveBuiltInPlaywrightProfileConfig({
-  configPath = process.env.BAILONGMA_PLAYWRIGHT_PROFILE_CONFIG,
+  configPath = process.env.ARKBRAIN_PLAYWRIGHT_PROFILE_CONFIG,
   resourcesDir = paths.resourcesDir,
 } = {}) {
   if (String(configPath || '').trim()) return path.resolve(String(configPath).trim())
@@ -148,7 +148,7 @@ function inheritedPlaywrightEnv(source = process.env) {
   for (const name of [
     'PLAYWRIGHT_BROWSERS_PATH',
     'PLAYWRIGHT_HOST_PLATFORM_OVERRIDE',
-    'BAILONGMA_BUNDLED_PLAYWRIGHT',
+    'ARKBRAIN_BUNDLED_PLAYWRIGHT',
   ]) {
     if (source[name]) env[name] = source[name]
   }
@@ -228,7 +228,7 @@ export function createBuiltInPlaywrightServer({
     cwd: outputDir,
     env: {
       ...inheritedPlaywrightEnv(env),
-      BAILONGMA_BROWSER_PRIVATE_NETWORK: allowPrivateNetwork ? '1' : '0',
+      ARKBRAIN_BROWSER_PRIVATE_NETWORK: allowPrivateNetwork ? '1' : '0',
       ...(electronRuntime ? { ELECTRON_RUN_AS_NODE: '1' } : {}),
     },
     allowedTools: [...BUILTIN_PLAYWRIGHT_ALLOWED_TOOLS],

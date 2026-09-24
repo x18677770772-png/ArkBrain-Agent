@@ -29,7 +29,7 @@ function safeImageSrc(rawUrl) {
   if (url.startsWith("/")) {
     // Same-origin media needs ?token= when LAN gate is on (img cannot set headers).
     try {
-      const token = globalThis.localStorage?.getItem("bailongma-api-token")?.trim();
+      const token = globalThis.localStorage?.getItem("arkbrain-api-token")?.trim();
       if (token && !url.includes("token=")) {
         return `${url}${url.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
       }

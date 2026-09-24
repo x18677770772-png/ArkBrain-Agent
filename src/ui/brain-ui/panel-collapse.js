@@ -1,5 +1,5 @@
-const STORAGE_L1 = "bailongma-panel-l1-collapsed";
-const STORAGE_L2 = "bailongma-panel-l2-collapsed";
+const STORAGE_L1 = "arkbrain-panel-l1-collapsed";
+const STORAGE_L2 = "arkbrain-panel-l2-collapsed";
 
 function storageKeyForSide(side) {
   return side === "l1" ? STORAGE_L1 : STORAGE_L2;
@@ -13,7 +13,7 @@ export function initPanelCollapse() {
   function setPanel(side, collapsed) {
     document.body.classList.toggle(classForSide(side), collapsed);
     try { localStorage.setItem(storageKeyForSide(side), collapsed ? "1" : "0"); } catch {}
-    window.dispatchEvent(new CustomEvent("bailongma:panel-layout-change", {
+    window.dispatchEvent(new CustomEvent("arkbrain:panel-layout-change", {
       detail: { side, collapsed },
     }));
   }

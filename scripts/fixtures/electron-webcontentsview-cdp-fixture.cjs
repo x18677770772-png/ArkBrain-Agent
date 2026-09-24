@@ -8,16 +8,16 @@ const {
   session,
 } = require('electron')
 
-const cdpPort = Number(process.env.BAILONGMA_CDP_SPIKE_PORT || 0)
-const readyFile = process.env.BAILONGMA_CDP_SPIKE_READY_FILE || ''
-const persistentPartition = 'persist:bailongma-browser-cdp-spike'
+const cdpPort = Number(process.env.ARKBRAIN_CDP_SPIKE_PORT || 0)
+const readyFile = process.env.ARKBRAIN_CDP_SPIKE_READY_FILE || ''
+const persistentPartition = 'persist:arkbrain-browser-cdp-spike'
 
 if (!Number.isInteger(cdpPort) || cdpPort <= 0) {
-  throw new Error('BAILONGMA_CDP_SPIKE_PORT must contain a positive integer')
+  throw new Error('ARKBRAIN_CDP_SPIKE_PORT must contain a positive integer')
 }
 
-if (process.env.BAILONGMA_CDP_SPIKE_USER_DATA) {
-  app.setPath('userData', path.resolve(process.env.BAILONGMA_CDP_SPIKE_USER_DATA))
+if (process.env.ARKBRAIN_CDP_SPIKE_USER_DATA) {
+  app.setPath('userData', path.resolve(process.env.ARKBRAIN_CDP_SPIKE_USER_DATA))
 }
 
 // Electron exposes one app-wide DevTools endpoint. The production spike uses a
@@ -96,12 +96,12 @@ async function startContentServer() {
     const url = new URL(request.url, 'http://127.0.0.1')
     if (url.pathname === '/brain') {
       response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
-      response.end(html('Bailongma Brain UI spike', 'BAILONGMA_BRAIN_UI_DO_NOT_AUTOMATE'))
+      response.end(html('ArkBrain-Agent Brain UI spike', 'ARKBRAIN_BRAIN_UI_DO_NOT_AUTOMATE'))
       return
     }
     if (url.pathname === '/browser') {
       response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
-      response.end(html('Bailongma browser surface spike', 'BAILONGMA_BROWSER_SURFACE'))
+      response.end(html('ArkBrain-Agent browser surface spike', 'ARKBRAIN_BROWSER_SURFACE'))
       return
     }
     if (url.pathname === '/state') {

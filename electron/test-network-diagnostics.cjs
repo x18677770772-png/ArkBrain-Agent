@@ -56,7 +56,7 @@ class FakeDebugger extends EventEmitter {
 }
 
 async function run() {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-network-diagnostics-'))
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-network-diagnostics-'))
   try {
     const debuggerApi = new FakeDebugger()
     const webContents = {
@@ -156,7 +156,7 @@ async function run() {
     })
     await assert.rejects(() => disabled.start(), /disabled/)
   } finally {
-    if (path.basename(tempRoot).startsWith('bailongma-network-diagnostics-')) {
+    if (path.basename(tempRoot).startsWith('arkbrain-network-diagnostics-')) {
       fs.rmSync(tempRoot, { recursive: true, force: true })
     }
   }

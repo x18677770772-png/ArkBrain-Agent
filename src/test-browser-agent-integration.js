@@ -176,7 +176,7 @@ for (const messageBody of [
   assert.ok(routed.includes('system_browser_open'),
     `computer browser request exposes its explicit first-round tool: ${messageBody}`)
   assert.ok(BROWSER_CAPABILITY_TOOLS.every(name => !routed.includes(name)),
-    `computer browser request does not inject BaiLongma dedicated-Chrome tools: ${messageBody}`)
+    `computer browser request does not inject ArkBrain-Agent dedicated-Chrome tools: ${messageBody}`)
 }
 
 for (const messageBody of [
@@ -280,7 +280,7 @@ const browserContext = capabilityContextBlocks({
   text: '打开网页并点击登录',
   rawText: '打开网页并点击登录',
   isTick: false,
-}).find(block => block.includes('BaiLongma Built-in Chromium')) || ''
+}).find(block => block.includes('ArkBrain-Agent Built-in Chromium')) || ''
 assert.match(browserContext, /browser_navigate[\s\S]*actions return a fresh accessibility snapshot/)
 assert.match(browserContext, /instead of routinely calling browser_snapshot/)
 assert.match(browserContext, /browser_navigate_forward[\s\S]*browser_reload/)
@@ -379,8 +379,8 @@ for (const text of [
   '删除agent自带的浏览器数据',
   '清除你的浏览器 Cookie 和登录数据',
   '删除我的浏览器历史数据',
-  '把白龙马浏览器最近一小时的历史记录删掉',
-  'clear Bailongma browser data',
+  '把方舟大脑浏览器最近一小时的历史记录删掉',
+  'clear ArkBrain-Agent browser data',
 ]) {
   assert.equal(isExplicitAgentBrowserDataDeletionRequest(text), true, `explicit Agent browser deletion recognized: ${text}`)
   assert.equal(selectTools({ messageBody: text, isTick: false }).includes('browser_clear_data'), true,
@@ -425,7 +425,7 @@ const clearResult = JSON.parse(await execBrowserClearData(
       closePage: async () => clearCalls.push({ action: 'closePage' }),
       clearData: async request => {
         clearCalls.push(request)
-        return { scope: 'bailongma_dedicated_chrome_only', profile_deleted: true }
+        return { scope: 'arkbrain_dedicated_chrome_only', profile_deleted: true }
       },
     },
   },

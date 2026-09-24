@@ -97,20 +97,20 @@ function packageMetadata() {
 }
 
 function installerPath(version) {
-  return path.join(projectRoot, 'dist', `Bailongma-Setup-${version}.exe`)
+  return path.join(projectRoot, 'dist', `ArkBrain-Setup-${version}.exe`)
 }
 
 export function inspectWindowsSignature(filePath) {
   const script = [
     '[Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false);$OutputEncoding=[Console]::OutputEncoding;',
-    '$s=Get-AuthenticodeSignature -LiteralPath $env:BAILONGMA_WINDOWS_ARTIFACT;',
+    '$s=Get-AuthenticodeSignature -LiteralPath $env:ARKBRAIN_WINDOWS_ARTIFACT;',
     '[PSCustomObject]@{Status=[string]$s.Status;StatusMessage=$s.StatusMessage;Subject=$s.SignerCertificate.Subject}|ConvertTo-Json -Compress',
   ].join('')
   const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
     cwd: projectRoot,
     encoding: 'utf8',
     windowsHide: true,
-    env: { ...process.env, BAILONGMA_WINDOWS_ARTIFACT: filePath },
+    env: { ...process.env, ARKBRAIN_WINDOWS_ARTIFACT: filePath },
   })
   if (result.error) throw result.error
   if (result.status !== 0) throw new Error(`Get-AuthenticodeSignature failed: ${String(result.stderr || '').trim()}`)
@@ -120,7 +120,7 @@ export function inspectWindowsSignature(filePath) {
 }
 
 export function signingIsRequired(args = process.argv.slice(2), env = process.env) {
-  return args.includes('--require-signing') || /^(1|true|yes)$/i.test(String(env.BAILONGMA_REQUIRE_WINDOWS_SIGNING || ''))
+  return args.includes('--require-signing') || /^(1|true|yes)$/i.test(String(env.ARKBRAIN_REQUIRE_WINDOWS_SIGNING || ''))
 }
 
 function main() {
@@ -149,9 +149,9 @@ function main() {
     throw new Error(`NSIS installer is missing or empty: ${installer}`)
   }
   // NSIS commonly uses a 32-bit bootstrap executable even when its payload is
-  // a Windows x64 application. Validate dist/win-unpacked/Bailongma.exe, not
+  // a Windows x64 application. Validate dist/win-unpacked/ArkBrain-Agent.exe, not
   // the installer stub, as the authoritative application architecture.
-  assertPeX64(path.join(projectRoot, 'dist', 'win-unpacked', 'Bailongma.exe'), 'packaged Bailongma executable')
+  assertPeX64(path.join(projectRoot, 'dist', 'win-unpacked', 'ArkBrain-Agent.exe'), 'packaged ArkBrain-Agent executable')
   const signature = inspectWindowsSignature(installer)
   if (String(signature.Status).toLowerCase() !== 'valid') {
     const message = `Windows installer signature is ${signature.Status || 'unknown'}: ${signature.StatusMessage || 'no details'}`
@@ -163,7 +163,7 @@ function main() {
 
   run(process.execPath, ['scripts/smoke-win-artifacts.mjs'])
   run(process.execPath, ['scripts/smoke-packaged-playwright.mjs'])
-  console.log(`[build:win] Bailongma ${pkg.version} Windows x64 build and smoke checks complete`)
+  console.log(`[build:win] ArkBrain-Agent ${pkg.version} Windows x64 build and smoke checks complete`)
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)

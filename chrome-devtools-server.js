@@ -4,7 +4,7 @@ import { createRequire } from 'module'
 
 export const BUILTIN_CHROME_DEVTOOLS_ID = 'builtin_chrome_devtools'
 
-// Public Bailongma names deliberately stay stable. The implementation below
+// Public ArkBrain-Agent names deliberately stay stable. The implementation below
 // maps them to Chrome DevTools MCP 1.6.0 instead of exposing the upstream
 // names directly to agents and existing skills.
 export const BUILTIN_BROWSER_ALLOWED_TOOLS = Object.freeze([
@@ -52,28 +52,28 @@ const uid = 'The uid from the latest browser_snapshot accessibility snapshot.'
 
 const DESCRIPTORS = Object.freeze({
   browser_navigate: {
-    description: 'Navigate the active page in BaiLongma built-in Chromium. Returns a fresh accessibility snapshot.',
-    schema: objectSchema({ url: string('An HTTP(S) URL to open in BaiLongma dedicated Chrome.') }, ['url']),
+    description: 'Navigate the active page in ArkBrain-Agent built-in Chromium. Returns a fresh accessibility snapshot.',
+    schema: objectSchema({ url: string('An HTTP(S) URL to open in ArkBrain-Agent dedicated Chrome.') }, ['url']),
   },
-  browser_navigate_back: { description: 'Go back in the active BaiLongma Chrome tab and return a fresh snapshot.', schema: objectSchema() },
-  browser_navigate_forward: { description: 'Go forward in the active BaiLongma Chrome tab and return a fresh snapshot.', schema: objectSchema() },
-  browser_reload: { description: 'Reload the active BaiLongma Chrome tab and return a fresh snapshot.', schema: objectSchema({ ignore_cache: boolean('Ignore cached resources when reloading.') }) },
-  browser_snapshot: { description: 'Read the active BaiLongma Chrome page as an accessibility snapshot. Prefer this over screenshots.', schema: objectSchema({ verbose: boolean('Include additional accessibility-tree details.') }) },
-  browser_find: { description: 'Find text in the current BaiLongma Chrome page without navigating. Returns structured query, found, total_matches, and current_match fields counted from the current rendered page text.', schema: objectSchema({ text: string('Exact text to find and count in the current rendered page.') }, ['text']) },
-  browser_click: { description: 'Click an element in BaiLongma dedicated Chrome. For a browser-search submission only, when the accessibility snapshot exposes a search field but no submit-button uid, call this once with search_submit=true and element="search submit"; BaiLongma submits the focused field\'s real form. Never use this for accounts.google.com, X login, CAPTCHA, MFA, or OAuth consent; the user operates those personally.', schema: objectSchema({ uid: string(uid), target: string(uid), ref: string(uid), element: string('Human-readable element description.'), search_submit: boolean('True only for the one search-submit click when the current search form has no exposed submit-button uid.') }) },
+  browser_navigate_back: { description: 'Go back in the active ArkBrain-Agent Chrome tab and return a fresh snapshot.', schema: objectSchema() },
+  browser_navigate_forward: { description: 'Go forward in the active ArkBrain-Agent Chrome tab and return a fresh snapshot.', schema: objectSchema() },
+  browser_reload: { description: 'Reload the active ArkBrain-Agent Chrome tab and return a fresh snapshot.', schema: objectSchema({ ignore_cache: boolean('Ignore cached resources when reloading.') }) },
+  browser_snapshot: { description: 'Read the active ArkBrain-Agent Chrome page as an accessibility snapshot. Prefer this over screenshots.', schema: objectSchema({ verbose: boolean('Include additional accessibility-tree details.') }) },
+  browser_find: { description: 'Find text in the current ArkBrain-Agent Chrome page without navigating. Returns structured query, found, total_matches, and current_match fields counted from the current rendered page text.', schema: objectSchema({ text: string('Exact text to find and count in the current rendered page.') }, ['text']) },
+  browser_click: { description: 'Click an element in ArkBrain-Agent dedicated Chrome. For a browser-search submission only, when the accessibility snapshot exposes a search field but no submit-button uid, call this once with search_submit=true and element="search submit"; ArkBrain-Agent submits the focused field\'s real form. Never use this for accounts.google.com, X login, CAPTCHA, MFA, or OAuth consent; the user operates those personally.', schema: objectSchema({ uid: string(uid), target: string(uid), ref: string(uid), element: string('Human-readable element description.'), search_submit: boolean('True only for the one search-submit click when the current search form has no exposed submit-button uid.') }) },
   browser_type: { description: 'Focus an element and type ordinary non-authentication text. Set replace=true to replace an existing field value instead of appending; browser search contracts set this automatically. Account credentials, MFA, CAPTCHA and OAuth flows are user-only.', schema: objectSchema({ uid: string(uid), target: string(uid), ref: string(uid), element: string('Human-readable element description.'), text: string('Text to type.'), replace: boolean('Replace the field\'s current value with text.') }, ['text']) },
   browser_fill_form: { description: 'Fill ordinary non-authentication form fields. Credentials, MFA, CAPTCHA and OAuth fields must be completed by the user.', schema: objectSchema({ fields: { type: 'array', items: objectSchema({ uid: string(uid), target: string(uid), ref: string(uid), value: string('Value to enter.') }, ['value']) }, elements: { type: 'array', items: objectSchema({ uid: string(uid), value: string('Value to enter.') }, ['uid', 'value']) } }) },
   browser_select_option: { description: 'Select an option using its snapshot uid and visible value.', schema: objectSchema({ uid: string(uid), target: string(uid), ref: string(uid), value: string('Visible option value.') }, ['value']) },
-  browser_press_key: { description: 'Press a key in BaiLongma Chrome. Do not use it to submit login, MFA, CAPTCHA, or OAuth consent.', schema: objectSchema({ key: string('Key or combination such as Enter or Control+L.') }, ['key']) },
+  browser_press_key: { description: 'Press a key in ArkBrain-Agent Chrome. Do not use it to submit login, MFA, CAPTCHA, or OAuth consent.', schema: objectSchema({ key: string('Key or combination such as Enter or Control+L.') }, ['key']) },
   browser_hover: { description: 'Hover an element by its snapshot uid.', schema: objectSchema({ uid: string(uid), target: string(uid), ref: string(uid) }) },
   browser_drag: { description: 'Drag one snapshot element onto another.', schema: objectSchema({ from_uid: string(uid), to_uid: string(uid), source: string(uid), target: string(uid) }) },
   browser_wait_for: { description: 'Wait for text to appear on the active page and return a snapshot.', schema: objectSchema({ text: string('Text to wait for.'), timeout: number('Optional timeout in milliseconds.') }, ['text']) },
   browser_handle_dialog: { description: 'Handle a non-authentication browser dialog.', schema: objectSchema({ action: { type: 'string', enum: ['accept', 'dismiss'] }, prompt_text: string('Optional prompt text.') }, ['action']) },
-  browser_tabs: { description: 'List the one live page managed by BaiLongma. Multiple simultaneous managed tabs are not supported; use browser_navigate to replace the current page.', schema: objectSchema({ action: { type: 'string', enum: ['list'] } }) },
-  browser_take_screenshot: { description: 'Capture the active BaiLongma Chrome page. The result includes a persisted image_path; if the user asked to receive or see the image, immediately deliver that path with send_message(image_path=...). Capture alone is not delivery.', schema: objectSchema({ full_page: boolean('Capture the entire page.'), type: { type: 'string', enum: ['png', 'jpeg', 'webp'] } }) },
-  browser_console_messages: { description: 'List console messages from the active BaiLongma Chrome page.', schema: objectSchema({ page_size: number('Maximum number of messages.') }) },
-  browser_resize: { description: 'Resize the active BaiLongma Chrome window viewport.', schema: objectSchema({ width: number('Viewport width.'), height: number('Viewport height.') }, ['width', 'height']) },
-  browser_close: { description: 'Close BaiLongma\'s one managed live page without deleting its dedicated profile data. A later browser action creates a fresh managed page automatically.', schema: objectSchema() },
+  browser_tabs: { description: 'List the one live page managed by ArkBrain-Agent. Multiple simultaneous managed tabs are not supported; use browser_navigate to replace the current page.', schema: objectSchema({ action: { type: 'string', enum: ['list'] } }) },
+  browser_take_screenshot: { description: 'Capture the active ArkBrain-Agent Chrome page. The result includes a persisted image_path; if the user asked to receive or see the image, immediately deliver that path with send_message(image_path=...). Capture alone is not delivery.', schema: objectSchema({ full_page: boolean('Capture the entire page.'), type: { type: 'string', enum: ['png', 'jpeg', 'webp'] } }) },
+  browser_console_messages: { description: 'List console messages from the active ArkBrain-Agent Chrome page.', schema: objectSchema({ page_size: number('Maximum number of messages.') }) },
+  browser_resize: { description: 'Resize the active ArkBrain-Agent Chrome window viewport.', schema: objectSchema({ width: number('Viewport width.'), height: number('Viewport height.') }, ['width', 'height']) },
+  browser_close: { description: 'Close ArkBrain-Agent\'s one managed live page without deleting its dedicated profile data. A later browser action creates a fresh managed page automatically.', schema: objectSchema() },
 })
 
 function firstUid(args = {}) {
@@ -96,7 +96,7 @@ function searchSubmitStep() {
     browserSearchSubmit: true,
     arguments: {
       function: `() => {
-        const __bailongmaSearchSubmit = true
+        const __arkbrainSearchSubmit = true
         const active = document.activeElement
         const candidates = [
           active,
@@ -193,30 +193,30 @@ export function resolveStandaloneNodeModulePath(filePath, { existsSync = fs.exis
   return existsSync(unpacked) ? unpacked : resolved
 }
 
-export function resolveChromeDevtoolsCli({ cliPath = process.env.BAILONGMA_CHROME_DEVTOOLS_MCP_CLI } = {}) {
+export function resolveChromeDevtoolsCli({ cliPath = process.env.ARKBRAIN_CHROME_DEVTOOLS_MCP_CLI } = {}) {
   if (String(cliPath || '').trim()) return resolveStandaloneNodeModulePath(String(cliPath).trim())
   try {
     const packagePath = require.resolve('chrome-devtools-mcp/package.json')
     const entry = path.join(path.dirname(packagePath), 'build', 'src', 'bin', 'chrome-devtools-mcp.js')
     if (fs.existsSync(entry)) return resolveStandaloneNodeModulePath(entry)
   } catch {}
-  throw new Error('Pinned chrome-devtools-mcp dependency is unavailable. Reinstall BaiLongma dependencies.')
+  throw new Error('Pinned chrome-devtools-mcp dependency is unavailable. Reinstall ArkBrain-Agent dependencies.')
 }
 
 export function createBuiltInChromeDevtoolsServer({
   endpoint,
   cliPath,
-  command = process.env.BAILONGMA_MCP_NODE_PATH || process.execPath,
+  command = process.env.ARKBRAIN_MCP_NODE_PATH || process.execPath,
   electronRuntime = command === process.execPath && Boolean(process.versions.electron),
 } = {}) {
   const browserUrl = String(endpoint || '').trim()
   const parsed = new URL(browserUrl)
   if (parsed.protocol !== 'http:' || parsed.hostname !== '127.0.0.1' || !parsed.port) {
-    throw new Error('BaiLongma Chrome DevTools endpoint must be http://127.0.0.1:<port>')
+    throw new Error('ArkBrain-Agent Chrome DevTools endpoint must be http://127.0.0.1:<port>')
   }
   return {
     id: BUILTIN_CHROME_DEVTOOLS_ID,
-    name: 'BaiLongma Dedicated Chrome',
+    name: 'ArkBrain-Agent Dedicated Chrome',
     enabled: true,
     transport: 'stdio',
     command,
@@ -247,11 +247,11 @@ export function createBuiltInChromeDevtoolsServer({
     persistent: true,
     headed: true,
     loopbackOnly: true,
-    profile: 'bailongma_dedicated_chrome',
+    profile: 'arkbrain_dedicated_chrome',
   }
 }
 
-// Convert the established Bailongma browser_* input contract into the pinned
+// Convert the established ArkBrain-Agent browser_* input contract into the pinned
 // Chrome DevTools MCP 1.6.0 contract. The final snapshot step preserves the
 // historical "action returns fresh page state" behavior.
 export function adaptBrowserToolCall(name, args = {}) {
@@ -307,7 +307,7 @@ export function adaptBrowserToolCall(name, args = {}) {
     case 'browser_handle_dialog': return [{ remoteName: 'handle_dialog', arguments: { action: String(args.action || ''), ...(args.prompt_text ? { promptText: String(args.prompt_text) } : {}) } }, snapshotStep()]
     case 'browser_tabs': {
       const action = String(args.action || 'list').toLowerCase()
-      if (action !== 'list') throw new TypeError('BaiLongma manages one live page; browser_tabs supports action="list" only. Use browser_navigate to replace it.')
+      if (action !== 'list') throw new TypeError('ArkBrain-Agent manages one live page; browser_tabs supports action="list" only. Use browser_navigate to replace it.')
       return [{ remoteName: 'list_pages', arguments: {} }]
     }
     case 'browser_take_screenshot': return [{ remoteName: 'take_screenshot', arguments: { format: String(args.type || 'png'), ...(args.full_page === true ? { fullPage: true } : {}) } }]

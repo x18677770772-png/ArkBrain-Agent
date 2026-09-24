@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Bailongma 正在启动</title>
+  <title>ArkBrain-Agent 正在启动</title>
   <style>
     :root {
       color-scheme: dark;
@@ -336,7 +336,7 @@
     }
   </style>
   <script>
-    if (window.bailongma?.isElectron && window.bailongma?.platform === 'win32') {
+    if (window.arkbrain?.isElectron && window.arkbrain?.platform === 'win32') {
       document.documentElement.classList.add('windows-titlebar-overlay');
     }
   </script>
@@ -348,7 +348,7 @@
       <div class="brand-row">
         <div class="mark">BL</div>
         <div class="brand">
-          <strong>Bailongma</strong>
+          <strong>ArkBrain-Agent</strong>
           <span id="version">Desktop Agent</span>
         </div>
       </div>
@@ -453,7 +453,7 @@
     render(latestState);
     setInterval(updateElapsed, 200);
 
-    const bridge = window.bailongma;
+    const bridge = window.arkbrain;
     if (bridge) {
       const setFullScreenClass = (fullscreen) => {
         document.documentElement.classList.toggle('window-fullscreen', Boolean(fullscreen));

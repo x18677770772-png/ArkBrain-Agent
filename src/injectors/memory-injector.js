@@ -89,7 +89,7 @@ export async function runMemoryInjector({
       })
     : null
 
-  const agentName = getConfig('agent_name') || '小白龙'
+  const agentName = getConfig('agent_name') || '方舟大脑'
   const selfSnapshot = computeSelfSnapshot({
     conversationWindow: participant.conversationWindow,
     actionLog,

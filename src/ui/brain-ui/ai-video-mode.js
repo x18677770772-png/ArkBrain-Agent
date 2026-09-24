@@ -38,7 +38,7 @@ export function initAIVideoMode() {
 
   function setActive(on){
     active=!!on; document.body.classList.toggle("aivideo-mode", active);
-    if(active){ try{ window.bailongmaMedia&&window.bailongmaMedia.controlVideo&&window.bailongmaMedia.controlVideo({action:"pause"}); }catch(e){} document.body.classList.remove("video-mode"); }
+    if(active){ try{ window.arkbrainMedia&&window.arkbrainMedia.controlVideo&&window.arkbrainMedia.controlVideo({action:"pause"}); }catch(e){} document.body.classList.remove("video-mode"); }
     syncDraft(true);   // 开/关状态立即同步
   }
 
@@ -177,7 +177,7 @@ export function initAIVideoMode() {
   function openPanel(configured){
     setActive(true);
     hydrateHistory();   // 每次打开都拉一次历史，重建之前生成的视频队列
-    if(configured===false){ composeErr.textContent="尚未配置火山方舟（Seedance）API Key —— 把 key 发给小白龙即可（例如「火山视频 你的APIKey」），配置后就能在这里生成。"; composeErr.hidden=false; }
+    if(configured===false){ composeErr.textContent="尚未配置火山方舟（Seedance）API Key —— 把 key 发给方舟大脑即可（例如「火山视频 你的APIKey」），配置后就能在这里生成。"; composeErr.hidden=false; }
     else composeErr.hidden=true;
     setTimeout(function(){ try{ promptInput.focus(); }catch(e){} },60);
   }
@@ -213,8 +213,8 @@ export function initAIVideoMode() {
     if(action==="ready"){ job.status="done"; job.videoUrl=data.videoUrl; renderQueue(); if(!active) setActive(true); loadPlayer(job); return; }
     if(action==="error"){ job.status="fail"; job.error=data.message||"生成失败"; renderQueue(); return; }
   }
-  window.addEventListener("bailongma:aivideo", function(e){ handle(e.detail||{}); });
-  window.bailongmaAIVideo={ handle:handle, open:openPanel, close:closePanel };
+  window.addEventListener("arkbrain:aivideo", function(e){ handle(e.detail||{}); });
+  window.arkbrainAIVideo={ handle:handle, open:openPanel, close:closePanel };
 
   renderDropzone(); updateMode(); renderQueue(); autoGrow();
   hydrateHistory();   // 初始化即重建一次（覆盖 app 重启/渲染进程重载后的历史恢复）

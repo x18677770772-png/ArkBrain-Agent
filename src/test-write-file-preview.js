@@ -15,18 +15,18 @@ function contentOf(source) {
   return extractPartialJsonStringValue(source, ['content'])
 }
 
-globalThis.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS = 0
+globalThis.__ARKBRAIN_WRITE_PREVIEW_AUTO_CLOSE_MS = 0
 
 {
   const previousBridge = globalThis.terminalStreamBridge
-  const previousReader = globalThis.getBailongmaWindowLayoutSnapshot
+  const previousReader = globalThis.getArkBrainWindowLayoutSnapshot
   const bridgeEvents = []
   globalThis.terminalStreamBridge = {
     emit(name, payload) {
       bridgeEvents.push({ name, payload })
     },
   }
-  globalThis.getBailongmaWindowLayoutSnapshot = () => ({
+  globalThis.getArkBrainWindowLayoutSnapshot = () => ({
     displays: [],
     windows: [],
     terminal_stream_window: null,
@@ -37,7 +37,7 @@ globalThis.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS = 0
   assert.strictEqual(opening.already_open, false)
   assert.strictEqual(bridgeEvents.filter(event => event.name === 'open').length, 1)
 
-  globalThis.getBailongmaWindowLayoutSnapshot = () => ({
+  globalThis.getArkBrainWindowLayoutSnapshot = () => ({
     displays: [],
     windows: [{
       kind: 'terminal_stream',
@@ -63,8 +63,8 @@ globalThis.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS = 0
 
   if (previousBridge) globalThis.terminalStreamBridge = previousBridge
   else delete globalThis.terminalStreamBridge
-  if (previousReader) globalThis.getBailongmaWindowLayoutSnapshot = previousReader
-  else delete globalThis.getBailongmaWindowLayoutSnapshot
+  if (previousReader) globalThis.getArkBrainWindowLayoutSnapshot = previousReader
+  else delete globalThis.getArkBrainWindowLayoutSnapshot
 }
 
 {
@@ -213,8 +213,8 @@ globalThis.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS = 0
     hold_open: true,
   })
   recordTerminalStreamEvent({ action: 'write', stream_id: 'write_file', text: '# Diary\n\nBody' })
-  const previousReader = globalThis.getBailongmaWindowLayoutSnapshot
-  globalThis.getBailongmaWindowLayoutSnapshot = () => ({
+  const previousReader = globalThis.getArkBrainWindowLayoutSnapshot
+  globalThis.getArkBrainWindowLayoutSnapshot = () => ({
     displays: [],
     windows: [
       {
@@ -234,12 +234,12 @@ globalThis.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS = 0
   assert.match(context, /artifact_path=diary\.md/)
   assert.match(context, /force=true/)
   assert.match(context, /Do not tell the user no preview window exists/)
-  globalThis.getBailongmaWindowLayoutSnapshot = () => ({ displays: [], windows: [] })
+  globalThis.getArkBrainWindowLayoutSnapshot = () => ({ displays: [], windows: [] })
   assert.match(formatTerminalStreamContext(), /visible_window: no/)
   if (previousReader) {
-    globalThis.getBailongmaWindowLayoutSnapshot = previousReader
+    globalThis.getArkBrainWindowLayoutSnapshot = previousReader
   } else {
-    delete globalThis.getBailongmaWindowLayoutSnapshot
+    delete globalThis.getArkBrainWindowLayoutSnapshot
   }
 }
 
@@ -279,6 +279,6 @@ globalThis.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS = 0
   assert.strictEqual(getTerminalStreamSnapshot('write_file').closed, true)
 }
 
-delete globalThis.__BAILONGMA_WRITE_PREVIEW_AUTO_CLOSE_MS
+delete globalThis.__ARKBRAIN_WRITE_PREVIEW_AUTO_CLOSE_MS
 
 console.log('test-write-file-preview passed')

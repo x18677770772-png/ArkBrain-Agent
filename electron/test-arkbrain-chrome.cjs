@@ -6,13 +6,13 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const {
-  BaiLongmaChromeError,
+  ArkBrainChromeError,
   chromeLaunchArgs,
-  createBaiLongmaChromeManager,
+  createArkBrainChromeManager,
   isLoopbackDevtoolsUrl,
   resolveDedicatedProfileDir,
   resolveGoogleChromeExecutable,
-} = require('./bailongma-chrome.cjs')
+} = require('./arkbrain-chrome.cjs')
 const {
   bundledBrowserRoot,
   bundledBrowserTarget,
@@ -45,11 +45,11 @@ async function rejectsCode(promise, code, label) {
 }
 
 async function main() {
-  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-chrome-profile-'))
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-chrome-profile-'))
   try {
     const profileDir = resolveDedicatedProfileDir(userDataDir)
-    check(profileDir === path.join(userDataDir, 'browser-profiles', 'bailongma-chrome'),
-      'dedicated profile is always below BaiLongma application data')
+    check(profileDir === path.join(userDataDir, 'browser-profiles', 'arkbrain-chrome'),
+      'dedicated profile is always below ArkBrain-Agent application data')
     check(!profileDir.includes(path.join('Google', 'Chrome', 'Default')),
       'dedicated profile never resolves to the user default Chrome profile')
 
@@ -113,7 +113,7 @@ async function main() {
 
     const children = []
     const launches = []
-    const manager = createBaiLongmaChromeManager({
+    const manager = createArkBrainChromeManager({
       userDataDir,
       resolveExecutable: () => '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       findPort: async () => 9222 + children.length,
@@ -128,27 +128,27 @@ async function main() {
       logger: { info() {}, warn() {} },
     })
     const started = await manager.start()
-    check(started.endpoint === 'http://127.0.0.1:9222' && started.ownedByBaiLongma === true,
+    check(started.endpoint === 'http://127.0.0.1:9222' && started.ownedByArkBrain === true,
       'manager starts exactly one owned dedicated Chrome process')
     check(launches.length === 1 && launches[0].launchArgs.includes(`--user-data-dir=${profileDir}`),
       'launch never imports, copies, or attaches a user Chrome profile')
 
     children[0].emit('exit', 0, null)
-    check(manager.getState().status === 'idle' && manager.getState().ownedByBaiLongma === false,
+    check(manager.getState().status === 'idle' && manager.getState().ownedByArkBrain === false,
       'user-closing the dedicated Chrome window clears ownership and connection state')
     const recovered = await manager.ensureEndpoint()
     check(recovered === 'http://127.0.0.1:9223' && children.length === 2,
       'a later browser action can recover by launching a new dedicated Chrome instance')
     const stopped = await manager.stopOwnedChrome()
     check(stopped.closed === true && children[1].kills === 1,
-      'application shutdown closes only the Chrome process BaiLongma started')
+      'application shutdown closes only the Chrome process ArkBrain-Agent started')
 
-    const reusedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-chrome-reused-'))
+    const reusedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-chrome-reused-'))
     const reusedProfile = resolveDedicatedProfileDir(reusedDir)
     fs.mkdirSync(reusedProfile, { recursive: true })
     fs.writeFileSync(path.join(reusedProfile, 'DevToolsActivePort'), '9333\n/devtools/browser/test')
     let reusableSpawned = false
-    const reusable = createBaiLongmaChromeManager({
+    const reusable = createArkBrainChromeManager({
       userDataDir: reusedDir,
       resolveExecutable: () => '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       spawn: () => { reusableSpawned = true; return childProcess() },
@@ -158,11 +158,11 @@ async function main() {
     const existing = await reusable.start()
     const untouched = await reusable.stopOwnedChrome()
     check(existing.reused === true && !reusableSpawned && untouched.owned === false,
-      'an already-running dedicated profile may be reused but is never killed as BaiLongma-owned')
+      'an already-running dedicated profile may be reused but is never killed as ArkBrain-owned')
     fs.rmSync(reusedDir, { recursive: true, force: true })
 
-    const portFailure = createBaiLongmaChromeManager({
-      userDataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-chrome-port-')),
+    const portFailure = createArkBrainChromeManager({
+      userDataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-chrome-port-')),
       resolveExecutable: () => '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       findPort: async () => { throw new Error('in use') },
       logger: { info() {}, warn() {} },
@@ -170,8 +170,8 @@ async function main() {
     await rejectsCode(portFailure.start(), 'DEBUG_PORT_UNAVAILABLE', 'unavailable loopback debug port gives a recoverable error')
 
     // Set up a ready endpoint using a manager with a probe that changes after start.
-    const recoverable = createBaiLongmaChromeManager({
-      userDataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-chrome-mcp-')),
+    const recoverable = createArkBrainChromeManager({
+      userDataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-chrome-mcp-')),
       resolveExecutable: () => '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
       findPort: async () => 9445,
       spawn: () => childProcess(),
@@ -193,6 +193,6 @@ main().catch(error => {
   console.error(error.stack || error)
   process.exitCode = 1
 }).finally(() => {
-  if (failed === 0) console.log('All BaiLongma dedicated Chrome lifecycle tests passed.')
+  if (failed === 0) console.log('All ArkBrain-Agent dedicated Chrome lifecycle tests passed.')
   else process.exitCode = 1
 })

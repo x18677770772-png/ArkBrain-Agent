@@ -4,7 +4,7 @@ import path from 'path'
 import { analyzeLocalServiceCommand } from './runtime/local-service-safety.js'
 import { shouldInjectLocalServiceSafety } from './prompt-blocks/local-service-safety.js'
 
-const sandboxProject = path.join(os.tmpdir(), 'bailongma-sandbox', 'projects', 'demo')
+const sandboxProject = path.join(os.tmpdir(), 'arkbrain-sandbox', 'projects', 'demo')
 
 assert.equal(
   shouldInjectLocalServiceSafety({ userMessage: '写一个网页游戏并在浏览器打开', coding: true }),

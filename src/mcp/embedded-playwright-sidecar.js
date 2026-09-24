@@ -20,9 +20,9 @@ function readJsonEnvironment(name) {
 async function main() {
   exposeOfficialNavigationTools()
   const target = normalizeEmbeddedBrowserTarget(
-    readJsonEnvironment('BAILONGMA_EMBEDDED_PLAYWRIGHT_TARGET'),
+    readJsonEnvironment('ARKBRAIN_EMBEDDED_PLAYWRIGHT_TARGET'),
   )
-  const mcpConfig = readJsonEnvironment('BAILONGMA_EMBEDDED_PLAYWRIGHT_CONFIG')
+  const mcpConfig = readJsonEnvironment('ARKBRAIN_EMBEDDED_PLAYWRIGHT_CONFIG')
   const browser = await chromium.connectOverCDP(target.cdpEndpoint, { timeout: 15_000 })
   const { context, page } = await findEmbeddedBrowserPage(browser, target.targetId)
   const facade = createSinglePageContextFacade(context, page)

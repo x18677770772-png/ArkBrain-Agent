@@ -86,7 +86,7 @@ request.shouldReportPartialResults = true
 request.taskHint = .dictation
 request.contextualStrings = [
   "API", "ASR", "TTS", "Mac", "macOS", "OpenAI", "DeepSeek", "MiniMax",
-  "Claude", "Gemini", "ChatGPT", "GPT", "Agent", "Bailongma", "Longma",
+  "Claude", "Gemini", "ChatGPT", "GPT", "Agent", "ArkBrain-Agent", "Longma",
   "GitHub", "Electron", "JavaScript", "TypeScript", "Python", "Swift",
   "WebSocket", "HTTP", "localhost", "prompt", "token", "model",
 ]

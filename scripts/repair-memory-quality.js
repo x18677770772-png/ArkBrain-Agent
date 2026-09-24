@@ -1,4 +1,4 @@
-// Conservative memory-quality repair for older Bailongma databases.
+// Conservative memory-quality repair for older ArkBrain-Agent databases.
 //
 // Default mode is dry-run. Use --apply to write:
 //   electron ./scripts/repair-memory-quality.js --apply

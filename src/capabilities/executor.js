@@ -76,7 +76,7 @@ function inferFileWritePreviewOutcome(result = '') {
 
 function getDesktopWindowLayoutSnapshot() {
   try {
-    const reader = globalThis?.getBailongmaWindowLayoutSnapshot
+    const reader = globalThis?.getArkBrainWindowLayoutSnapshot
     return typeof reader === 'function' ? reader() : null
   } catch {
     return null
@@ -315,7 +315,7 @@ async function executeToolUnchecked(name, args, context = {}) {
           return JSON.stringify({
             ok: false,
             tool: 'music',
-            error: 'Bailongma local music is unavailable on macOS; use system_music for Music.app',
+            error: 'ArkBrain-Agent local music is unavailable on macOS; use system_music for Music.app',
           })
         }
         // 注意：放歌/搜索等耗时工具的"在找…"即时回应已统一在 llm.js 工具循环（ackSent）里发，
@@ -954,7 +954,7 @@ function unverifiedDeliveryNotice() {
       if (t === 'exec_command' && /curl|invoke-webrequest|invoke-restmethod|--check|--test/i.test(summary)) return ''
       if (t === 'read_file') return ''   // 读回产物也算一种核对
     }
-    return '注意：本任务产出了文件/起了服务，但收尾前没有任何验证动作（白龙马专用 Chrome browser_navigate 自动页面快照、browser_snapshot/browser_find、review_work 或读回产物）。任务已照常收尾——如果你还没亲自确认成果真的能跑，现在就去验证；发现问题立刻修复并如实告知用户，别等用户先发现。'
+    return '注意：本任务产出了文件/起了服务，但收尾前没有任何验证动作（方舟大脑专用 Chrome browser_navigate 自动页面快照、browser_snapshot/browser_find、review_work 或读回产物）。任务已照常收尾——如果你还没亲自确认成果真的能跑，现在就去验证；发现问题立刻修复并如实告知用户，别等用户先发现。'
   } catch {
     return ''
   }
@@ -1075,7 +1075,7 @@ function execTerminalStream({
   action = 'write',
   text = '',
   stream_id = 'default',
-  title = 'Bailongma Terminal Stream',
+  title = 'ArkBrain-Agent Terminal Stream',
   newline = true,
   level = 'info',
   format = '',
@@ -1094,7 +1094,7 @@ function execTerminalStream({
 
   const bridge = global.terminalStreamBridge
   const streamId = String(stream_id || 'default').trim() || 'default'
-  const cleanTitle = String(title || 'Bailongma Terminal Stream').trim() || 'Bailongma Terminal Stream'
+  const cleanTitle = String(title || 'ArkBrain-Agent Terminal Stream').trim() || 'ArkBrain-Agent Terminal Stream'
   const normalizedHoldOpen = normalizeOptionalBoolean(hold_open)
   const forceClose = normalizeOptionalBoolean(force) === true
 
@@ -1264,10 +1264,10 @@ function agentDocsHint(agent) {
   const hint = {}
   if (agent.docs_url) {
     hint.docs_url = agent.docs_url
-    hint.docs_hint = `调用失败。建议用白龙马专用 Google Chrome 的 browser_navigate 打开 "${agent.docs_url}" 并读取其结果自动附带的页面快照；需要定向查找时再用 browser_find，查阅 ${agent.name} 当前版本（${agent.version || 'unknown'}）的使用文档，确认正确的参数格式后重试。`
+    hint.docs_hint = `调用失败。建议用方舟大脑专用 Google Chrome 的 browser_navigate 打开 "${agent.docs_url}" 并读取其结果自动附带的页面快照；需要定向查找时再用 browser_find，查阅 ${agent.name} 当前版本（${agent.version || 'unknown'}）的使用文档，确认正确的参数格式后重试。`
   } else if (agent.docs_search_query) {
     hint.docs_search_query = agent.docs_search_query
-    hint.docs_hint = `调用失败。建议用白龙马专用 Google Chrome 的 browser_navigate 打开搜索引擎查询 "${agent.docs_search_query}"，读取其结果自动附带的页面快照；需要定向查找时再用 browser_find，查找 ${agent.name} 当前版本（${agent.version || 'unknown'}）的使用文档，确认正确的调用方式后重试。`
+    hint.docs_hint = `调用失败。建议用方舟大脑专用 Google Chrome 的 browser_navigate 打开搜索引擎查询 "${agent.docs_search_query}"，读取其结果自动附带的页面快照；需要定向查找时再用 browser_find，查找 ${agent.name} 当前版本（${agent.version || 'unknown'}）的使用文档，确认正确的调用方式后重试。`
   }
   return hint
 }
@@ -1368,7 +1368,7 @@ function execGrantAgentDelegation({ allowed, note = '' }) {
     return toolJson({ ok: false, error: e.message })
   }
   const msg = allowed
-    ? `已记录授权：Bailongma 可以指挥本地 AI 小伙伴工作。`
+    ? `已记录授权：ArkBrain-Agent 可以指挥本地 AI 小伙伴工作。`
     : `已记录：用户暂不授权 Agent 委托功能。`
   return toolJson({ ok: true, allowed: !!allowed, note: String(note || ''), message: msg })
 }

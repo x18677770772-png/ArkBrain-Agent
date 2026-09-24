@@ -407,7 +407,7 @@ function setPanelVisible(visible, source = 'brain-ui') {
   const btn = document.getElementById('hotspot-btn');
   if (btn) btn.classList.toggle('active', visible);
 
-  window.dispatchEvent(new CustomEvent('bailongma:hotspot-mode', {
+  window.dispatchEvent(new CustomEvent('arkbrain:hotspot-mode', {
     detail: { active: visible },
   }));
   reportHotspotState(visible, source);
@@ -428,10 +428,10 @@ export function setHotspotMode(visible, { source = 'brain-ui' } = {}) {
     earthLifecycle.close();
     restoreVoicePanel();
   } else {
-    // 关闭其他媒体模式（互斥）——经 bailongmaMedia 真正关停（停音乐/摄像头并派发事件），
+    // 关闭其他媒体模式（互斥）——经 arkbrainMedia 真正关停（停音乐/摄像头并派发事件），
     // 而不是只删 body class（那样音乐继续播、摄像头灯亮、语音 suspend 无法 resume）。
-    // 不能直接 import media-modes（会循环依赖），只经 window.bailongmaMedia。
-    window.bailongmaMedia?.closeAllMediaModes?.();
+    // 不能直接 import media-modes（会循环依赖），只经 window.arkbrainMedia。
+    window.arkbrainMedia?.closeAllMediaModes?.();
 
     setPanelVisible(true, source);
     // 同步进入 loading/ready，保证热点面板第一次可见绘制时中央区域已有反馈。

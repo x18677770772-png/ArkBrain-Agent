@@ -48,7 +48,7 @@ assert.match(latest, new RegExp(`sha512:\\s*${sha512.replaceAll('+', '\\+').repl
 assert.match(latest, new RegExp(`size:\\s*${appImageSize}\\s*$`, 'm'))
 assert.match(latest, new RegExp(`blockMapSize:\\s*${blockMapSize}\\s*$`, 'm'))
 
-const extractionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-linux-smoke-'))
+const extractionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-linux-smoke-'))
 try {
   const extracted = spawnSync(appImage, ['--appimage-extract'], {
     cwd: extractionRoot,
@@ -63,7 +63,7 @@ try {
   const resources = path.join(appRoot, 'resources')
   const appAsar = path.join(resources, 'app.asar')
   const appUnpacked = `${appAsar}.unpacked`
-  assertElfX64(executable, 'packaged Bailongma executable')
+  assertElfX64(executable, 'packaged ArkBrain-Agent executable')
   assertElfX64(path.join(resources, 'node-runtime', 'node'), 'bundled Node runtime')
   assertElfX64(
     path.join(appUnpacked, 'node_modules', 'better-sqlite3', 'build', 'Release', 'better_sqlite3.node'),

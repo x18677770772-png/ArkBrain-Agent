@@ -39,21 +39,21 @@ npm run upload:mac
 预期文件为：
 
 ```text
-dist/Bailongma-<version>-mac-x64.dmg
-dist/Bailongma-<version>-mac-x64.dmg.blockmap
-dist/Bailongma-<version>-mac-x64.zip
-dist/Bailongma-<version>-mac-x64.zip.blockmap
-dist/Bailongma-<version>-mac-arm64.dmg
-dist/Bailongma-<version>-mac-arm64.dmg.blockmap
-dist/Bailongma-<version>-mac-arm64.zip
-dist/Bailongma-<version>-mac-arm64.zip.blockmap
+dist/ArkBrain-<version>-mac-x64.dmg
+dist/ArkBrain-<version>-mac-x64.dmg.blockmap
+dist/ArkBrain-<version>-mac-x64.zip
+dist/ArkBrain-<version>-mac-x64.zip.blockmap
+dist/ArkBrain-<version>-mac-arm64.dmg
+dist/ArkBrain-<version>-mac-arm64.dmg.blockmap
+dist/ArkBrain-<version>-mac-arm64.zip
+dist/ArkBrain-<version>-mac-arm64.zip.blockmap
 ```
 
 不要直接上传 `dist/latest-mac.yml`。连续构建两个架构时，这个文件只代表最后构建的架构；发布脚本会为两个架构重新生成正确的独立清单。
 
-不要复用或手工修补旧 `dist/` 产物。任何对 app、ZIP、DMG 的重新签名、公证或 staple 都会改变最终字节；此后必须重新生成相应 blockmap 和发布清单哈希。正式构建拒绝 `BAILONGMA_CODESIGN_TIMESTAMP=none`。
+不要复用或手工修补旧 `dist/` 产物。任何对 app、ZIP、DMG 的重新签名、公证或 staple 都会改变最终字节；此后必须重新生成相应 blockmap 和发布清单哈希。正式构建拒绝 `ARKBRAIN_CODESIGN_TIMESTAMP=none`。
 
-默认公证凭据只通过 macOS Keychain profile `BailongmaNotary` 使用。脚本不会读取或向 Release Console 返回钥匙串密码、App 专用密码或 API 私钥。
+默认公证凭据只通过 macOS Keychain profile `ArkBrainNotary` 使用。脚本不会读取或向 Release Console 返回钥匙串密码、App 专用密码或 API 私钥。
 
 构建会先并行提交 x64、arm64 app，等待 Apple 接受并 staple 后再生成 DMG/ZIP；随后并行提交两个 DMG，最终统一 staple 并重建 blockmap。若 Apple 在上传完成、Submission 已进入 `In Progress` 后出现连接超时，脚本会按 Submission ID 回查并继续等待，不会产生重复提交。Apple 队列未返回终态时，产物不得发布。
 
@@ -62,8 +62,8 @@ dist/Bailongma-<version>-mac-arm64.zip.blockmap
 构建 hook 会自动执行等价检查；手工排查时可对解包后的 app 执行：
 
 ```bash
-codesign --verify --deep --strict --verbose=4 "/path/to/Bailongma.app"
-codesign --display --verbose=4 "/path/to/Bailongma.app/Contents/MacOS/Bailongma"
+codesign --verify --deep --strict --verbose=4 "/path/to/ArkBrain-Agent.app"
+codesign --display --verbose=4 "/path/to/ArkBrain-Agent.app/Contents/MacOS/ArkBrain-Agent"
 ```
 
 每个嵌套 Mach-O 还会单独检查 `Timestamp=`、`flags=...runtime`、Developer Team `XD5VMPN37G` 和单一目标架构。`--deep` 只用于最终验证，不用于签名。
@@ -109,7 +109,7 @@ stable/mac/arm64/
 
 每个目录都有独立的 `latest-mac.yml`。带新更新请求头的客户端会下载 OSS 短时签名地址；尚未升级的旧客户端暂时从香港兼容源站下载。
 
-## Bailongma Release Console（本地 Web UI）
+## ArkBrain-Agent Release Console（本地 Web UI）
 
 在项目根目录运行：
 
@@ -117,7 +117,7 @@ stable/mac/arm64/
 npm run release:ui
 ```
 
-命令会启动只监听 `127.0.0.1` 随机端口的本地 Node.js 服务，并用默认浏览器打开 Bailongma Release Console。关闭页面不会终止后端正在维护的任务；停止终端中的服务才会结束控制台。
+命令会启动只监听 `127.0.0.1` 随机端口的本地 Node.js 服务，并用默认浏览器打开 ArkBrain-Agent Release Console。关闭页面不会终止后端正在维护的任务；停止终端中的服务才会结束控制台。
 
 控制台提供：
 
@@ -142,7 +142,7 @@ npm run release:ui
 控制台默认禁止 CORS，校验 Host、Origin 和随机会话令牌，不提供任意命令或任意上传路径。浏览器不会收到 SSH 配置、OSS AccessKey、证书私钥或 OSS 签名 URL。发布历史保存在：
 
 ```text
-~/Library/Application Support/Bailongma Release Console/releases/
+~/Library/Application Support/ArkBrain-Agent Release Console/releases/
 ```
 
 测试控制台安全边界与共享发布 engine：

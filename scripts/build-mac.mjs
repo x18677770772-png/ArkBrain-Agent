@@ -21,8 +21,8 @@ const requestedArchs = args.filter((arg) => supportedArchs.has(arg));
 const archs = requestedArchs.length > 0 ? requestedArchs : ['x64', 'arm64'];
 const shouldNotarize = !args.includes('no-notarize');
 
-if (String(process.env.BAILONGMA_CODESIGN_TIMESTAMP || '').trim().toLowerCase() === 'none') {
-  console.error('[build:mac] BAILONGMA_CODESIGN_TIMESTAMP=none is forbidden for release artifacts');
+if (String(process.env.ARKBRAIN_CODESIGN_TIMESTAMP || '').trim().toLowerCase() === 'none') {
+  console.error('[build:mac] ARKBRAIN_CODESIGN_TIMESTAMP=none is forbidden for release artifacts');
   process.exit(1);
 }
 
@@ -50,7 +50,7 @@ function cleanRequestedArtifacts() {
   const arch = archs[0];
   const dist = path.resolve('dist');
   const appOutDir = path.join(dist, arch === 'x64' ? 'mac' : 'mac-arm64');
-  const prefix = path.join(dist, `${pkg.productName || 'Bailongma'}-${pkg.version}-mac-${arch}`);
+  const prefix = path.join(dist, `${pkg.productName || 'ArkBrain-Agent'}-${pkg.version}-mac-${arch}`);
   const targets = [
     appOutDir,
     `${prefix}.zip`,
@@ -94,11 +94,11 @@ for (const arch of archs) {
   ]);
 
   console.log(`[build:mac] building signed ${arch} app${shouldNotarize ? ' and submitting it to Apple' : ' without Apple notarization'}`);
-  const previousMode = process.env.BAILONGMA_NOTARY_MODE;
-  process.env.BAILONGMA_NOTARY_MODE = shouldNotarize ? 'submit' : 'skip';
+  const previousMode = process.env.ARKBRAIN_NOTARY_MODE;
+  process.env.ARKBRAIN_NOTARY_MODE = shouldNotarize ? 'submit' : 'skip';
   run('node', ['./node_modules/electron-builder/cli.js', '--mac', 'dir', `--${arch}`]);
-  if (previousMode === undefined) delete process.env.BAILONGMA_NOTARY_MODE;
-  else process.env.BAILONGMA_NOTARY_MODE = previousMode;
+  if (previousMode === undefined) delete process.env.ARKBRAIN_NOTARY_MODE;
+  else process.env.ARKBRAIN_NOTARY_MODE = previousMode;
 }
 
 if (shouldNotarize) {
@@ -109,14 +109,14 @@ if (shouldNotarize) {
 for (const arch of archs) {
   const appOutDir = arch === 'x64' ? 'dist/mac' : 'dist/mac-arm64';
   console.log(`[build:mac] packaging ${shouldNotarize ? 'stapled ' : ''}${arch} app as DMG and update ZIP`);
-  const previousMode = process.env.BAILONGMA_NOTARY_MODE;
-  process.env.BAILONGMA_NOTARY_MODE = shouldNotarize ? 'submit' : 'skip';
+  const previousMode = process.env.ARKBRAIN_NOTARY_MODE;
+  process.env.ARKBRAIN_NOTARY_MODE = shouldNotarize ? 'submit' : 'skip';
   run('node', [
     './node_modules/electron-builder/cli.js', '--mac', 'dmg', 'zip', `--${arch}`,
-    '--prepackaged', `${appOutDir}/Bailongma.app`,
+    '--prepackaged', `${appOutDir}/ArkBrain-Agent.app`,
   ]);
-  if (previousMode === undefined) delete process.env.BAILONGMA_NOTARY_MODE;
-  else process.env.BAILONGMA_NOTARY_MODE = previousMode;
+  if (previousMode === undefined) delete process.env.ARKBRAIN_NOTARY_MODE;
+  else process.env.ARKBRAIN_NOTARY_MODE = previousMode;
 }
 
 if (shouldNotarize) {

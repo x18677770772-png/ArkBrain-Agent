@@ -149,7 +149,7 @@ export function redactLog(value) {
     .replace(/([?&](?:OSSAccessKeyId|Signature|Expires|security-token|x-oss-security-token)=)[^&#\s]+/gi, '$1[REDACTED]')
     .replace(/\b(?:LTAI|STS\.)[A-Za-z0-9._-]{8,}\b/g, '[REDACTED ACCESS KEY]')
     .replace(/\b(accessKey(?:ID|Secret)|secretAccessKey|privateKey|password)\s*[:=]\s*[^\s,;]+/gi, '$1=[REDACTED]')
-    .replace(/(https:\/\/download\.bailongma\.ai\/[^\s?]+)\?[^\s]+/gi, '$1?[REDACTED]')
+    .replace(/(https:\/\/download\.arkbrain\.ai\/[^\s?]+)\?[^\s]+/gi, '$1?[REDACTED]')
     .replace(/\bssh-(?:rsa|ed25519)\s+[A-Za-z0-9+/=]+(?:\s+[^\n]+)?/g, '[REDACTED SSH KEY]')
 }
 

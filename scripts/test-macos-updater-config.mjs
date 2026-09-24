@@ -14,24 +14,24 @@ import {
 
 const publish = [{
   provider: 'generic',
-  url: 'https://updates.bailongma.ai/stable/${os}/${arch}',
+  url: 'https://updates.arkbrain.ai/stable/${os}/${arch}',
   channel: 'latest',
 }]
 
 const x64 = createMacUpdaterConfig({ arch: 'x64', publish })
 assert.deepEqual(x64, {
   provider: 'generic',
-  url: 'https://updates.bailongma.ai/stable/mac/x64',
+  url: 'https://updates.arkbrain.ai/stable/mac/x64',
   channel: 'latest',
-  updaterCacheDirName: 'bailongma-updater',
+  updaterCacheDirName: 'arkbrain-updater',
 })
 
 const arm64 = createMacUpdaterConfig({ arch: 'arm64', publish })
 assert.deepEqual(arm64, {
   provider: 'generic',
-  url: 'https://updates.bailongma.ai/stable/mac/arm64',
+  url: 'https://updates.arkbrain.ai/stable/mac/arm64',
   channel: 'latest',
-  updaterCacheDirName: 'bailongma-updater',
+  updaterCacheDirName: 'arkbrain-updater',
 })
 
 assert.throws(
@@ -47,10 +47,10 @@ assert.throws(
   /publish configuration is missing/,
 )
 
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-updater-config-test-'))
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-updater-config-test-'))
 try {
   const apps = Object.fromEntries(['x64', 'arm64'].map(arch => {
-    const appPath = path.join(tempRoot, arch, 'Bailongma.app')
+    const appPath = path.join(tempRoot, arch, 'ArkBrain-Agent.app')
     fs.mkdirSync(path.join(appPath, 'Contents', 'Resources'), { recursive: true })
     return [arch, appPath]
   }))

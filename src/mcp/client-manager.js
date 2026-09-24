@@ -218,7 +218,7 @@ async function connectServer(server, { ClientClass = Client, TransportClass = St
   connections.set(server.id, connection)
 
   try {
-    const client = new ClientClass({ name: 'bailongma', version: '2.1.0' })
+    const client = new ClientClass({ name: 'arkbrain', version: '2.1.0' })
     const transport = new TransportClass({
       command: server.command,
       args: server.args,
@@ -279,7 +279,7 @@ async function connectServer(server, { ClientClass = Client, TransportClass = St
 }
 
 function chromeBridgeForDeps(deps = {}) {
-  const bridge = deps.chromeBridge || globalThis.bailongmaChromeBridge
+  const bridge = deps.chromeBridge || globalThis.arkbrainChromeBridge
   return bridge && typeof bridge.ensureEndpoint === 'function' ? bridge : null
 }
 
@@ -336,7 +336,7 @@ function trustedBuiltInChromeTool(name) {
   const descriptor = getBuiltInBrowserToolDescriptor(name)
   if (!descriptor) return null
   const server = connections.get(BUILTIN_CHROME_DEVTOOLS_ID)?.config
-    || { name: 'BaiLongma Dedicated Chrome', timeoutMs: 90_000 }
+    || { name: 'ArkBrain-Agent Dedicated Chrome', timeoutMs: 90_000 }
   return {
     alias: descriptor.name,
     remoteName: descriptor.name,
@@ -491,7 +491,7 @@ function formatMcpToolResult(tool, result, {
     remote_tool: tool.remoteName,
     ...(browserPreview ? { browser_preview: browserPreview } : {}),
     truncated: true,
-    note: 'MCP result exceeded the Bailongma text result limit',
+    note: 'MCP result exceeded the ArkBrain-Agent text result limit',
   }, null, 2)
 }
 
@@ -548,7 +548,7 @@ async function bindEmbeddedBrowserPage(connection, bridge, context = {}) {
   const page = pages.find(candidate => expectedUrls.has(candidate.url))
     || (sameManagedView ? pages.find(candidate => candidate.id === connection.embeddedPageId) : null)
   if (!page) {
-    throw new Error(`BaiLongma live browser target was not found in DevTools pages (${target.targetId || 'unknown target'})`)
+    throw new Error(`ArkBrain-Agent live browser target was not found in DevTools pages (${target.targetId || 'unknown target'})`)
   }
   await callToolWithScopedSignal(connection.client,
     { name: 'select_page', arguments: { pageId: page.id, bringToFront: false } },
@@ -703,7 +703,7 @@ async function resolveChromeToolSteps(name, args, connection, context = {}) {
   if (connection?.embeddedPageId != null && name === 'browser_tabs') {
     const action = String(args?.action || 'list').toLowerCase()
     if (action !== 'list') {
-      throw new TypeError('BaiLongma manages one live page; browser_tabs supports action="list" only. Use browser_navigate to replace it.')
+      throw new TypeError('ArkBrain-Agent manages one live page; browser_tabs supports action="list" only. Use browser_navigate to replace it.')
     }
     const target = connection.embeddedTarget || {}
     return {
@@ -748,7 +748,7 @@ async function resolveChromeToolSteps(name, args, connection, context = {}) {
 
 async function ensureBuiltInChromeConnectionUnlocked(deps = {}) {
   const bridge = chromeBridgeForDeps(deps)
-  if (!bridge) throw new Error('BaiLongma dedicated Chrome service is unavailable. Restart BaiLongma and try again.')
+  if (!bridge) throw new Error('ArkBrain-Agent dedicated Chrome service is unavailable. Restart ArkBrain-Agent and try again.')
   const endpoint = await bridge.ensureEndpoint()
   const desired = createBuiltInChromeDevtoolsServer({
     endpoint,
@@ -858,7 +858,7 @@ async function closeManagedBrowserWithoutCdp(name, context = {}) {
       ok: true,
       source: 'mcp',
       server_id: BUILTIN_CHROME_DEVTOOLS_ID,
-      server_name: 'BaiLongma Dedicated Chrome',
+      server_name: 'ArkBrain-Agent Dedicated Chrome',
       tool: name,
       remote_tool: name,
       content: [],
@@ -866,7 +866,7 @@ async function closeManagedBrowserWithoutCdp(name, context = {}) {
         mode: '',
         state: 'closed',
         action: name,
-        surface: 'bailongma_live_browser',
+        surface: 'arkbrain_live_browser',
         visible_window: false,
         profile: 'dedicated',
         page_closed: true,
@@ -885,7 +885,7 @@ async function captureChromeBrowserPreview(connection, tool, result, context = {
       mode,
       state: actuallyClosed ? 'closed' : 'ready',
       action: tool.remoteName,
-      surface: 'bailongma_live_browser',
+      surface: 'arkbrain_live_browser',
       visible_window: mode === 'window',
       profile: 'dedicated',
       ...(actuallyClosed ? { page_closed: true } : { page_reset: true }),
@@ -906,7 +906,7 @@ async function captureChromeBrowserPreview(connection, tool, result, context = {
         state: 'ready',
         action: tool.remoteName,
         renderer: 'webcontentsview',
-        surface: 'bailongma_live_browser',
+        surface: 'arkbrain_live_browser',
         native_view: true,
         web_contents_id: target.webContentsId,
         visible_window: mode === 'window',
@@ -921,7 +921,7 @@ async function captureChromeBrowserPreview(connection, tool, result, context = {
       state: 'ready',
       action: tool.remoteName,
       renderer: 'google-chrome',
-      surface: 'bailongma_chrome',
+      surface: 'arkbrain_chrome',
       visible_window: true,
       url: page.url,
       title: page.title,
@@ -939,7 +939,7 @@ async function captureChromeBrowserPreview(connection, tool, result, context = {
       action: tool.remoteName,
       ...(imageUrl ? { image_url: imageUrl } : { error: 'Chrome preview screenshot was unavailable' }),
       renderer: 'google-chrome',
-      surface: 'bailongma_chrome',
+      surface: 'arkbrain_chrome',
       visible_window: true,
       url: page.url,
       title: page.title,
@@ -989,7 +989,7 @@ export async function executeBuiltInChromeTool(remoteName, args = {}, context = 
     server_id: BUILTIN_CHROME_DEVTOOLS_ID,
     remote_tool: name,
     code: /closed|disconnect|endpoint/i.test(String(error?.message || error)) ? 'MCP_DISCONNECTED' : 'CHROME_MCP_FAILED',
-    error: `${error?.message || String(error)} Recovery: confirm BaiLongma dedicated Chrome is still open, then retry the browser action.`,
+    error: `${error?.message || String(error)} Recovery: confirm ArkBrain-Agent dedicated Chrome is still open, then retry the browser action.`,
   }, null, 2)
   try {
     return await withBuiltInChrome(context.mcpDeps || {}, async connection => {
@@ -1000,7 +1000,7 @@ export async function executeBuiltInChromeTool(remoteName, args = {}, context = 
       if (USER_ONLY_LOGIN_TOOLS.has(name) && await activePageRequiresUser(connection)) {
         return {
           isError: true,
-          content: [{ type: 'text', text: 'This is an account, Google OAuth, or X login page. BaiLongma opened its dedicated visible Google Chrome for you; complete every account, password, MFA, CAPTCHA, and consent step yourself, then ask me to take a snapshot to verify the resulting X page.' }],
+          content: [{ type: 'text', text: 'This is an account, Google OAuth, or X login page. ArkBrain-Agent opened its dedicated visible Google Chrome for you; complete every account, password, MFA, CAPTCHA, and consent step yourself, then ask me to take a snapshot to verify the resulting X page.' }],
           structuredContent: { code: 'USER_LOGIN_REQUIRED', user_action_required: true },
         }
       }
@@ -1129,7 +1129,7 @@ export async function executeBuiltInChromeTool(remoteName, args = {}, context = 
       const combined = {
         ...finalResult,
         content: parts,
-        __bailongmaClosurePerformed: closurePerformed && finalResult?.isError !== true,
+        __arkbrainClosurePerformed: closurePerformed && finalResult?.isError !== true,
       }
       if (beforeActionTarget) {
         combined.structuredContent = {
@@ -1175,17 +1175,17 @@ export async function executeBuiltInChromeTool(remoteName, args = {}, context = 
         }
       }
       if (name === 'browser_take_screenshot' && combined.isError !== true) {
-        combined.__bailongmaScreenshot = persistChromeScreenshot(combined)
-        if (!combined.__bailongmaScreenshot?.image_path) combined.isError = true
+        combined.__arkbrainScreenshot = persistChromeScreenshot(combined)
+        if (!combined.__arkbrainScreenshot?.image_path) combined.isError = true
       }
-      if (combined.__bailongmaClosurePerformed === true) {
+      if (combined.__arkbrainClosurePerformed === true) {
         const bridge = chromeBridgeForDeps(context.mcpDeps || {})
         await bridge?.closePage?.()
         connection.embeddedPageId = null
         connection.embeddedTarget = null
       }
       if (resultContainsProtectedLogin(combined)) {
-        combined.content.push({ type: 'text', text: 'Google/X authentication is now awaiting the user in the visible BaiLongma dedicated Chrome window. Do not type credentials, MFA codes, CAPTCHA responses, or OAuth consent. After the user finishes or cancels, use browser_snapshot to verify the real page state.' })
+        combined.content.push({ type: 'text', text: 'Google/X authentication is now awaiting the user in the visible ArkBrain-Agent dedicated Chrome window. Do not type credentials, MFA codes, CAPTCHA responses, or OAuth consent. After the user finishes or cancels, use browser_snapshot to verify the real page state.' })
         combined.structuredContent = { ...(combined.structuredContent || {}), user_action_required: true, login_verification_required: true }
       }
       return combined
@@ -1200,7 +1200,7 @@ export async function executeBuiltInChromeTool(remoteName, args = {}, context = 
         serverName: connection.config.name,
         timeoutMs: connection.config.timeoutMs,
         inputArgs: safeArgs,
-        closurePerformed: result.__bailongmaClosurePerformed === true,
+        closurePerformed: result.__arkbrainClosurePerformed === true,
       }
       // Keep screenshot capture in the same per-Chrome queue. The DevTools MCP
       // has one selected target, so another action must not slip between an
@@ -1209,7 +1209,7 @@ export async function executeBuiltInChromeTool(remoteName, args = {}, context = 
         .then(browserPreview => formatMcpToolResult(publicTool, result, {
           serverConfig: connection.config,
           browserPreview,
-          browserScreenshot: result.__bailongmaScreenshot || null,
+          browserScreenshot: result.__arkbrainScreenshot || null,
         }))
       connection.callQueue = formattedPromise.then(() => undefined, () => undefined)
       return await formattedPromise
@@ -1264,7 +1264,7 @@ export function getMcpStatus() {
   const configured = getRuntimeMcpServers()
   const builtIn = connections.get(BUILTIN_CHROME_DEVTOOLS_ID)?.config || {
     id: BUILTIN_CHROME_DEVTOOLS_ID,
-    name: 'BaiLongma Dedicated Chrome',
+    name: 'ArkBrain-Agent Dedicated Chrome',
     enabled: true,
     builtIn: true,
     chromeDevtools: true,
@@ -1280,7 +1280,7 @@ export function getMcpStatus() {
   }
 }
 
-globalThis.shutdownBailongmaMcpClients = shutdownMcpClients
+globalThis.shutdownArkBrainMcpClients = shutdownMcpClients
 
 export const __internal = {
   compactContentItem,

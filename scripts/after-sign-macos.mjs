@@ -12,7 +12,7 @@ import { assertMacUpdaterConfigFile, updaterConfigPathForApp } from './macos-upd
 
 const root = path.resolve(import.meta.dirname, '..')
 const entitlementsPath = path.join(root, 'build', 'entitlements.mac.plist')
-const notaryProfile = process.env.BAILONGMA_NOTARY_PROFILE || 'BailongmaNotary'
+const notaryProfile = process.env.ARKBRAIN_NOTARY_PROFILE || 'ArkBrainNotary'
 
 function run(command, args) {
   const result = spawnSync(command, args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
@@ -38,14 +38,14 @@ export default async function afterSignMac(context) {
 
   const signed = signAppRecursively(appPath, { entitlementsPath, speechHelperPath, nodeRuntimePath })
   const verified = verifySignedApp(appPath, { expectedArch, speechHelperPath, nodeRuntimePath })
-  if (process.env.BAILONGMA_NOTARY_MODE === 'skip') {
+  if (process.env.ARKBRAIN_NOTARY_MODE === 'skip') {
     console.log(`[after-sign:mac] signed ${signed.machOFiles.length} Mach-O files and ${signed.bundles.length} nested bundles; verified ${verified.machOCount} timestamped code objects; notarization skipped by request`)
     return
   }
   const archivePath = path.join(context.appOutDir, `${context.packager.appInfo.productFilename}-${arch}-notary.zip`)
   try {
     run('ditto', ['-c', '-k', '--keepParent', appPath, archivePath])
-    const staged = process.env.BAILONGMA_NOTARY_MODE === 'submit'
+    const staged = process.env.ARKBRAIN_NOTARY_MODE === 'submit'
     const submission = submitForNotarization(archivePath, { profile: notaryProfile, teamId: DEVELOPER_TEAM, cwd: root, wait: !staged })
     if (staged) {
       const statePath = path.join(context.outDir, `notary-app-${arch}.json`)

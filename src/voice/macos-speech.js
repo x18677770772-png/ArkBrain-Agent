@@ -35,7 +35,7 @@ function normalizeLang(lang = 'zh-CN') {
 
 function loadElectronSystemPreferences() {
   if (!process.versions?.electron) return null
-  return globalThis.bailongmaSystemPreferences || null
+  return globalThis.arkbrainSystemPreferences || null
 }
 
 export async function requestMacMicrophoneAccess(onError, systemPreferencesOverride) {
@@ -56,13 +56,13 @@ export async function requestMacMicrophoneAccess(onError, systemPreferencesOverr
     const status = systemPreferences.getMediaAccessStatus?.('microphone')
     if (status === 'granted') return true
     if (status === 'denied' || status === 'restricted') {
-      reportError('麦克风权限未授予，请在“系统设置 > 隐私与安全性 > 麦克风”中允许 Bailongma，然后重新启动应用')
+      reportError('麦克风权限未授予，请在“系统设置 > 隐私与安全性 > 麦克风”中允许 ArkBrain-Agent，然后重新启动应用')
       return false
     }
 
     const granted = await systemPreferences.askForMediaAccess('microphone')
     if (granted === true) return true
-    reportError('麦克风权限未授予，请在“系统设置 > 隐私与安全性 > 麦克风”中允许 Bailongma，然后重新启动应用')
+    reportError('麦克风权限未授予，请在“系统设置 > 隐私与安全性 > 麦克风”中允许 ArkBrain-Agent，然后重新启动应用')
     return false
   } catch (err) {
     reportError(`请求麦克风权限失败: ${err?.message || String(err)}`)

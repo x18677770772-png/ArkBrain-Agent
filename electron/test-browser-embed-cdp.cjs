@@ -7,7 +7,7 @@ const os = require('node:os')
 const path = require('node:path')
 const { app, BaseWindow, WebContentsView, webContents } = require('electron')
 
-const testUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-embed-cdp-'))
+const testUserData = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-embed-cdp-'))
 app.setPath('userData', testUserData)
 app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
 app.commandLine.appendSwitch('remote-debugging-port', '0')
@@ -54,7 +54,7 @@ app.whenReady().then(async () => {
     window = new BaseWindow({ width: 480, height: 320, show: false })
     view = new WebContentsView({
       webPreferences: {
-        partition: 'persist:bailongma-browser',
+        partition: 'persist:arkbrain-browser',
         sandbox: true,
         contextIsolation: true,
         nodeIntegration: false,
@@ -90,7 +90,7 @@ app.whenReady().then(async () => {
     })
     const navigation = await embeddedHandle.client.callTool({
       name: 'browser_navigate',
-      arguments: { url: 'https://example.com/?bailongma=self-sidecar' },
+      arguments: { url: 'https://example.com/?arkbrain=self-sidecar' },
     })
     assert.match(
       navigation.content?.find(item => item.type === 'text')?.text || '',

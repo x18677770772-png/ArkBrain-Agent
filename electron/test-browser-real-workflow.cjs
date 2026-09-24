@@ -10,17 +10,17 @@ const { app, BaseWindow, BrowserWindow, WebContentsView, View, webContents } = r
 const { createBrowserEmbedHost } = require('./browser-embed-host.cjs')
 
 const projectRoot = path.resolve(__dirname, '..')
-const testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-real-browser-workflow-'))
-process.env.BAILONGMA_USER_DIR = path.join(testRoot, 'user')
-process.env.BAILONGMA_RESOURCES_DIR = projectRoot
-process.env.BAILONGMA_MCP_NODE_PATH = path.join(projectRoot, 'build', 'node-runtime', 'mac-arm64', 'node')
-fs.mkdirSync(process.env.BAILONGMA_USER_DIR, { recursive: true })
-app.setPath('userData', process.env.BAILONGMA_USER_DIR)
+const testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-real-browser-workflow-'))
+process.env.ARKBRAIN_USER_DIR = path.join(testRoot, 'user')
+process.env.ARKBRAIN_RESOURCES_DIR = projectRoot
+process.env.ARKBRAIN_MCP_NODE_PATH = path.join(projectRoot, 'build', 'node-runtime', 'mac-arm64', 'node')
+fs.mkdirSync(process.env.ARKBRAIN_USER_DIR, { recursive: true })
+app.setPath('userData', process.env.ARKBRAIN_USER_DIR)
 app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
 app.commandLine.appendSwitch('remote-debugging-port', '0')
 
 function waitForActivePort(timeoutMs = 8_000) {
-  const activePortFile = path.join(process.env.BAILONGMA_USER_DIR, 'DevToolsActivePort')
+  const activePortFile = path.join(process.env.ARKBRAIN_USER_DIR, 'DevToolsActivePort')
   const deadline = Date.now() + timeoutMs
   return new Promise((resolve, reject) => {
     const poll = () => {
@@ -127,7 +127,7 @@ app.whenReady().then(async () => {
       })
       return { ...target, cdpEndpoint: `http://127.0.0.1:${cdpPort}`, targetId: match?.id || null }
     }
-    globalThis.bailongmaChromeBridge = {
+    globalThis.arkbrainChromeBridge = {
       ensureEndpoint: async () => {
         const target = await resolveTarget()
         if (!target?.targetId) throw new Error('embedded target is unavailable')
@@ -157,7 +157,7 @@ app.whenReady().then(async () => {
 
     context.browserDisplayState.mode = 'window'
     await host.update(mainWindow, { mode: 'window', visible: true, interactive: true })
-    const largeWindow = BrowserWindow.getAllWindows().find(window => window.getTitle() === 'Bailongma Browser')
+    const largeWindow = BrowserWindow.getAllWindows().find(window => window.getTitle() === 'ArkBrain-Agent Browser')
     assert.ok(largeWindow, 'large browser must use a native BrowserWindow')
     assert.equal(largeWindow.isMovable(), true)
     assert.equal(largeWindow.isClosable(), true)
@@ -208,18 +208,18 @@ app.whenReady().then(async () => {
     const formPage = await call('browser_navigate', { url: `${baseUrl}/form` })
     const inputMatch = resultText(formPage).match(/uid=([^\s]+)\s+textbox "Query\s*"/)
     assert.ok(inputMatch?.[1], resultText(formPage))
-    const typed = await call('browser_type', { uid: inputMatch[1], text: 'bailongma' })
+    const typed = await call('browser_type', { uid: inputMatch[1], text: 'arkbrain' })
     assert.equal(typed.ok, true)
     const submitted = await call('browser_press_key', { key: 'Enter' })
     assert.equal(submitted.ok, true, JSON.stringify(submitted))
-    assert.equal(submitted.browser_preview.url, `${baseUrl}/results?q=bailongma`)
-    assert.match(resultText(submitted), /Results for bailongma/)
-    const foundOnCurrentPage = await call('browser_find', { text: 'Results for bailongma' })
+    assert.equal(submitted.browser_preview.url, `${baseUrl}/results?q=arkbrain`)
+    assert.match(resultText(submitted), /Results for arkbrain/)
+    const foundOnCurrentPage = await call('browser_find', { text: 'Results for arkbrain' })
     assert.equal(foundOnCurrentPage.ok, true, JSON.stringify(foundOnCurrentPage))
-    assert.equal(foundOnCurrentPage.structured_content?.page_find?.query, 'Results for bailongma')
+    assert.equal(foundOnCurrentPage.structured_content?.page_find?.query, 'Results for arkbrain')
     assert.equal(foundOnCurrentPage.structured_content?.page_find?.found, true)
     assert.equal(foundOnCurrentPage.structured_content?.page_find?.total_matches, 1)
-    assert.equal(foundOnCurrentPage.browser_preview.url, `${baseUrl}/results?q=bailongma`,
+    assert.equal(foundOnCurrentPage.browser_preview.url, `${baseUrl}/results?q=arkbrain`,
       'current-page find must not navigate away')
     const beforeScroll = Number(resultText(submitted).match(/"scrollY":(\d+)/)?.[1])
     const scrolled = await call('browser_press_key', { key: 'PageDown' })
@@ -230,16 +230,16 @@ app.whenReady().then(async () => {
     const prefilledInputMatch = resultText(prefilledForm).match(/uid=([^\s]+)\s+searchbox "Query\s*"/)
     assert.ok(prefilledInputMatch?.[1], resultText(prefilledForm))
     const replaced = await call('browser_type', {
-      uid: prefilledInputMatch[1], text: 'bailongma replacement', replace: true,
+      uid: prefilledInputMatch[1], text: 'arkbrain replacement', replace: true,
     })
     assert.equal(replaced.ok, true, JSON.stringify(replaced))
-    assert.match(resultText(replaced), /value="bailongma replacement"/)
+    assert.match(resultText(replaced), /value="arkbrain replacement"/)
     const fallbackSubmitted = await call('browser_click', {
       search_submit: true, element: 'search submit',
     })
     assert.equal(fallbackSubmitted.ok, true, JSON.stringify(fallbackSubmitted))
-    assert.equal(fallbackSubmitted.browser_preview.url, `${baseUrl}/results?q=bailongma+replacement`)
-    assert.match(resultText(fallbackSubmitted), /Results for bailongma replacement/)
+    assert.equal(fallbackSubmitted.browser_preview.url, `${baseUrl}/results?q=arkbrain+replacement`)
+    assert.match(resultText(fallbackSubmitted), /Results for arkbrain replacement/)
 
     for (let index = 0; index < 30; index += 1) {
       const stable = await call('browser_snapshot')

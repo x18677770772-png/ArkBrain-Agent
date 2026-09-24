@@ -43,13 +43,13 @@ export { emitEvent }
 const DEFAULT_API_HOST = '127.0.0.1'
 
 function getTlsOptions() {
-  const pfxPath = String(globalThis.process?.env?.BAILONGMA_TLS_PFX || '').trim()
-  const certPath = String(globalThis.process?.env?.BAILONGMA_TLS_CERT || '').trim()
-  const keyPath = String(globalThis.process?.env?.BAILONGMA_TLS_KEY || '').trim()
+  const pfxPath = String(globalThis.process?.env?.ARKBRAIN_TLS_PFX || '').trim()
+  const certPath = String(globalThis.process?.env?.ARKBRAIN_TLS_CERT || '').trim()
+  const keyPath = String(globalThis.process?.env?.ARKBRAIN_TLS_KEY || '').trim()
   if (pfxPath) {
     return {
       pfx: fs.readFileSync(pfxPath),
-      passphrase: String(globalThis.process?.env?.BAILONGMA_TLS_PFX_PASSPHRASE || ''),
+      passphrase: String(globalThis.process?.env?.ARKBRAIN_TLS_PFX_PASSPHRASE || ''),
     }
   }
   if (certPath && keyPath) {
@@ -60,9 +60,9 @@ function getTlsOptions() {
   }
   if (isLanAccessEnabled()) {
     const files = ensureLanTlsCertificates()
-    globalThis.process.env.BAILONGMA_TLS_CERT = files.serverCert
-    globalThis.process.env.BAILONGMA_TLS_KEY = files.serverKey
-    globalThis.process.env.BAILONGMA_LAN_CA_CERT = files.rootCer
+    globalThis.process.env.ARKBRAIN_TLS_CERT = files.serverCert
+    globalThis.process.env.ARKBRAIN_TLS_KEY = files.serverKey
+    globalThis.process.env.ARKBRAIN_LAN_CA_CERT = files.rootCer
     return {
       cert: fs.readFileSync(files.serverCert),
       key: fs.readFileSync(files.serverKey),
@@ -72,14 +72,14 @@ function getTlsOptions() {
 }
 
 function getApiHost() {
-  const envHost = String(globalThis.process?.env?.BAILONGMA_HOST || '').trim()
+  const envHost = String(globalThis.process?.env?.ARKBRAIN_HOST || '').trim()
   if (envHost) return envHost
   return getNetworkConfig().allowLanAccess ? '0.0.0.0' : DEFAULT_API_HOST
 }
 
 function isLanAccessEnabled() {
   return getNetworkConfig().allowLanAccess
-    || /^(1|true|yes|on)$/i.test(String(globalThis.process?.env?.BAILONGMA_ALLOW_LAN || '').trim())
+    || /^(1|true|yes|on)$/i.test(String(globalThis.process?.env?.ARKBRAIN_ALLOW_LAN || '').trim())
 }
 
 function isLoopbackRequest(req) {
@@ -194,7 +194,7 @@ function isPublicPath(pathname) {
     || pathname === '/activation.html'
     || pathname === '/site'
     || pathname === '/site.html'
-    || pathname === '/bailongma-lan-root-ca.cer'
+    || pathname === '/arkbrain-lan-root-ca.cer'
     || pathname.startsWith('/src/ui/brain-ui/')
     || pathname.startsWith('/src/ui/scene-shell/')
     || pathname.startsWith('/vendor/')

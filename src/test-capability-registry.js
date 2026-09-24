@@ -78,7 +78,7 @@ function ctx(rawText, isTick = false) {
 {
   const systemBrowser = capabilityToolsFor(ctx('用我电脑上的浏览器打开 https://example.com'))
   assert(has(systemBrowser, 'system_browser_open') && none(systemBrowser, BROWSER_TOOLS),
-    `1d) 电脑浏览器与白龙马 Playwright 工具严格分离 (got: ${systemBrowser.join(',')})`)
+    `1d) 电脑浏览器与方舟大脑 Playwright 工具严格分离 (got: ${systemBrowser.join(',')})`)
 }
 
 // ===== 2) tool 注入门解耦 =====
@@ -166,7 +166,7 @@ function ctx(rawText, isTick = false) {
     '3c2) 台风 → Typhoon Monitoring Panel 块')
   assert(capabilityContextBlocks(ctx('安装微信')).some(b => b.includes('Software Install Workflow')),
     '3d) 安装 → Software Install Workflow 块')
-  const browserContext = capabilityContextBlocks(ctx('打开网页并点击登录')).find(b => b.includes('BaiLongma Built-in Chromium')) || ''
+  const browserContext = capabilityContextBlocks(ctx('打开网页并点击登录')).find(b => b.includes('ArkBrain-Agent Built-in Chromium')) || ''
   assert(browserContext.includes('browser_navigate') && browserContext.includes('browser_snapshot')
     && browserContext.includes('actions return a fresh accessibility snapshot')
     && browserContext.includes('instead of routinely calling browser_snapshot')

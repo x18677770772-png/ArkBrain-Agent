@@ -186,7 +186,7 @@ class CdpNetworkRecorder {
     this.startMonotonic = this.monotonicNow()
     this.capture = {
       schemaVersion: 1,
-      kind: 'bailongma-network-audit',
+      kind: 'arkbrain-network-audit',
       source: this.source,
       redactedBeforeWrite: true,
       observerOnly: true,
@@ -462,7 +462,7 @@ class CdpNetworkRecorder {
     if (this.outputPath) return this.outputPath
     this.fs.mkdirSync(this.outputDir, { recursive: true })
     const safeTimestamp = this.capture.startedAt.replace(/[:.]/g, '-')
-    const filename = `bailongma-network-${safeTimestamp}.json`
+    const filename = `arkbrain-network-${safeTimestamp}.json`
     const destination = path.join(this.outputDir, filename)
     const temporary = `${destination}.tmp`
     this.fs.writeFileSync(temporary, `${JSON.stringify(this.capture, null, 2)}\n`, { mode: 0o600 })
@@ -509,7 +509,7 @@ function createNetworkDiagnostics({
 
   function requireEnabled() {
     if (!enabled) {
-      throw new Error('network diagnostics are disabled; use a development build or set BAILONGMA_NETWORK_DIAGNOSTICS=1 before launch')
+      throw new Error('network diagnostics are disabled; use a development build or set ARKBRAIN_NETWORK_DIAGNOSTICS=1 before launch')
     }
   }
 

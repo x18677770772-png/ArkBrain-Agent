@@ -153,7 +153,7 @@ async function main() {
   const chromePath = path.resolve(options.chrome || defaultChromePath() || '')
   if (!chromePath || !fs.existsSync(chromePath)) throw new Error('Chrome executable was not found')
   const outputDir = path.resolve(options['output-dir'] || 'data/network-audits')
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-chrome-baseline-'))
+  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-chrome-baseline-'))
   // Chrome explicitly treats --remote-debugging-port=0 as an automation
   // signal. A fixed ephemeral loopback port keeps the observer read-only
   // without unnecessarily changing navigator.webdriver in the baseline.
@@ -178,7 +178,7 @@ async function main() {
       if (result?.path) process.stdout.write(`SAVED ${result.path}\n`)
     } finally {
       await stopChild(child)
-      if (path.basename(profileDir).startsWith('bailongma-chrome-baseline-')) {
+      if (path.basename(profileDir).startsWith('arkbrain-chrome-baseline-')) {
         try { fs.rmSync(profileDir, { recursive: true, force: true }) } catch {}
       }
     }

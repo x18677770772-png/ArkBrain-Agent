@@ -5,8 +5,8 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 
-const tempUserDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-injector-consumption-'))
-process.env.BAILONGMA_USER_DIR = tempUserDir
+const tempUserDir = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-injector-consumption-'))
+process.env.ARKBRAIN_USER_DIR = tempUserDir
 process.env.USERPROFILE = tempUserDir
 process.env.HOME = tempUserDir
 

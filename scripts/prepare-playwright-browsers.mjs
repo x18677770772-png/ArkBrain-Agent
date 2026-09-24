@@ -181,7 +181,7 @@ function installWindowsTarget(target, destination, runtime) {
   // to close. curl honors Content-Length and gives the build a hard timeout.
   // The URL and destination still come from the installed Playwright version;
   // no global/user ms-playwright cache participates in this build.
-  const temp = mkdtempSync(path.join(os.tmpdir(), 'bailongma-playwright-'))
+  const temp = mkdtempSync(path.join(os.tmpdir(), 'arkbrain-playwright-'))
   const archive = path.join(temp, `chromium-${descriptor.revision}.zip`)
   try {
     let downloaded = false

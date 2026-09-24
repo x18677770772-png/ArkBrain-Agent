@@ -116,7 +116,7 @@ assert.match(descriptors.find(({ target }) => target.builderKey === 'mac-arm64')
 assert.match(descriptors.find(({ target }) => target.builderKey === 'win-x64').descriptor.executablePath(), /chrome-win64[/\\]chrome\.exe$/)
 assert.match(descriptors.find(({ target }) => target.builderKey === 'linux-x64').descriptor.executablePath(), /chrome-linux64[/\\]chrome$/)
 
-const pruneRoot = mkdtempSync(path.join(os.tmpdir(), 'bailongma-browser-prune-'))
+const pruneRoot = mkdtempSync(path.join(os.tmpdir(), 'arkbrain-browser-prune-'))
 try {
   const winTarget = resolveTargets([], 'win32')[0]
   const winDestination = path.join(pruneRoot, winTarget.builderKey)
@@ -142,7 +142,7 @@ assert.equal(packagedRuntime.configurePackagedPlaywright({
   env,
 }), path.join(root, 'fake-resources', 'playwright-browsers'))
 assert.equal(env.PLAYWRIGHT_HOST_PLATFORM_OVERRIDE, 'win64')
-assert.equal(env.BAILONGMA_BUNDLED_PLAYWRIGHT, '1')
+assert.equal(env.ARKBRAIN_BUNDLED_PLAYWRIGHT, '1')
 
 const bundledNode = path.join(root, 'fake-resources', 'node-runtime', 'node.exe')
 const nodeEnv = { Path: 'C:\\Windows\\System32' }
@@ -154,8 +154,8 @@ assert.equal(packagedRuntime.configureBundledNodeRuntime({
   env: nodeEnv,
   existsSync: candidate => candidate === bundledNode,
 }), bundledNode)
-assert.equal(nodeEnv.BAILONGMA_NODE_RUNTIME_PATH, bundledNode)
-assert.equal(nodeEnv.BAILONGMA_MCP_NODE_PATH, bundledNode)
+assert.equal(nodeEnv.ARKBRAIN_NODE_RUNTIME_PATH, bundledNode)
+assert.equal(nodeEnv.ARKBRAIN_MCP_NODE_PATH, bundledNode)
 assert.equal(nodeEnv.Path.split(';')[0], path.dirname(bundledNode))
 
 console.log(JSON.stringify({

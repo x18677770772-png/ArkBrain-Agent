@@ -14,9 +14,9 @@ import {
   publishUpdates,
 } from './publish-updates-lib.mjs'
 
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-publish-test-'))
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-publish-test-'))
 const dist = path.join(root, 'dist')
-const pkg = { productName: 'Bailongma', version: '9.8.7' }
+const pkg = { productName: 'ArkBrain-Agent', version: '9.8.7' }
 fs.mkdirSync(dist)
 
 function write(name, contents = name) {
@@ -32,7 +32,7 @@ try {
   assert.throws(() => compareVersions('2.1', '2.1.0'), /numeric x.y.z/)
 
   for (const arch of ['x64', 'arm64']) {
-    const prefix = `Bailongma-9.8.7-mac-${arch}`
+    const prefix = `ArkBrain-9.8.7-mac-${arch}`
     for (const extension of ['zip', 'dmg']) {
       const artifact = write(`${prefix}.${extension}`)
       const externalBlockmap = zlib.gzipSync(Buffer.from(JSON.stringify({
@@ -50,12 +50,12 @@ try {
     artifact: macArtifact,
     releaseDate: '2026-01-02T03:04:05.000Z',
   })
-  assert.match(macMetadata, /Bailongma-9\.8\.7-mac-x64\.zip/)
-  assert.match(macMetadata, /Bailongma-9\.8\.7-mac-x64\.dmg/)
+  assert.match(macMetadata, /ArkBrain-9\.8\.7-mac-x64\.zip/)
+  assert.match(macMetadata, /ArkBrain-9\.8\.7-mac-x64\.dmg/)
   assert.equal((macMetadata.match(/  - url:/g) || []).length, 2)
 
-  write('Bailongma-Setup-9.8.7.exe', 'windows-installer')
-  write('Bailongma-Setup-9.8.7.exe.blockmap', zlib.gzipSync(Buffer.from(JSON.stringify({
+  write('ArkBrain-Setup-9.8.7.exe', 'windows-installer')
+  write('ArkBrain-Setup-9.8.7.exe.blockmap', zlib.gzipSync(Buffer.from(JSON.stringify({
     version: '2',
     files: [{ name: 'fixture', offset: 0, checksums: ['fixture'], sizes: [7] }],
   }))))
@@ -67,7 +67,7 @@ try {
     artifact: winArtifact,
     releaseDate: '2026-01-02T03:04:05.000Z',
   })
-  assert.match(winMetadata, /path: Bailongma-Setup-9\.8\.7\.exe/)
+  assert.match(winMetadata, /path: ArkBrain-Setup-9\.8\.7\.exe/)
   assert.doesNotMatch(winMetadata, /\.blockmap/)
 
   const blockmap = zlib.deflateRawSync(Buffer.from(JSON.stringify({
@@ -77,7 +77,7 @@ try {
   const footer = Buffer.alloc(4)
   footer.writeUInt32BE(blockmap.length)
   const appImageBytes = Buffer.concat([Buffer.from('fixture-appimage'), blockmap, footer])
-  const appImagePath = write('Bailongma-9.8.7-linux-x64.AppImage', appImageBytes)
+  const appImagePath = write('ArkBrain-9.8.7-linux-x64.AppImage', appImageBytes)
   assert.equal(inspectEmbeddedBlockmap(appImagePath, appImageBytes.length), blockmap.length)
   const linuxConfig = platformConfig('linux', { root, ...pkg })
   const linuxArtifact = { arch: 'x64', ...linuxConfig.collect('x64') }

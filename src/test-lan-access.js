@@ -4,11 +4,11 @@ import os from 'os'
 import path from 'path'
 import forge from 'node-forge'
 
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-lan-access-'))
-process.env.BAILONGMA_USER_DIR = tempRoot
-process.env.BAILONGMA_ALLOW_LAN = '1'
-process.env.BAILONGMA_API_TOKEN = 'test-lan-pairing-token'
-process.env.BAILONGMA_PORT = '4567'
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-lan-access-'))
+process.env.ARKBRAIN_USER_DIR = tempRoot
+process.env.ARKBRAIN_ALLOW_LAN = '1'
+process.env.ARKBRAIN_API_TOKEN = 'test-lan-pairing-token'
+process.env.ARKBRAIN_PORT = '4567'
 
 try {
   const lan = await import(`./lan-access.js?test=${Date.now()}`)
@@ -31,14 +31,14 @@ try {
   assert.equal(network.httpsEnabled, true)
   for (const entry of network.accessEntries) {
     assert.match(entry.url, /^https:\/\/.+:4567\/#token=test-lan-pairing-token$/)
-    assert.match(entry.certificateUrl, /^https:\/\/.+:4567\/bailongma-lan-root-ca\.cer$/)
+    assert.match(entry.certificateUrl, /^https:\/\/.+:4567\/arkbrain-lan-root-ca\.cer$/)
   }
 
   console.log('LAN access certificate and URL tests passed')
 } finally {
-  delete process.env.BAILONGMA_USER_DIR
-  delete process.env.BAILONGMA_ALLOW_LAN
-  delete process.env.BAILONGMA_API_TOKEN
-  delete process.env.BAILONGMA_PORT
+  delete process.env.ARKBRAIN_USER_DIR
+  delete process.env.ARKBRAIN_ALLOW_LAN
+  delete process.env.ARKBRAIN_API_TOKEN
+  delete process.env.ARKBRAIN_PORT
   fs.rmSync(tempRoot, { recursive: true, force: true })
 }

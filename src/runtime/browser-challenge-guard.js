@@ -103,7 +103,7 @@ export function markBrowserChallengeResult(result, detection) {
   }
   const payload = parseJsonObject(result)
   if (!payload) {
-    return `${String(result || '')}\n\n[Bailongma browser challenge guard]\n${JSON.stringify({
+    return `${String(result || '')}\n\n[ArkBrain-Agent browser challenge guard]\n${JSON.stringify({
       ok: false,
       browser_challenge: guard,
       instruction: STOP_INSTRUCTION,

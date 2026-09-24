@@ -1,13 +1,13 @@
 'use strict'
 
 // Trusted Playwright MCP init-page hook. This is not an Agent-facing browser
-// tool: it only restores Bailongma's request-level private-network policy for
+// tool: it only restores ArkBrain-Agent's request-level private-network policy for
 // every page, subresource, redirect target, and WebSocket opened by the
 // official MCP-managed browser context.
-const INSTALLED = Symbol.for('bailongma.playwrightPageRequestGuardInstalled')
+const INSTALLED = Symbol.for('arkbrain.playwrightPageRequestGuardInstalled')
 
 async function installPageGuard({ page }) {
-  if (process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK === '1') return
+  if (process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK === '1') return
   if (!page || page[INSTALLED]) return
   page[INSTALLED] = true
 
@@ -19,9 +19,9 @@ async function installPageGuard({ page }) {
     import('../config.js'),
   ])
   const allowPrivateNetwork = () => (
-    process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK === '1'
+    process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK === '1'
     || (
-      process.env.BAILONGMA_BROWSER_PRIVATE_NETWORK !== '0'
+      process.env.ARKBRAIN_BROWSER_PRIVATE_NETWORK !== '0'
       && config.security?.browserPrivateNetwork === true
     )
   )
@@ -42,7 +42,7 @@ async function installPageGuard({ page }) {
         webSocket.connectToServer()
       } catch {
         await Promise.resolve(
-          webSocket.close({ code: 1008, reason: 'Blocked by Bailongma browser network policy' }),
+          webSocket.close({ code: 1008, reason: 'Blocked by ArkBrain-Agent browser network policy' }),
         ).catch(() => {})
       }
     })

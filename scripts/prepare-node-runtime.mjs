@@ -115,8 +115,8 @@ function stageTarget(target) {
     return
   }
 
-  const archSourceKey = `BAILONGMA_NODE_RUNTIME_SOURCE_${target.arch.toUpperCase()}`
-  const requestedSource = String(process.env[archSourceKey] || process.env.BAILONGMA_NODE_RUNTIME_SOURCE || '').trim()
+  const archSourceKey = `ARKBRAIN_NODE_RUNTIME_SOURCE_${target.arch.toUpperCase()}`
+  const requestedSource = String(process.env[archSourceKey] || process.env.ARKBRAIN_NODE_RUNTIME_SOURCE || '').trim()
   const source = realpathSync(requestedSource || process.execPath)
   const metadata = inspectNodeForTarget(source, target)
   if (!metadata) {

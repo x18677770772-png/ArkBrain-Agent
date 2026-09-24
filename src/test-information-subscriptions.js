@@ -3,9 +3,9 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bailongma-information-subscriptions-'))
-process.env.BAILONGMA_USER_DIR = tempRoot
-process.env.BAILONGMA_RESOURCES_DIR = path.resolve('.')
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'arkbrain-information-subscriptions-'))
+process.env.ARKBRAIN_USER_DIR = tempRoot
+process.env.ARKBRAIN_RESOURCES_DIR = path.resolve('.')
 
 let closeDBForTest = () => {}
 try {

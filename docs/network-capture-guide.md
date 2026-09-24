@@ -1,4 +1,4 @@
-# Chrome 与白龙马网络对比采集说明
+# Chrome 与方舟大脑网络对比采集说明
 
 本说明只用于用户拥有或已获授权的账号、设备和网络。全程只允许打开页面、查看搜索结果等只读操作；不要发布、评论、点赞、关注、私信、上传，也不要自动处理验证码或风险挑战。
 
@@ -18,17 +18,17 @@
 推荐至少采三组，以便拆分成因：
 
 - A：普通 Chrome，全部人工点击和逐键输入。
-- B：白龙马 Electron 嵌入页，全部人工点击和逐键输入。
-- C：白龙马 Electron 嵌入页，使用当前 Playwright 只读流程。若只做两组，使用 A 与实际产生警告时的白龙马流程 C。
+- B：方舟大脑 Electron 嵌入页，全部人工点击和逐键输入。
+- C：方舟大脑 Electron 嵌入页，使用当前 Playwright 只读流程。若只做两组，使用 A 与实际产生警告时的方舟大脑流程 C。
 
 每组最好重复三轮并交替顺序。不要为了“统一”而清 Cookie、改 UA 或隐藏 webdriver；只需如实记录登录态和缓存状态。
 
-## 2. 启用白龙马诊断模式
+## 2. 启用方舟大脑诊断模式
 
 源码开发运行时诊断能力默认启用。打包版必须在启动前显式设置：
 
 ```sh
-BAILONGMA_NETWORK_DIAGNOSTICS=1 /path/to/Bailongma
+ARKBRAIN_NETWORK_DIAGNOSTICS=1 /path/to/ArkBrain-Agent
 ```
 
 本仓库在 macOS/Linux 可直接开发启动：
@@ -39,7 +39,7 @@ BAILONGMA_NETWORK_DIAGNOSTICS=1 /path/to/Bailongma
 
 快捷键：
 
-- `F12`：仍然是白龙马主界面的 DevTools。
+- `F12`：仍然是方舟大脑主界面的 DevTools。
 - `Shift+F12`：打开嵌入网页自己的 detached DevTools。
 - macOS `Cmd+Shift+F12` / Windows、Linux `Ctrl+Shift+F12`：开始或停止嵌入网页的脱敏 CDP 网络记录。
 
@@ -67,18 +67,18 @@ BAILONGMA_NETWORK_DIAGNOSTICS=1 /path/to/Bailongma
 
 Chrome HAR 通常不含 `navigator.webdriver`、精确 `hasUserGesture`、Cookie 分区和完整 TLS 信息。这个字段覆盖差异会在报告中标为采集限制，而不是浏览器差异。
 
-## 4. 采集白龙马
+## 4. 采集方舟大脑
 
-1. 用户本人在白龙马嵌入页完成必要登录，关闭嵌入页 DevTools。
+1. 用户本人在方舟大脑嵌入页完成必要登录，关闭嵌入页 DevTools。
 2. 让嵌入页保持打开；按 `Cmd/Ctrl+Shift+F12` 开始记录。开发终端会出现 `recording embedded page`。
 3. 在记录开始后重新加载或只读导航到约定起始页，再执行与 Chrome 相同的流程。
-4. A/B/C 中的人工步骤必须由用户亲自操作。C 组仅可使用白龙马既有的只读导航、点击、输入、页面查看能力；不要调用任何发布、互动、上传、账号变更或挑战处理工具。
-5. 再按一次 `Cmd/Ctrl+Shift+F12` 停止。白龙马会弹出保存路径，并可在文件夹中显示文件。
+4. A/B/C 中的人工步骤必须由用户亲自操作。C 组仅可使用方舟大脑既有的只读导航、点击、输入、页面查看能力；不要调用任何发布、互动、上传、账号变更或挑战处理工具。
+5. 再按一次 `Cmd/Ctrl+Shift+F12` 停止。方舟大脑会弹出保存路径，并可在文件夹中显示文件。
 
 输出文件位于 Electron `userData/network-audits/` 下，文件名类似：
 
 ```text
-bailongma-network-2026-07-26T00-00-00-000Z.json
+arkbrain-network-2026-07-26T00-00-00-000Z.json
 ```
 
 文件在写盘前已经脱敏：不含 Cookie、Authorization、Set-Cookie、Token、签名、账号标识候选值、完整请求体或 WebSocket Payload；这些字段只保留名称、存在性、类型、长度、哈希或阻止原因。
@@ -90,7 +90,7 @@ bailongma-network-2026-07-26T00-00-00-000Z.json
 ```sh
 npm run network-audit:compare -- \
   --chrome "/absolute/path/chrome.har" \
-  --bailongma "/absolute/path/bailongma-network-....json" \
+  --arkbrain "/absolute/path/arkbrain-network-....json" \
   --baseline-label "Safari 人工访问" \
   --output "docs/network-request-comparison.md" \
   --json-output "/absolute/private/path/network-request-comparison.data.json"
@@ -108,7 +108,7 @@ Chrome 基线可省略 `--baseline-label`；使用 Safari 等其他人工浏览�
 
 ```text
 Chrome HAR: /absolute/path/chrome.har
-白龙马 JSON: /absolute/path/bailongma-network-....json
+方舟大脑 JSON: /absolute/path/arkbrain-network-....json
 ```
 
-若采了 B、C 两组，则再提供第二个白龙马 JSON 路径。无需把文件内容粘贴到聊天中。后续分析会读取本机文件、生成脱敏结果，并更新 `docs/network-request-comparison.md`。
+若采了 B、C 两组，则再提供第二个方舟大脑 JSON 路径。无需把文件内容粘贴到聊天中。后续分析会读取本机文件、生成脱敏结果，并更新 `docs/network-request-comparison.md`。

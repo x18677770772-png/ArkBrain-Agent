@@ -35,11 +35,11 @@ const client = await import(`./ui/brain-ui/api-client.js?test=${Date.now()}`)
 
 assert.equal(client.API, 'https://192.168.1.20:3721')
 assert.equal(client.getApiToken(), 'lan-test-token')
-assert.equal(stored.get('bailongma-api-token'), 'lan-test-token')
+assert.equal(stored.get('arkbrain-api-token'), 'lan-test-token')
 assert.equal(replacedUrl, '/brain-ui')
 assert.equal(client.apiWebSocketUrl('/voice/cloud'), 'wss://192.168.1.20:3721/voice/cloud')
 assert.match(client.getUiClientId(), /^ui-/)
-assert.equal(client.getUiClientId(), sessionStored.get('bailongma-ui-client-id'))
+assert.equal(client.getUiClientId(), sessionStored.get('arkbrain-ui-client-id'))
 assert.equal(client.isUiClientTarget({ target_client_id: client.getUiClientId() }), true)
 assert.equal(client.isUiClientTarget({ target_client_id: 'ui-other-client' }), false)
 assert.equal(client.isUiClientTarget({}), true)
@@ -48,9 +48,9 @@ globalThis.sessionStorage.getItem = () => { throw new Error('Safari storage temp
 assert.equal(client.getUiClientId(), stableClientId, 'client id remains stable after initialization')
 
 const protocols = client.apiWebSocketProtocols()
-assert.equal(protocols[0], 'bailongma.v1')
+assert.equal(protocols[0], 'arkbrain.v1')
 assert.equal(
-  Buffer.from(protocols[1].slice('bailongma.auth.'.length), 'base64url').toString('utf8'),
+  Buffer.from(protocols[1].slice('arkbrain.auth.'.length), 'base64url').toString('utf8'),
   'lan-test-token',
 )
 
@@ -61,10 +61,10 @@ await globalThis.window.fetch('/settings/voice', {
 assert.equal(lastFetch.input, '/settings/voice')
 assert.equal(lastFetch.init.headers.get('Authorization'), 'Bearer lan-test-token')
 assert.equal(lastFetch.init.headers.get('Accept'), 'application/json')
-assert.equal(lastFetch.init.headers.get('X-Bailongma-Client-ID'), client.getUiClientId())
+assert.equal(lastFetch.init.headers.get('X-ArkBrain-Client-ID'), client.getUiClientId())
 
 await globalThis.window.fetch('https://example.com/public')
 assert.equal(new Headers(lastFetch.init?.headers || {}).has('Authorization'), false)
-assert.equal(new Headers(lastFetch.init?.headers || {}).has('X-Bailongma-Client-ID'), false)
+assert.equal(new Headers(lastFetch.init?.headers || {}).has('X-ArkBrain-Client-ID'), false)
 
 console.log('LAN API client tests passed')
