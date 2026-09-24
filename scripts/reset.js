@@ -29,19 +29,18 @@ console.log(`[reset] 当前状态：${memCount} 条记忆，人格：${persona ?
 console.log(`[reset] 时间：${nowTimestamp()}`)
 console.log(`[reset] 已快照：${memorySnapshot.length} 条记忆，${configSnapshot.length} 条配置，${entitySnapshot.length} 个实体`)
 
-// 清数据库后恢复当前记忆库
-resetAll()
+// 清数据库后恢复当前记忆库 —— wipe+restore 放进同一事务，中途失败整体回滚，避免记忆丢失
 const db2 = getDB()
-db2.prepare('DELETE FROM conversations').run()
-db2.prepare('DELETE FROM action_logs').run()
 
 const insertMemoryRow = db2.prepare(`
   INSERT INTO memories (
     id, event_type, content, detail, entities, concepts, tags,
-    source_ref, timestamp, parent_id, created_at, title, mem_id, links
+    source_ref, timestamp, parent_id, created_at, title, mem_id, links,
+    salience, visibility, hidden_at, merged_into, embedding, embedding_dim, embedding_model
   ) VALUES (
     @id, @event_type, @content, @detail, @entities, @concepts, @tags,
-    @source_ref, @timestamp, @parent_id, @created_at, @title, @mem_id, @links
+    @source_ref, @timestamp, @parent_id, @created_at, @title, @mem_id, @links,
+    @salience, @visibility, @hidden_at, @merged_into, @embedding, @embedding_dim, @embedding_model
   )
 `)
 
@@ -55,17 +54,28 @@ const insertEntityRow = db2.prepare(`
   VALUES (@id, @label, @last_seen, @created_at)
 `)
 
-for (const row of memorySnapshot) insertMemoryRow.run(row)
-for (const row of configSnapshot) insertConfigRow.run(row)
-for (const row of entitySnapshot) insertEntityRow.run(row)
+const wipeRestore = db2.transaction(() => {
+  resetAll()
+  db2.prepare('DELETE FROM conversations').run()
+  db2.prepare('DELETE FROM action_logs').run()
+  for (const row of memorySnapshot) insertMemoryRow.run(row)
+  for (const row of configSnapshot) insertConfigRow.run(row)
+  for (const row of entitySnapshot) insertEntityRow.run(row)
+})
+wipeRestore()
 
 console.log(`[reset] 聊天记录与行为日志已清空（聊天 ${convCount} 条，日志 ${logCount} 条）`)
 console.log(`[reset] 已恢复当前记忆库：${memorySnapshot.length} 条记忆`)
 
 // 清 sandbox：删除所有文件，重建种子文件
+// 单个文件失败（Windows 锁定/只读）只跳过该文件，不让清理中断后续流程
 if (fs.existsSync(SANDBOX_DIR)) {
   for (const file of fs.readdirSync(SANDBOX_DIR)) {
-    fs.rmSync(path.join(SANDBOX_DIR, file), { recursive: true })
+    try {
+      fs.rmSync(path.join(SANDBOX_DIR, file), { recursive: true, force: true })
+    } catch (err) {
+      console.warn(`[reset] sandbox 清理跳过 ${file}: ${err.message}`)
+    }
   }
 }
 fs.mkdirSync(SANDBOX_DIR, { recursive: true })

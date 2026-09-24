@@ -157,3 +157,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Local二开/审查产物 — 不进上游
+.claude/
+.serena/
+api-capability-slots.json
+

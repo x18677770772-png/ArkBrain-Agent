@@ -1123,9 +1123,12 @@ WebSocket：
 - 激活接口。
 - 设置接口。
 - 管理接口。
-- 记忆修改接口。
+- 记忆接口（`/memories`、`/memories/*`、`/memory/*`，含 embedding 回填）。
+- 会话全文 `/conversations`。
+- 系统提示预览 `/system-prompt-preview`。
+- 知识库 `/knowledge/*`。
 
-这些路径默认需要本机访问或有效 token。
+这些路径默认需要本机访问或有效 token。敏感路径上的 POST/PUT/PATCH/DELETE 还要求浏览器同源上下文（拒绝 opaque Origin，`Sec-Fetch-Site` 非 same-origin/none 时拒绝），以防本机其他端口页面 CSRF。
 
 ### 20.5 工具安全策略
 

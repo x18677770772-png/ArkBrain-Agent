@@ -431,11 +431,22 @@ const SEED_MEMORIES = [
 ]
 
 const ts = nowTimestamp()
-let count = 0
 
-for (const m of SEED_MEMORIES) {
-  insertMemory({ ...m, timestamp: ts })
-  count++
+// 单事务植入：任一条失败整体回滚（count 仍为 0），下次启动 getMemoryCount()===0 守卫会重试
+const db = getDB()
+const seedTx = db.transaction((list) => {
+  let n = 0
+  for (const m of list) {
+    insertMemory({ ...m, timestamp: ts })
+    n++
+  }
+  return n
+})
+
+try {
+  const count = seedTx(SEED_MEMORIES)
+  console.log(`[seed] 已植入 ${count} 条种子记忆`)
+} catch (err) {
+  console.error('[seed] failed:', err)
+  throw err
 }
-
-console.log(`[seed] 已植入 ${count} 条种子记忆`)

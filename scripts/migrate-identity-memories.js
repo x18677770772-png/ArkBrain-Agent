@@ -1,6 +1,6 @@
-import Database from 'better-sqlite3'
+import { getDB } from '../src/db.js'
 
-const db = new Database('D:/claude/jarvis/data/jarvis.db')
+const db = getDB()
 
 const USER_ID = 'ID:000001'
 const AGENT_ID = 'agent:jarvis'
@@ -186,64 +186,78 @@ function updateMemory(memory, userRootId, agentRootId) {
 }
 
 function main() {
+  const hasMemories = db.prepare(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name='memories'`
+  ).get()
+  if (!hasMemories) {
+    console.error('[migrate-identity] memories table not found; refusing to run')
+    process.exit(1)
+  }
+
   const now = new Date().toISOString()
-
-  db.prepare(`UPDATE conversations SET from_id = ? WHERE from_id = '000001'`).run(USER_ID)
-  db.prepare(`UPDATE conversations SET to_id = ? WHERE to_id = '000001'`).run(USER_ID)
-
-  db.prepare(`UPDATE entities SET id = ? WHERE id = '000001'`).run(USER_ID)
-
-  const userRootId = ensureRoot(
-    USER_ROOT_MEM_ID,
-    'person',
-    '用户 ID:000001 身份标识',
-    '用户唯一身份为 ID:000001，别名 Yuanda。',
-    USER_ID,
-    ['identity', 'user', 'alias:Yuanda']
-  )
-
-  const agentRootId = ensureRoot(
-    AGENT_ROOT_MEM_ID,
-    'object',
-    'Agent Jarvis 身份标识',
-    'Agent Jarvis 是当前运行中的本地 AI 助手实例。',
-    AGENT_ID,
-    ['identity', 'agent', 'jarvis']
-  )
-
-  const rows = db.prepare(`
-    SELECT id, mem_id, event_type, title, content, detail, entities, tags, parent_id, links, timestamp
-    FROM memories
-    ORDER BY id ASC
-  `).all()
-
   let updated = 0
-  for (const row of rows) {
-    if (updateMemory(row, userRootId, agentRootId)) updated++
-  }
+  let userRootId = null
+  let agentRootId = null
 
-  const normalizeUserRootLinks = db.prepare(`
-    UPDATE memories
-    SET links = REPLACE(links, ?, ?)
-    WHERE links LIKE ?
-  `)
+  const run = db.transaction(() => {
+    db.prepare(`UPDATE conversations SET from_id = ? WHERE from_id = '000001'`).run(USER_ID)
+    db.prepare(`UPDATE conversations SET to_id = ? WHERE to_id = '000001'`).run(USER_ID)
 
-  for (const alias of userRootAliases) {
-    if (alias === USER_ROOT_MEM_ID) continue
-    normalizeUserRootLinks.run(alias, USER_ROOT_MEM_ID, `%${alias}%`)
-  }
+    db.prepare(`UPDATE entities SET id = ? WHERE id = '000001'`).run(USER_ID)
 
-  db.prepare(`
-    UPDATE memories
-    SET entities = ?, tags = ?, timestamp = ?
-    WHERE id = ?
-  `).run(JSON.stringify([USER_ID]), JSON.stringify(['identity', 'user', 'alias:Yuanda']), now, userRootId)
+    userRootId = ensureRoot(
+      USER_ROOT_MEM_ID,
+      'person',
+      '用户 ID:000001 身份标识',
+      '用户唯一身份为 ID:000001，别名 Yuanda。',
+      USER_ID,
+      ['identity', 'user', 'alias:Yuanda']
+    )
 
-  db.prepare(`
-    UPDATE memories
-    SET entities = ?, tags = ?, timestamp = ?
-    WHERE id = ?
-  `).run(JSON.stringify([AGENT_ID]), JSON.stringify(['identity', 'agent', 'jarvis']), now, agentRootId)
+    agentRootId = ensureRoot(
+      AGENT_ROOT_MEM_ID,
+      'object',
+      'Agent Jarvis 身份标识',
+      'Agent Jarvis 是当前运行中的本地 AI 助手实例。',
+      AGENT_ID,
+      ['identity', 'agent', 'jarvis']
+    )
+
+    const rows = db.prepare(`
+      SELECT id, mem_id, event_type, title, content, detail, entities, tags, parent_id, links, timestamp
+      FROM memories
+      ORDER BY id ASC
+    `).all()
+
+    for (const row of rows) {
+      if (updateMemory(row, userRootId, agentRootId)) updated++
+    }
+
+    const normalizeUserRootLinks = db.prepare(`
+      UPDATE memories
+      SET links = REPLACE(links, ?, ?)
+      WHERE links LIKE ?
+    `)
+
+    for (const alias of userRootAliases) {
+      if (alias === USER_ROOT_MEM_ID) continue
+      normalizeUserRootLinks.run(alias, USER_ROOT_MEM_ID, `%${alias}%`)
+    }
+
+    db.prepare(`
+      UPDATE memories
+      SET entities = ?, tags = ?, timestamp = ?
+      WHERE id = ?
+    `).run(JSON.stringify([USER_ID]), JSON.stringify(['identity', 'user', 'alias:Yuanda']), now, userRootId)
+
+    db.prepare(`
+      UPDATE memories
+      SET entities = ?, tags = ?, timestamp = ?
+      WHERE id = ?
+    `).run(JSON.stringify([AGENT_ID]), JSON.stringify(['identity', 'agent', 'jarvis']), now, agentRootId)
+  })
+
+  run()
 
   console.log(JSON.stringify({
     ok: true,
