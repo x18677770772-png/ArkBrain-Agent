@@ -166,3 +166,7 @@ api-capability-slots.json
 # 业务台独立预览：bundle 由 scripts/build-biz-preview.sh 生成，只留源与脚本
 src/ui/brain-ui/biz-preview.bundle.js
 
+# 业务台 1.0 演示原型（2026-09-24 旧版，已降级为交互参考）
+# 正式视图一律在 src/ui/brain-ui/，此目录仅本地留存，不进仓库
+demo/
+
