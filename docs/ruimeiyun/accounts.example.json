@@ -1,0 +1,27 @@
+{
+  "_说明": "睿美云多角色账号映射。密码不写在这里，只写环境变量名；运行时用 $env:RM_PWD_XXX='密码' 注入。",
+  "_安全": "建议为每个角色在睿美云后台新建「机器人账号」，按角色最小权限授权，不要使用员工个人账号。",
+  "roles": {
+    "admin": {
+      "name": "管理员（测试账号）",
+      "account": "18677770772",
+      "passwordEnv": "RM_PWD_ADMIN",
+      "hospitalKey": "bksw9854",
+      "tenantId": "1"
+    },
+    "consultant": {
+      "name": "咨询师（示例，待创建）",
+      "account": "在此填机器人账号手机号",
+      "passwordEnv": "RM_PWD_CONSULTANT",
+      "hospitalKey": "bksw9854",
+      "tenantId": "1"
+    },
+    "director": {
+      "name": "院长/管理者（示例，待创建）",
+      "account": "在此填机器人账号手机号",
+      "passwordEnv": "RM_PWD_DIRECTOR",
+      "hospitalKey": "bksw9854",
+      "tenantId": "1"
+    }
+  }
+}

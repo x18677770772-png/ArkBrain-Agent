@@ -1,0 +1,788 @@
+{
+  "generatedAt": "2026-09-23T04:03:34.880Z",
+  "host": "bksw.hospital.realmerit.com.cn",
+  "tenant": "1",
+  "cubeDatasets": [
+    {
+      "systemConfigEnum": "TODAY_NOT_DEAL",
+      "title": "今日未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "372fa296a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "DAY_7_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近7日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "372fd36ca03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "DAY_30_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近30日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "372ff8a7a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "DAY_90_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近90日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "37317e40a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "TODAY_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "今日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3732fdd6a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "DAY_3_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "最近3日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "37346e1fa03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "DAY_7_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "最近7日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3735db70a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "DAY_30_NOT_VISITED",
+      "title": "最近30天未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3736a6eaa03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "HALF_YEAR_NOT_VISITED",
+      "title": "最近半年未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3736f70da03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "HALF_YEAR_NOT_ARRIVAL",
+      "title": "最近半年未到院客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3737e906a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "ONE_YEAR_NOT_ARRIVAL",
+      "title": "最近一年未到院客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373893c3a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "ONE_YEAR_NOT_VISITED",
+      "title": "最近一年未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3738ee6fa03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "COST_LESS_1000",
+      "title": "消费金额小于1千的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "37395590a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "COST_1000_TO_10000",
+      "title": "消费金额1千到1万客户的",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3739a0c5a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "COST_10000_TO_50000",
+      "title": "消费金额1万到5万的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "3739ee12a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "COST_GREATER_50000",
+      "title": "消费金额大于5万的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373a407aa03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "ARREARAGE",
+      "title": "欠费的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373afda8a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "HAD_DEPOSIT",
+      "title": "有抵扣金客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373b62ada03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "TREAT_NOT_FINISH",
+      "title": "治疗未完成客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373c54f9a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_CUSTOMER",
+      "title": "老带新客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373cb6f8a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_GREATER_2_CUSTOMER",
+      "title": "老带新2位以上客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373d32b8a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_GREATER_5_CUSTOMER",
+      "title": "老带新5位以上客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373d9b88a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "BIND_SCRM_CUSTOMER",
+      "title": "已绑定小程序客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373df207a03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "NOT_BIND_SCRM_CUSTOMER",
+      "title": "未绑定小程序客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "373e674ea03411efba960242ac110005"
+    },
+    {
+      "systemConfigEnum": "TODAY_NOT_DEAL",
+      "title": "今日未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d5596135507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "DAY_7_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近7日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d5599ffd507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "DAY_30_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近30日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d559e4a0507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "DAY_90_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近90日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55a12e1507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "TODAY_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "今日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55a4843507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "DAY_3_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "最近3日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55a7978507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "DAY_7_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "最近7日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55ab0d5507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "DAY_30_NOT_VISITED",
+      "title": "最近30天未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55ae781507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "HALF_YEAR_NOT_VISITED",
+      "title": "最近半年未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55b1965507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "HALF_YEAR_NOT_ARRIVAL",
+      "title": "最近半年未到院客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55b6351507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "ONE_YEAR_NOT_ARRIVAL",
+      "title": "最近一年未到院客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55b94d1507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "ONE_YEAR_NOT_VISITED",
+      "title": "最近一年未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55bd065507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "COST_LESS_1000",
+      "title": "消费金额小于1千的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55c066a507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "COST_1000_TO_10000",
+      "title": "消费金额1千到1万客户的",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55c38f5507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "COST_10000_TO_50000",
+      "title": "消费金额1万到5万的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55c664a507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "COST_GREATER_50000",
+      "title": "消费金额大于5万的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55c8e4d507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "ARREARAGE",
+      "title": "欠费的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55cb1c3507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "HAD_DEPOSIT",
+      "title": "有抵扣金客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55cd23f507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "TREAT_NOT_FINISH",
+      "title": "治疗未完成客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55cf354507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_CUSTOMER",
+      "title": "老带新客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55d11ff507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_GREATER_2_CUSTOMER",
+      "title": "老带新2位以上客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55d4755507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_GREATER_5_CUSTOMER",
+      "title": "老带新5位以上客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55d6bec507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "BIND_SCRM_CUSTOMER",
+      "title": "已绑定小程序客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55d8a31507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "NOT_BIND_SCRM_CUSTOMER",
+      "title": "未绑定小程序客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d55daa81507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "DAY_7_BIRTHDAY_CUSTOMER",
+      "title": "最近七天过生日客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "d58f2c0f3cca11f19f920242ac110003"
+    },
+    {
+      "systemConfigEnum": "DAY_7_BIRTHDAY_CUSTOMER",
+      "title": "最近七天过生日客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "db02d634507a11f18d57ead2e19429eb"
+    },
+    {
+      "systemConfigEnum": "TODAY_NOT_DEAL",
+      "title": "今日未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4ca3b2de09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "DAY_7_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近7日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4ca7e09e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "DAY_30_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近30日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4caa111e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "DAY_90_NOT_ARRIVAL_AND_DEAL",
+      "title": "最近90日到院未成交客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cac570e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "TODAY_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "今日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4caeefde09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "DAY_3_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "最近3日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cb0940e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "DAY_7_ARRIVAL_NOT_VISIT_PLAN",
+      "title": "最近7日到院无回访计划客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cb2e08e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "DAY_30_NOT_VISITED",
+      "title": "最近30天未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cb5161e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "HALF_YEAR_NOT_VISITED",
+      "title": "最近半年未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cb6ce7e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "HALF_YEAR_NOT_ARRIVAL",
+      "title": "最近半年未到院客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cbe246e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "ONE_YEAR_NOT_ARRIVAL",
+      "title": "最近一年未到院客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cc6263e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "ONE_YEAR_NOT_VISITED",
+      "title": "最近一年未回访客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cc75bee09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "COST_LESS_1000",
+      "title": "消费金额小于1千的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cc88c7e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "COST_1000_TO_10000",
+      "title": "消费金额1千到1万客户的",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cc9b7be09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "COST_10000_TO_50000",
+      "title": "消费金额1万到5万的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4ccae12e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "COST_GREATER_50000",
+      "title": "消费金额大于5万的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4ccc05ce09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "ARREARAGE",
+      "title": "欠费的客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4ccd4f9e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "HAD_DEPOSIT",
+      "title": "有抵扣金客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cce8e0e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "TREAT_NOT_FINISH",
+      "title": "治疗未完成客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4ccfbfae09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_CUSTOMER",
+      "title": "老带新客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cd0f00e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_GREATER_2_CUSTOMER",
+      "title": "老带新2位以上客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cd229be09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "OLD_NEW_GREATER_5_CUSTOMER",
+      "title": "老带新5位以上客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cd35f8e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "BIND_SCRM_CUSTOMER",
+      "title": "已绑定小程序客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cd48a0e09e11f09b980242ac110003"
+    },
+    {
+      "systemConfigEnum": "NOT_BIND_SCRM_CUSTOMER",
+      "title": "未绑定小程序客户",
+      "type": "system",
+      "permType": "common",
+      "remark": "系统默认",
+      "id": "f4cd5c39e09e11f09b980242ac110003"
+    }
+  ],
+  "customerPools": {
+    "personalPoolCount": 2321,
+    "nonPersonalPoolCount": 1135,
+    "list": [
+      {
+        "id": "dddddddddddddddddddddddddddddddd",
+        "name": "默认非个人池",
+        "currentCount": 1111,
+        "type": 2,
+        "specialType": "defaultNonePersonal",
+        "activePeriod": 0,
+        "activePeriodRemind": 7,
+        "ruleCount": 0
+      },
+      {
+        "id": "541260144101556228",
+        "name": "中康奇经诊所",
+        "currentCount": 10,
+        "type": 2,
+        "specialType": "common",
+        "activePeriod": 0,
+        "activePeriodRemind": 0,
+        "ruleCount": 0
+      },
+      {
+        "id": "da0fdffb507a11f18d57ead2e19429eb",
+        "name": "黑名单客户池",
+        "currentCount": 0,
+        "type": 2,
+        "specialType": "black_list_pool",
+        "activePeriod": 0,
+        "activePeriodRemind": 0,
+        "ruleCount": 0
+      },
+      {
+        "id": "65ebcc96c3c711f0a98b0242ac110007",
+        "name": "黑名单客户池",
+        "currentCount": 0,
+        "type": 2,
+        "specialType": "black_list_pool",
+        "activePeriod": 0,
+        "activePeriodRemind": 0,
+        "ruleCount": 0
+      },
+      {
+        "id": "e",
+        "name": "报备池",
+        "currentCount": 14,
+        "type": 2,
+        "specialType": "preparation",
+        "activePeriod": 91,
+        "activePeriodRemind": 0,
+        "ruleCount": 0
+      },
+      {
+        "id": "cccccccccccccccccccccccccccccccc",
+        "name": "客服部新客池",
+        "currentCount": 2321,
+        "type": 1,
+        "specialType": "defaultPersonal",
+        "activePeriod": 181,
+        "activePeriodRemind": 7,
+        "ruleCount": 0
+      }
+    ]
+  },
+  "dictSample": {
+    "channelLevel": [
+      {
+        "ext": "",
+        "tenantName": "贵州北科生物",
+        "tenantId": "1",
+        "id": "d109b3db8f716c0f402426e653f490ea",
+        "label": "1",
+        "dataScope": null,
+        "value": "1"
+      },
+      {
+        "ext": "",
+        "tenantName": "贵州北科生物",
+        "tenantId": "1",
+        "id": "f2394a0589c04cb50a802968a4228b03",
+        "label": "2",
+        "dataScope": null,
+        "value": "2"
+      },
+      {
+        "ext": "",
+        "tenantName": "贵州北科生物",
+        "tenantId": "1",
+        "id": "6c6c7dc01e53ac1b9f195d48afd15340",
+        "label": "3",
+        "dataScope": null,
+        "value": "3"
+      },
+      {
+        "ext": "",
+        "tenantName": "贵州北科生物",
+        "tenantId": "1",
+        "id": "2a6021558e9eaa92956b972633c554fd",
+        "label": "4",
+        "dataScope": null,
+        "value": "4"
+      },
+      {
+        "ext": "",
+        "tenantName": "贵州北科生物",
+        "tenantId": "1",
+        "id": "1acfebbac14be864ff7062f1c86be2c6",
+        "label": "5",
+        "dataScope": null,
+        "value": "5"
+      }
+    ]
+  },
+  "deptTree": [
+    {
+      "title": "贵州北科生物",
+      "value": "481045951302074374",
+      "children": [
+        {
+          "title": "总经办",
+          "value": "481046427087142914",
+          "children": []
+        },
+        {
+          "title": "行政中心总监",
+          "value": "481046605252788228",
+          "children": []
+        },
+        {
+          "title": "财务中心",
+          "value": "497458943858049029",
+          "children": []
+        },
+        {
+          "title": "医疗中心",
+          "value": "497458981107662851",
+          "children": []
+        },
+        {
+          "title": "行政中心",
+          "value": "497459067480965124",
+          "children": []
+        },
+        {
+          "title": "市场一部",
+          "value": "497741588533870598",
+          "children": []
+        },
+        {
+          "title": "市场二部",
+          "value": "497741647145074688",
+          "children": []
+        },
+        {
+          "title": "市场三部",
+          "value": "497741687188094979",
+          "children": []
+        },
+        {
+          "title": "技术中心",
+          "value": "498545053791158277",
+          "children": [
+            {
+              "title": "制备中心",
+              "value": "498899086217314304",
+              "children": []
+            },
+            {
+              "title": "检测中心",
+              "value": "498899119612362756",
+              "children": []
+            },
+            {
+              "title": "质管中心",
+              "value": "498899155838566401",
+              "children": []
+            }
+          ]
+        },
+        {
+          "title": "客服部",
+          "value": "481046545530093574",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,701 @@
+{
+ "generatedAt": "2026-09-23T05:32:50.459Z",
+ "year": "2026",
+ "total": 77,
+ "ok": 69,
+ "results": [
+  {
+   "path": "/report/v1/wym/celebrateCustomer/getCustomerActiveRate",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{cardNums,customerNum,customerRate,frequencyNums,memberRate}",
+   "sample": "{\"cardNums\":0,\"customerNum\":10,\"customerRate\":\"0.00%\",\"frequencyNums\":0,\"memberRate\":\"0.00%\"}"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/getCustomerRepurchaseRate",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{cardNums,customerNum,customerRate,frequencyNums,memberRate}",
+   "sample": "{\"cardNums\":0,\"customerNum\":10,\"customerRate\":\"0.00%\",\"frequencyNums\":0,\"memberRate\":\"0.00%\"}"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/getCustomerWaistRate",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{average,customerAmount,customerNum,overAvgCusNum,waistRate}",
+   "sample": "{\"average\":2041.2,\"customerAmount\":20412,\"customerNum\":10,\"overAvgCusNum\":1,\"waistRate\":\"10.00%\"}"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listAreaCityAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {area,cusNum,city,newFurtherCusNum,oldCusNum,newCusNum}",
+   "sample": "[{\"area\":\"\",\"cusNum\":10,\"city\":\"\",\"newFurtherCusNum\":0,\"oldCusNum\":0,\"newCusNum\":10},{\"area\":\"总计\",\"cusNum\":10,\"city\":\"\",\"newFurtherCusNum\":0,\"oldCusNum\":0,\"newCusNum\":10}]"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listAreaCityAnalysisChart",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {province,newFurtherCusNum,oldCusNum,newCusNum,value}",
+   "sample": "[{\"province\":\"\",\"newFurtherCusNum\":0,\"oldCusNum\":0,\"newCusNum\":10,\"value\":10}]"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listConsumeFrequency",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {consumeMoney,consumeFrequency,newConsumeMoneyRate,newCusNumRate,newConsumeMoneySingle,newFurtherCusNumRate,newFurtherConsumeMoneyRate,cusNum}",
+   "sample": "[{\"consumeMoney\":0,\"consumeFrequency\":\"合计\",\"newConsumeMoneyRate\":\"0.00%\",\"newCusNumRate\":\"0.00%\",\"newConsumeMoneySingle\":0,\"newFurtherCusNumRate\":\"0.00%\",\"newFurtherConsumeMoneyRate\":\"0.00%\",\"cusNum\":0,\"consumeMoneySingle\":0,\"oldConsumeMoneyRate\":\"0.00%\",\"oldConsumeMoneySingle\":0,\"newFurtherCusNum\":0,\"oldCusNum\":0,\"oldConsumeMoney\":0,\"newFurtherConsumeMoneySingle\":0,\"newCusNum\":0,\"newConsumeMoney\":0,\"oldCusNumRate\":\"0.00%\",\"newFurtherConsumeMoney\":0}]"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listConsumeRange",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {consumeMoney,consumeRange,newConsumeMoneyRate,newCusNumRate,newConsumeMoneySingle,newFurtherCusNumRate,newFurtherConsumeMoneyRate,cusNum}",
+   "sample": "[{\"consumeMoney\":0,\"consumeRange\":\"合计\",\"newConsumeMoneyRate\":null,\"newCusNumRate\":null,\"newConsumeMoneySingle\":0,\"newFurtherCusNumRate\":null,\"newFurtherConsumeMoneyRate\":null,\"cusNum\":0,\"consumeMoneySingle\":0,\"oldConsumeMoneyRate\":null,\"oldConsumeMoneySingle\":0,\"newFurtherCusNum\":0,\"oldCusNum\":0,\"oldConsumeMoney\":0,\"newFurtherConsumeMoneySingle\":0,\"newCusNum\":0,\"newConsumeMoney\":0,\"oldCusNumRate\":null,\"newFurtherConsumeMoney\":0}]"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listCusComprehensiveAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(22) of {dimension,indexName,selectIndexValue,selectLastIndexValue}",
+   "sample": "[{\"dimension\":\"顾客数量\",\"indexName\":\"期初顾客总数\",\"selectIndexValue\":\"3404\",\"selectLastIndexValue\":\"3307\"},{\"dimension\":\"顾客数量\",\"indexName\":\"期末顾客总数\",\"selectIndexValue\":\"3456\",\"selectLastIndexValue\":\"3404\"},{\"dimension\":\"顾客数量\",\"indexName\":\"新增顾客数\",\"selectIndexValue\":\"52\",\"selectLastIndexValue\":\"97\"},{\"dimension\":\"消费顾客\",\"indexName\":\"消费顾客数\",\"selectIndexValue\":\"10\",\"selectLastIndexValue\":\"0\"},{\"dimension\":\"消费顾客\",\"indexName\":\"消费占比\",\"selectIndexValue\":\"0.29%\",\"selectLastIndexValue\":\"0.00%\"},{\"dimension\":\"消费顾客\","
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listCustomerAppointAmount",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {clickCode,customerAmount,customerAmountRate,customerNum,customerOneAmount,customerTypeName}",
+   "sample": "[{\"clickCode\":\"5\",\"customerAmount\":20412,\"customerAmountRate\":\"100.00%\",\"customerNum\":10,\"customerOneAmount\":2041.2,\"customerTypeName\":\"当年新客初复诊\"},{\"clickCode\":\"4\",\"customerAmount\":20412,\"customerAmountRate\":\"100.00%\",\"customerNum\":10,\"customerOneAmount\":2041.2,\"customerTypeName\":\"合计\"}]"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listDataDiagnosisReport",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Array(0)",
+   "sample": "[]"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listReceptionFrequency",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {oldCusOnYearNum,consumeFrequency,newCusNumRate,consumeMoneySingle,newConsumeOnYearMoneySingle,oldConsumeMoneySingle,newFurtherCusNum,newConsumeOnYearMoney}",
+   "sample": "[{\"oldCusOnYearNum\":0,\"consumeFrequency\":\"合计\",\"newCusNumRate\":\"100.00%\",\"consumeMoneySingle\":2041.2,\"newConsumeOnYearMoneySingle\":2041.2,\"oldConsumeMoneySingle\":0,\"newFurtherCusNum\":0,\"newConsumeOnYearMoney\":20412,\"oldCusNum\":0,\"newFurtherConsumeMoney\":0,\"newFurtherConsumeOnYearMoney\":0,\"newFurtherConsumeOnYearMoneySingle\":0,\"startCount\":2147483647,\"newConsumeMoneyRate\":\"100.00%\",\"newCusOnYearNum\":10,\"newConsumeMoneySingle\":2041.2,\"newFurtherCusNumRate\":\"0.00%\",\"newFurtherConsumeMoneyRate\":\"0.00"
+  },
+  {
+   "path": "/report/v1/wym/celebrateCustomer/listSleepLossAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {november,april,januaryRatio,aprilRatio,september,lastJanuary,december,juneRatio}",
+   "sample": "[{\"november\":1,\"april\":0,\"januaryRatio\":\"0%\",\"aprilRatio\":\"0%\",\"september\":0,\"lastJanuary\":0,\"december\":1,\"juneRatio\":\"0%\",\"februaryRatio\":\"0%\",\"julyRatio\":\"0%\",\"sleepDay\":180,\"marchRatio\":\"0%\",\"may\":0,\"august\":0,\"novemberRatio\":\"0%\",\"octoberRatio\":\"0%\",\"february\":0,\"july\":0,\"nowSleepLossRatio\":\"0%\",\"march\":0,\"mayRatio\":\"0%\",\"septemberRatio\":\"0%\",\"augustRatio\":\"0%\",\"june\":0,\"decemberRatio\":\"0.00%\",\"january\":0,\"october\":0,\"nowSleepLossNum\":2},{\"november\":0,\"april\":0,\"januaryRatio\":\"0%\",\"aprilRati"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/clickPageConsultDeductAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/clickPageDeductItemPerformanceRank",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/clickPageDepartmentNumberDeduct",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"areaProvince\":\"\",\"costAmount\":19800,\"costThisYear\":19800,\"createDate\":1783494365000,\"customerId\":\"<NUM>\",\"customerName\":\"包加钰\",\"customerType\":\"当年新客初复诊\",\"latestCostDate\":1783495638000,\"memberLevelName\":\"\",\"payMoney\":\"\",\"sourceTypeName\":\"SCRM-新客户\",\"sysUserName\":\"\",\"userRoleName\":\"\",\"vipNum\":\"003452\"}],\"searchCount\":true,\"sele"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/clickPageNotDeductItemPerformanceRank",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/listConsultDeductAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {deductCusNum,cusDeductFrequency,sysUserName,notPerformPrice,performPrice,unitPerformPrice,sysUserId,treatCount}",
+   "sample": "[{\"deductCusNum\":0,\"cusDeductFrequency\":0,\"sysUserName\":\"合计\",\"notPerformPrice\":0,\"performPrice\":null,\"unitPerformPrice\":0,\"sysUserId\":\"\",\"treatCount\":null,\"notDeductCusNum\":0}]"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/listDeductAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {unitPerformPrice1,deductCusNum4,deductCusNum5,unitPerformPrice3,deductCusNum6,unitPerformPrice2,deductCusNum7,year}",
+   "sample": "[{\"unitPerformPrice1\":0,\"deductCusNum4\":0,\"deductCusNum5\":0,\"unitPerformPrice3\":0,\"deductCusNum6\":0,\"unitPerformPrice2\":0,\"deductCusNum7\":0,\"year\":\"2025\",\"deductCusNum1\":0,\"deductCusNum2\":0,\"deductCusNum11\":0,\"deductCusNum3\":0,\"deductCusNum12\":0,\"unitPerformPrice9\":0,\"unitPerformPrice8\":0,\"deductCusNum10\":0,\"unitPerformPrice5\":0,\"unitPerformPrice4\":0,\"unitPerformPrice7\":0,\"unitPerformPrice6\":0,\"performPrice10\":0,\"deductCusNum8\":0,\"deductCusNum9\":0,\"performPrice12\":0,\"performPrice11\":0,\"unitPerfo"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/listDeductItemPerformanceRank",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"buyCusNumRate\":\"0.00%\",\"billingItemName\":\"单部位体验\",\"buyCusNum\":9,\"averagePriceRate\":\"0.00%\",\"itemSaleNum\":36,\"oneName\":\"生命方舟\",\"oneId\":\"<NUM>\",\"itemDataId\":\"<NUM>\",\"performPriceRate\":\"0.00%\",\"performPrice\":263.67,\"itemSaleNumRate\":\"0.00%\",\"averagePrice\":29.3,\"treatDeptName\":\"医疗中心\",\"treatDeptId\":\"<NUM>"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/listDepartmentNumberDeduct",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {departmentName,deductCusNum,performPriceRate,deductCusNumRate,notPerformPrice,departmentId,performPrice,unitPerformPrice}",
+   "sample": "[{\"departmentName\":\"贵州北科生物\",\"deductCusNum\":0,\"performPriceRate\":\"0.00%\",\"deductCusNumRate\":\"0.00%\",\"notPerformPrice\":19800,\"departmentId\":\"<NUM>\",\"performPrice\":0,\"unitPerformPrice\":0,\"treatCount\":0,\"notDeductCusNum\":1},{\"departmentName\":\"医疗中心\",\"deductCusNum\":9,\"performPriceRate\":\"100.00%\",\"deductCusNumRate\":\"100.00%\",\"notPerformPrice\":0,\"departmentId\":\"<NUM>\",\"performPrice\":263.67,\"unitPerformPrice\":15.51,\"treatCount\":17,\"notDeductCusNum\":0},{\"departmentName\":\"合计\",\"ded"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/listHisYearDeductAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{oneYearAgo,fourYearAgo,twoYearAgo,threeYearAgo,currentYear,total}",
+   "sample": "{\"oneYearAgo\":0,\"fourYearAgo\":0,\"twoYearAgo\":0,\"threeYearAgo\":0,\"currentYear\":20148.33,\"total\":20148.33}"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/listNotDeductItemPerformanceRank",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"billingItemName\":\"人人存基础版\",\"buyCusNum\":1,\"performPrice\":19800,\"averagePrice\":19800,\"treatDeptName\":\"贵州北科生物\",\"itemSaleNum\":1,\"oneName\":\"北科类\",\"treatDeptId\":\"<NUM>\",\"oneId\":\"f0f7b825694a4b2fb1708754ce206c6d\",\"productType\":\"品项\",\"itemDataId\":\"83df8941247c4d268cc5b3335b175866\"},{\"billingItemName\":\"单部位体验\",\"buyCusNum\":9,\"performPri"
+  },
+  {
+   "path": "/report/v1/wym/deductStatistics/listOnYearDepartmentDeduct",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {departmentName,notConsumeRate,departmentId,performPrice,deductPrice,subPerformPrice}",
+   "sample": "[{\"departmentName\":\"贵州北科生物\",\"notConsumeRate\":\"100.00%\",\"departmentId\":\"<NUM>\",\"performPrice\":19800,\"deductPrice\":0,\"subPerformPrice\":19800},{\"departmentName\":\"合计\",\"notConsumeRate\":\"100.00%\",\"performPrice\":19800,\"deductPrice\":0,\"subPerformPrice\":19800,\"oneId\":\"total\"}]"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/channelAccuratePortrait",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(7) of {accurateCusNum,channelName,addCusNum,accurateRate,channelId,over200CusNum}",
+   "sample": "[{\"accurateCusNum\":0,\"channelName\":\"乐优团队\",\"addCusNum\":14,\"accurateRate\":\"0\",\"channelId\":\"89b3cbc34e19496a9b34a1c915efdLJ\",\"over200CusNum\":0},{\"accurateCusNum\":0,\"channelName\":\"云康团队\",\"addCusNum\":3,\"accurateRate\":\"0\",\"channelId\":\"bf6e489916e14591a061025bdab3eLJ\",\"over200CusNum\":0},{\"accurateCusNum\":0,\"channelName\":\"公司业绩\",\"addCusNum\":2,\"accurateRate\":\"0\",\"channelId\":\"15fc972467b64464a5c2cf611809aLJ\",\"over200CusNum\":0},{\"accurateCusNum\":0,\"channelName\":\"创新团队\",\"addCusNum\":1,\"accurateRate\":\"0\",\"channe"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/clickPageChannelAccuratePortrait",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/clickPageChannelContributeRange",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/clickPageChannelCusLossTrend",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/clickPageChannelPerformanceRank",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 20002,
+   "msg": "系统开小差了，请重试！",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/clickPageChannelRecAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/clickPageChannelRecAndDeductAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/getChannelCusLossConfig",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 20002,
+   "msg": "您不是最新版本，请更新你的系统 Request method 'POST' not supported",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/list-channel-rfm",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10000,
+   "msg": "操作成功",
+   "shape": "Array(0)",
+   "sample": "[]"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/list-channel-rfm-detail",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 20002,
+   "msg": "系统开小差了，请重试！",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/listChannelContributeRange",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(9) of {thisYearNewCusNum,lastYearOldCusActualMoney,channelActualMoney,channelNum,thisYearNewFurtherCusActualMoney,newChannelNum,channelCusNum,contributeRange}",
+   "sample": "[{\"thisYearNewCusNum\":0,\"lastYearOldCusActualMoney\":0,\"channelActualMoney\":0,\"channelNum\":0,\"thisYearNewFurtherCusActualMoney\":0,\"newChannelNum\":0,\"channelCusNum\":0,\"contributeRange\":\"0W-2W\",\"thisYearNewFurtherCusNum\":0,\"channelRate\":\"0%\",\"thisYearNewCusActualMoney\":0,\"oldChannelNum\":0,\"newCusNum\":0,\"lastYearOldCusNum\":0,\"newChannelActualMoney\":0},{\"thisYearNewCusNum\":0,\"lastYearOldCusActualMoney\":0,\"channelActualMoney\":0,\"channelNum\":0,\"thisYearNewFurtherCusActualMoney\":0,\"newChannelNum\":0,\"cha"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/listChannelCusLossTrend",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(15) of {november,januaryLoss,april,marchLoss,september,julyLoss,totalLossNum,december}",
+   "sample": "[{\"november\":0,\"januaryLoss\":0,\"april\":0,\"marchLoss\":0,\"september\":0,\"julyLoss\":0,\"totalLossNum\":0,\"december\":0,\"septemberLoss\":0,\"juneLoss\":0,\"channelId\":\"15fc972467b64464a5c2cf611809aLJ\",\"may\":0,\"august\":0,\"decemberLoss\":0,\"february\":0,\"july\":0,\"novemberLoss\":0,\"march\":0,\"februaryLoss\":0,\"aprilLoss\":0,\"mayLoss\":0,\"june\":0,\"january\":2,\"totalNum\":2,\"augustLoss\":0,\"octoberLoss\":0,\"channelName\":\"公司业绩\",\"october\":0},{\"november\":0,\"januaryLoss\":0,\"april\":0,\"marchLoss\":0,\"september\":0,\"julyLoss\":0,\"to"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/listChannelOldCooperateReduce",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{oldChannelLossRate,oldChannelNum,lastChannelNum,channelNum,oldChannelLossNum,newChannelNum}",
+   "sample": "{\"oldChannelLossRate\":\"0%\",\"oldChannelNum\":0,\"lastChannelNum\":0,\"channelNum\":0,\"oldChannelLossNum\":0,\"newChannelNum\":0}"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/listChannelPerformanceRank",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(15) of {thisYearNewCusNum,newCardCusRate,lastYearOldCardCusNum,lastYearOldPayCusNum,lastYearOldCardSdRate,consultationUserName,newPayCusMoney,staffRecCusNum}",
+   "sample": "[{\"thisYearNewCusNum\":0,\"newCardCusRate\":\"0%\",\"lastYearOldCardCusNum\":0,\"lastYearOldPayCusNum\":0,\"lastYearOldCardSdRate\":\"0.00%\",\"consultationUserName\":null,\"newPayCusMoney\":0,\"staffRecCusNum\":0,\"firstCusDate\":1470844800000,\"payMoney\":0,\"thisYearNewPayCusMoney\":0,\"thisYearNewCardCusRate\":\"0%\",\"thisYearNewCardPayMoney\":0,\"thisYearNewCardCusNum\":0,\"developUserName\":null,\"newCardSdRate\":\"0.00%\",\"regionText\":null,\"sdCardPayCusNum\":null,\"thisYearNewSdCardPayCusNum\":null,\"latestCusDate\":1768752000000,"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/listChannelRecAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Array(0)",
+   "sample": "[]"
+  },
+  {
+   "path": "/report/v1/wym/marketingStatistics/listChannelRecAndDeductAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Array(0)",
+   "sample": "[]"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/clickPageConsultAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"areaProvince\":\"\",\"costAmount\":19800,\"costThisYear\":19800,\"createDate\":1783494365000,\"customerId\":\"<NUM>\",\"customerName\":\"包加钰\",\"customerType\":\"当年新客初复诊\",\"latestCostDate\":1783495638000,\"memberLevelName\":\"\",\"payMoney\":\"\",\"sourceTypeName\":\"SCRM-新客户\",\"sysUserName\":\"\",\"userRoleName\":\"\",\"vipNum\":\"003452\"},{\"areaProvince\":\"\",\"costA"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/clickPageConsultDealDetail",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"areaProvince\":\"\",\"costAmount\":37600,\"costThisYear\":37600,\"createDate\":1780558681000,\"customerId\":\"<NUM>\",\"customerName\":\"李颜蕊\",\"customerType\":\"空\",\"latestCostDate\":1780622425000,\"memberLevelName\":\"\",\"payMoney\":\"\",\"sourceTypeName\":\"其他\",\"sysUserName\":\"宋晶晶\",\"userRoleName\":\"\",\"vipNum\":\"000021\"}],\"searchCount\":true,\"selectInt\":nu"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/clickPageCoreExplosiveProduct",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 20002,
+   "msg": "系统开小差了，请重试！",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/clickPageDepartmentPerformance",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"areaProvince\":\"\",\"costAmount\":68,\"costThisYear\":68,\"createDate\":1789895914000,\"customerId\":\"<NUM>\",\"customerName\":\"刘萍\",\"customerType\":\"当年新客初复诊\",\"latestCostDate\":1789896101000,\"memberLevelName\":\"\",\"payMoney\":\"15.51\",\"sourceTypeName\":\"自然到院\",\"sysUserName\":\"\",\"userRoleName\":\"\",\"vipNum\":\"003457\"},{\"areaProvince\":\"\",\"costAmount\""
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/getCoreExplosiveProductCondition",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {allTopPath,allTopPathStr,delFlag,displayFlag,ext,idList,isEnable,label}",
+   "sample": "[{\"allTopPath\":[],\"allTopPathStr\":\"\",\"delFlag\":false,\"displayFlag\":false,\"ext\":\"\",\"idList\":[],\"isEnable\":false,\"label\":\"脐带血造血干细胞\",\"maxNumber\":null,\"number\":null,\"order\":0,\"phone\":[],\"place\":\"\",\"price\":null,\"projectCountryCode\":\"\",\"projectFlag\":false,\"projectPartName\":\"\",\"projectShowName\":\"\",\"projectSpecifications\":\"\",\"projectUnitName\":\"\",\"recommendTagsEnum\":null,\"remark\":\"\",\"sourcePathName\":\"\",\"sourceTypeDetailType\":\"\",\"sourceTypeId\":\"\",\"tenantId\":\"\",\"tips\":\"\",\"type\":null,\"typeId\":\"\",\"value\":\"6f"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/listConsultAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"totalCusNum\":0,\"firstPayCusNum\":10,\"firstCusRate\":\"0.00%\",\"billingItemName\":\"合计\",\"firstCusUnitPrice\":2041.2,\"lastYearOldPayCusNum\":0,\"departmentId\":\"\",\"thisYearNewRecCusNum\":0,\"thisYearNewPayMoney\":0,\"twoName\":\"合计\",\"lastYearOldCusUnitPrice\":0,\"totalPayCusNum\":10,\"lastYearOldCusRate\":\"0.00%\",\"twoId\":\"\",\"totalCusRate\":\"0.00%\",\"department"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/listConsultAnalysisBarChart",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {totalCusNum,firstPayCusNum,firstCusRate,lastYearOldRecCusNum,totalPayMoney,firstRecCusNum,firstCusUnitPrice,lastYearOldPayMoney}",
+   "sample": "[{\"totalCusNum\":0,\"firstPayCusNum\":1,\"firstCusRate\":\"0.00%\",\"lastYearOldRecCusNum\":0,\"totalPayMoney\":19800,\"firstRecCusNum\":0,\"firstCusUnitPrice\":19800,\"lastYearOldPayMoney\":0,\"totalCusUnitPrice\":19800,\"lastYearOldPayCusNum\":0,\"firstPayMoney\":19800,\"oneName\":\"北科类\",\"oneId\":\"f0f7b825694a4b2fb1708754ce206c6d\",\"thisYearNewRecCusNum\":0,\"thisYearNewPayMoney\":0,\"thisYearNewPayCusNum\":0,\"lastYearOldCusUnitPrice\":0,\"thisYearNewCusRate\":\"0.00%\",\"totalPayCusNum\":1,\"lastYearOldCusRate\":\"0.00%\",\"totalCusRate"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/listConsultDealDetail",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{userData,listData}",
+   "sample": "{\"userData\":[{\"name\":\"宋晶晶\",\"id\":\"<NUM>\"}],\"listData\":{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":2,\"recordList\":null,\"records\":[{\"departmentName\":\"贵州北科生物\",\"billingItemName\":\"脐带血造血干细胞\",\"totalDealCusNum\":1,\"departmentId\":\"<NUM>\",\"<NUM>\":1,\"statusName\":\"成交\",\"mid\":\"f0f7b825694a4b2fb1708754ce206c6d4810459513020743746f54c128875a42d3b69f1bf545f773a5\",\"oneName\":\"北科类\",\"oneId\":\"f0f7"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/listCoreExplosiveProduct",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {totalCusNum,itemActualMoney,totalActualMoney,itemCusNum,billingItemName,yearStr,repeatCusNum,repeatRate}",
+   "sample": "[{\"totalCusNum\":null,\"itemActualMoney\":null,\"totalActualMoney\":null,\"itemCusNum\":0,\"billingItemName\":null,\"yearStr\":\"2025年\",\"repeatCusNum\":0,\"repeatRate\":\"0.00%\",\"cusUnitPrice\":null,\"moneyRate\":\"0.00%\",\"cusNumRate\":\"0.00%\",\"itemDataId\":null},{\"totalCusNum\":12,\"itemActualMoney\":37600,\"totalActualMoney\":84812,\"itemCusNum\":1,\"billingItemName\":\"脐带血造血干细胞\",\"yearStr\":\"2026年\",\"repeatCusNum\":0,\"repeatRate\":\"0.00%\",\"cusUnitPrice\":37600,\"moneyRate\":\"44.33%\",\"cusNumRate\":\"8.33%\",\"itemDataId\":\"6f54c128875a42"
+  },
+  {
+   "path": "/report/v1/wym/productItemStatistics/listDepartmentPerformance",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{list,chartList}",
+   "sample": "{\"list\":[{\"departmentName\":\"贵州北科生物\",\"actualMoney\":37600,\"deductMoneyRate\":\"0%\",\"billingItemName\":\"脐带血造血干细胞\",\"departmentId\":\"<NUM>\",\"joinId\":\"f0f7b825694a4b2fb1708754ce206c6d4810459513020743746f54c128875a42d3b69f1bf545f773a5\",\"oneName\":\"北科类\",\"oneId\":\"f0f7b825694a4b2fb1708754ce206c6d\",\"deductMoneyLastYear\":0,\"actualMoneyLastYear\":0,\"actualMoneyRate\":\"0%\",\"projectId\":\"6f54c128875a42d3b69f1bf545f773a5\",\"deductMoney\":0},{\"departmentName\":\"贵州北科生物\",\"actualMoney\":26800,\"deductMoneyRate\":\"0%"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/clickPageChannelConsultAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/clickPageConsultCusActiveAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/clickPageConsultCusTrendLossAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/clickPageConsultPerformanceAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":1,\"recordList\":null,\"records\":[{\"areaProvince\":\"\",\"costAmount\":68,\"costThisYear\":68,\"createDate\":1789793940000,\"customerId\":\"<NUM>\",\"customerName\":\"黄文佐\",\"customerType\":\"当年新客初复诊\",\"latestCostDate\":1789960738000,\"memberLevelName\":\"\",\"payMoney\":\"\",\"sourceTypeName\":\"自然到院\",\"sysUserName\":\"\",\"userRoleName\":\"\",\"vipNum\":\"003456\"},{\"areaProvince\":\"\",\"costAmount\":68,"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/clickPageElectricConsultation",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10002,
+   "msg": "操作成功,数据为空",
+   "shape": "Object{countId,current,ext,extList,lastCustomerId,maxLimit,optimizeCountSql,orders,pages,recordList,…+7}",
+   "sample": "{\"countId\":\"\",\"current\":1,\"ext\":null,\"extList\":[],\"lastCustomerId\":\"\",\"maxLimit\":null,\"optimizeCountSql\":true,\"orders\":[],\"pages\":0,\"recordList\":null,\"records\":[],\"searchCount\":true,\"selectInt\":null,\"selectStr\":\"\",\"size\":30,\"total\":0,\"updateLength\":null}"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/consult-customer-cube-page",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10000,
+   "msg": "操作成功",
+   "shape": "Object{result,customerConsumeManagementTargetAmount,customerArriveFrequencyTimes,customerConsumeManagementProjectTimes,rfmList}",
+   "sample": "{\"result\":[{\"newCusNMoreCusAmount\":0,\"costOneCusReRate\":0,\"activeCusRate\":0,\"sysUserName\":\"丁云\",\"residueCusNMoreNum\":0,\"nearMonthActiveRate\":0,\"nearMonthArrivalNum\":0,\"normalDeductNum\":0,\"customerTypeNum\":0,\"newCusNMoreCusNum\":0,\"refundCusAmount\":0,\"residueCusNum\":0,\"northZhiNum\":0,\"refundCusNum\":0,\"northZhiRateStr\":\"0%\",\"costOneCusNum\":0,\"sysUserId\":\"<NUM>\",\"costCusTypeRate\":0,\"costCusTypeRateStr\":\"0%\",\"nearMonthActiveRateStr\":\"0%\",\"activeCusRateStr\":\"0%\",\"quarterMonthActiveRate\":0,"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/consult-customer-cube-page-detail",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 20001,
+   "msg": "每页条数不能为空,咨询师id不能为空,页码不能为空,数据类型不能为空",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listChannelConsultAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {thisYearNewCusNum,newCardCusRate,lastYearOldCardCusNum,lastYearOldPayCusNum,effectiveChannelNum,lastYearOldCardSdRate,newPayCusMoney,staffRecCusNum}",
+   "sample": "[{\"thisYearNewCusNum\":0,\"newCardCusRate\":\"0%\",\"lastYearOldCardCusNum\":0,\"lastYearOldPayCusNum\":0,\"effectiveChannelNum\":0,\"lastYearOldCardSdRate\":\"0.00%\",\"newPayCusMoney\":0,\"staffRecCusNum\":0,\"payMoney\":0,\"thisYearNewPayCusMoney\":0,\"thisYearNewCardCusRate\":\"0%\",\"thisYearNewCardPayMoney\":0,\"refundCusNum\":0,\"thisYearNewCardCusNum\":0,\"developUserName\":\"李莉莎\",\"newCardSdRate\":\"0.00%\",\"lastYearOldCusNum\":0,\"lastYearOldCardPayCusNum\":0,\"performanceChannelNum\":0,\"newCardPayMoney\":0,\"lastYearOldPayCusMoney"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listConsultCusActiveAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {november,sysUserName,april,januaryRatio,aprilRatio,total,september,totalOnYear}",
+   "sample": "[{\"november\":0,\"sysUserName\":\"合计\",\"april\":0,\"januaryRatio\":\"0.00%\",\"aprilRatio\":\"0.00%\",\"total\":0,\"september\":0,\"totalOnYear\":0,\"december\":0,\"sysUserId\":\"\",\"juneRatio\":\"0.00%\",\"februaryRatio\":\"0.00%\",\"julyRatio\":\"0.00%\",\"marchRatio\":\"0.00%\",\"may\":0,\"august\":0,\"novemberRatio\":\"0.00%\",\"octoberRatio\":\"0.00%\",\"february\":0,\"july\":0,\"march\":0,\"mayRatio\":\"0.00%\",\"septemberRatio\":\"0.00%\",\"augustRatio\":\"0.00%\",\"june\":0,\"decemberRatio\":\"0.00%\",\"january\":0,\"october\":0}]"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listConsultCusLossAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {november,april,januaryRatio,aprilRatio,september,lastJanuary,december,juneRatio}",
+   "sample": "[{\"november\":0,\"april\":0,\"januaryRatio\":\"0%\",\"aprilRatio\":\"0%\",\"september\":0,\"lastJanuary\":0,\"december\":1,\"juneRatio\":\"0%\",\"februaryRatio\":\"0%\",\"julyRatio\":\"0%\",\"sleepDay\":180,\"marchRatio\":\"0%\",\"may\":0,\"august\":0,\"novemberRatio\":\"0%\",\"octoberRatio\":\"0%\",\"february\":0,\"july\":0,\"nowSleepLossRatio\":\"0%\",\"march\":0,\"mayRatio\":\"0%\",\"septemberRatio\":\"0%\",\"augustRatio\":\"0%\",\"june\":0,\"decemberRatio\":\"0%\",\"january\":0,\"october\":0,\"nowSleepLossNum\":1},{\"november\":0,\"april\":0,\"januaryRatio\":\"0%\",\"aprilRatio\":"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listConsultCusTrendLossAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(16) of {totalAddNum,januaryAdd,januaryLoss,sysUserName,juneAdd,octoberAdd,novemberAdd,julyAdd}",
+   "sample": "[{\"totalAddNum\":4,\"januaryAdd\":3,\"januaryLoss\":0,\"sysUserName\":\"丁云\",\"juneAdd\":0,\"octoberAdd\":0,\"novemberAdd\":0,\"julyAdd\":0,\"marchLoss\":0,\"februaryAdd\":0,\"julyLoss\":0,\"totalLossNum\":0,\"marchAdd\":0,\"septemberAdd\":0,\"septemberLoss\":0,\"sysUserId\":\"<NUM>\",\"juneLoss\":0,\"decemberAdd\":0,\"decemberLoss\":0,\"novemberLoss\":0,\"februaryLoss\":0,\"aprilLoss\":0,\"mayLoss\":0,\"mayAdd\":0,\"augustAdd\":0,\"aprilAdd\":1,\"augustLoss\":0,\"octoberLoss\":0},{\"totalAddNum\":0,\"januaryAdd\":0,\"januaryLoss\":0,\"sysUserName"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listConsultMonthPerformance",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {payCusNum,payMoney,payCusNumRate,consultCusNum,cusUnitPrice,userName,userId,payMoneyRate}",
+   "sample": "[{\"payCusNum\":0,\"payMoney\":0,\"payCusNumRate\":\"0%\",\"consultCusNum\":1,\"cusUnitPrice\":0,\"userName\":\"肖觉慧\",\"userId\":\"<NUM>\",\"payMoneyRate\":\"0%\",\"cusUnitPriceRate\":\"0%\"},{\"payCusNum\":0,\"payMoney\":0,\"payCusNumRate\":\"0%\",\"consultCusNum\":1,\"cusUnitPrice\":0,\"userName\":\"合计\",\"userId\":\"userId\",\"payMoneyRate\":\"0%\",\"cusUnitPriceRate\":\"0%\"}]"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listConsultNoDealReason",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Object{listData,userData}",
+   "sample": "{\"listData\":[],\"userData\":{}}"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listConsultPerformanceAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {lastYearOldPayRate,totalPayRate,totalActualMoney,sysUserName,totalCusUnitPrice,lastYearOldConsultCusNum,lastYearOldPayCusNum,lastYearOldActualMoney}",
+   "sample": "[{\"lastYearOldPayRate\":\"0.00%\",\"totalPayRate\":\"0.00%\",\"totalActualMoney\":20412,\"sysUserName\":null,\"totalCusUnitPrice\":2041.2,\"lastYearOldConsultCusNum\":0,\"lastYearOldPayCusNum\":0,\"lastYearOldActualMoney\":0,\"newPayRate\":\"0.00%\",\"thisYearNewPayRate\":\"0.00%\",\"refundMoney\":0,\"newCusUnitPrice\":2041.2,\"newConsultCusNum\":0,\"thisYearNewPayCusNum\":0,\"lastYearOldCusUnitPrice\":0,\"refundCusNum\":0,\"newPayCusNum\":10,\"thisYearNewConsultCusNum\":0,\"totalPayCusNum\":10,\"sysUserId\":\"idEmpty\",\"totalConsultCusNum\":0,"
+  },
+  {
+   "path": "/report/v1/wym/teamStatistics/listElectricConsultation",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(7) of {totalActualMoney,bespeakRate,totalCusUnitPrice,newFurtherDealCusNum,addCusNum,newCusUnitPrice,receptionRate,newDealCusNum}",
+   "sample": "[{\"totalActualMoney\":0,\"bespeakRate\":\"0.00%\",\"totalCusUnitPrice\":0,\"newFurtherDealCusNum\":0,\"addCusNum\":2,\"newCusUnitPrice\":0,\"receptionRate\":\"0.00%\",\"newDealCusNum\":0,\"oldCusUnitPrice\":0,\"bespeakCusNum\":0,\"newFurtherCusUnitPrice\":0,\"oldActualMoney\":0,\"channelName\":\"公司业绩\",\"receptionCusNum\":0,\"newActualMoney\":0,\"channelId\":\"15fc972467b64464a5c2cf611809aLJ\",\"newFurtherActualMoney\":0,\"oldDealCusNum\":0},{\"totalActualMoney\":0,\"bespeakRate\":\"0.00%\",\"totalCusUnitPrice\":0,\"newFurtherDealCusNum\":0,\"addCu"
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/clickPageCusBespeakAnalysis",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 500,
+   "msg": "跳转参数异常！请联系管理员",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/clickPageCusTimeNum",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 20002,
+   "msg": "系统开小差了，请重试！",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/getValleyConfig",
+   "ok": false,
+   "params": "{\"year\":\"2026\"}",
+   "code": 20002,
+   "msg": "您不是最新版本，请更新你的系统 Request method 'POST' not supported",
+   "shape": null,
+   "sample": null
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listBackVisitAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(2) of {februaryEffective,septemberInvalid,marchInvalid,augustInvalid,februaryInvalid,decemberInvalid,juneEffective,novemberEffective}",
+   "sample": "[{\"februaryEffective\":0,\"septemberInvalid\":0,\"marchInvalid\":0,\"augustInvalid\":0,\"februaryInvalid\":0,\"decemberInvalid\":0,\"juneEffective\":0,\"novemberEffective\":0,\"juneInvalid\":0,\"novemberInvalid\":0,\"octoberInvalid\":0,\"januaryEffective\":0,\"julyEffective\":0,\"decemberEffective\":0,\"julyInvalid\":0,\"octoberEffective\":0,\"aprilEffective\":0,\"mayEffective\":0,\"dealType\":\"触达结果\",\"augustEffective\":0,\"januaryInvalid\":0,\"aprilInvalid\":0,\"marchEffective\":0,\"mayInvalid\":0,\"septemberEffective\":0},{\"februaryEffective"
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listCusBespeakAnalysis",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(8) of {lastYearCusField4,lastYearCusField5,lastYearCusField6,lastYearCusField7,lastYearCusField8,lastYearCusField9,timeType,lastYearCusField1}",
+   "sample": "[{\"lastYearCusField4\":0,\"lastYearCusField5\":0,\"lastYearCusField6\":0,\"lastYearCusField7\":0,\"lastYearCusField8\":0,\"lastYearCusField9\":1,\"timeType\":\"预约人数\",\"lastYearCusField1\":0,\"lastYearCusField2\":0,\"lastYearCusField3\":0,\"cusField9\":1,\"cusField8\":0,\"cusField7\":0,\"cusField6\":0,\"cusField5\":0,\"cusField4\":0,\"cusField3\":0,\"cusField12\":0,\"cusField2\":0,\"cusField11\":0,\"cusField1\":0,\"cusField10\":0,\"lastYearCusField10\":0,\"lastYearCusField11\":0,\"lastYearCusField12\":0},{\"lastYearCusField4\":\"0%\",\"lastYearCusFie"
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listCusBespeakAnalysisChart",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(4) of {name,value}",
+   "sample": "[{\"name\":\"成交人数\",\"value\":10},{\"name\":\"预约人数\",\"value\":1},{\"name\":\"上门人数\",\"value\":1},{\"name\":\"复购人数\",\"value\":0}]"
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listDeductBelongUserPerformance",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {november,may,august,sysUserName,february,totalMoney,averageMoney,july}",
+   "sample": "[{\"november\":0,\"may\":0,\"august\":0,\"sysUserName\":null,\"february\":0,\"totalMoney\":263.67,\"averageMoney\":29.296667,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":263.67,\"january\":0,\"december\":0,\"october\":0}]"
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listDeductCusNum",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {november,yearStr,may,august,february,july,april,march}",
+   "sample": "[{\"november\":0,\"yearStr\":\"2026\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":9,\"january\":0,\"totalNum\":9,\"averageNum\":1,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"2025\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"同比去年\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":9,\"january\":0,\"totalNum\""
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listDeductRecUserPerformance",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(1) of {november,may,august,sysUserName,february,totalMoney,averageMoney,july}",
+   "sample": "[{\"november\":0,\"may\":0,\"august\":0,\"sysUserName\":null,\"february\":0,\"totalMoney\":263.67,\"averageMoney\":29.296667,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":263.67,\"january\":0,\"december\":0,\"october\":0}]"
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listFirstReceptionNum",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {november,yearStr,may,august,february,july,april,march}",
+   "sample": "[{\"november\":0,\"yearStr\":\"2026\",\"may\":0,\"august\":0,\"february\":0,\"july\":1,\"april\":0,\"march\":0,\"june\":0,\"september\":9,\"january\":0,\"totalNum\":10,\"averageNum\":1.1111,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"2025\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"同比去年\",\"may\":0,\"august\":0,\"february\":0,\"july\":1,\"april\":0,\"march\":0,\"june\":0,\"september\":9,\"january\":0,\"tot"
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listNewCusBespeakNum",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {november,yearStr,may,august,february,july,april,march}",
+   "sample": "[{\"november\":0,\"yearStr\":\"2026\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"2025\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"同比去年\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\""
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listNewCusReceptionNum",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {november,yearStr,may,august,february,july,april,march}",
+   "sample": "[{\"november\":0,\"yearStr\":\"2026\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"2025\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"同比去年\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\""
+  },
+  {
+   "path": "/report/v1/wym/timeStatistics/listOldCusReceptionNum",
+   "ok": true,
+   "params": "{\"year\":\"2026\"}",
+   "code": 10001,
+   "msg": "成功获取数据，数据非空",
+   "shape": "Array(3) of {november,yearStr,may,august,february,july,april,march}",
+   "sample": "[{\"november\":0,\"yearStr\":\"2026\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"2025\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\":0,\"averageNum\":0,\"december\":0,\"october\":0},{\"november\":0,\"yearStr\":\"同比去年\",\"may\":0,\"august\":0,\"february\":0,\"july\":0,\"april\":0,\"march\":0,\"june\":0,\"september\":0,\"january\":0,\"totalNum\""
+  }
+ ]
+}

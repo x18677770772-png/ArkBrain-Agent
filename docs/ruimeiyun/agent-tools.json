@@ -1,0 +1,403 @@
+{
+  "meta": {
+    "name": "睿美云 Agent 工具清单",
+    "purpose": "供 Claude / MCP 服务实现方直接落地的工具定义：业务意图 → 睿美云接口映射",
+    "generatedAt": "2026-09-10",
+    "apiBase": "https://{hospitalSubdomain}.hospital.realmerit.com.cn/api",
+    "auth": {
+      "headers": { "Authorization": "<JWT 裸值，无 Bearer>", "tenant": "1", "lang": "zh-CN" },
+      "login": "GET /v1/getPublicKey → RSA-PKCS1v15 加密密码 → POST /v1/login",
+      "refresh": "GET /v1/refreshLogin",
+      "successCodes": [10000, 10001, 10002],
+      "note": "code=10002 表示成功但空集，不是错误；HTTP 401 表示 token 过期需重登"
+    },
+    "transport": {
+      "browser": "仅 GET 可跨域（服务端 allow-methods: GET），POST/PUT/DELETE 必须经服务端 Bridge 代理",
+      "recommended": "Bridge 服务（内网）统一鉴权、限流、脱敏、审计"
+    },
+    "piiPolicy": {
+      "default": "masked",
+      "masking": {
+        "name": "保留首字，其余 *",
+        "phone": "前3后4，中间 ****",
+        "address": "截断至市级",
+        "email": "域名保留，用户名掩码",
+        "customerId": "不脱敏（业务主键），但禁止外传"
+      },
+      "fullPiiRequires": "显式参数 revealPii=true + 审计日志 + 授权账号"
+    }
+  },
+
+  "tools": [
+    {
+      "name": "search_customer",
+      "description": "按手机号（支持模糊）或姓名查找客户，返回客户卡片列表（姓名/电话/VIP号/来源/所属机构/最近到院）。用于定位客户、拿到后续查询所需的 customerId。",
+      "when_to_use": "用户说『查一下这个客户』『手机号 138xxxx 是谁』『找一下张女士』时",
+      "input": {
+        "type": "object",
+        "properties": {
+          "phone": { "type": "string", "description": "手机号，支持模糊匹配" },
+          "name": { "type": "string", "description": "客户姓名（如接口不支持，则先用 phone 查询）" }
+        },
+        "required": ["phone"]
+      },
+      "backend": [
+        { "method": "GET", "path": "/v1/customer/getCustomerByPhone", "query": { "phone": "{phone}" } }
+      ],
+      "returns": "客户卡片数组；每项含 customerId, customerName, mainPhoneNumber, vipNum, gender, customerSource, createTenant, latestArriveDate, isShared",
+      "verified": true,
+      "permission": "customer:read",
+      "pagination": false
+    },
+    {
+      "name": "get_customer_profile",
+      "description": "获取客户完整档案（基础资料、标签、归属、会员信息等 30+ 字段）。",
+      "when_to_use": "需要客户详细信息时（建档信息、联系方式、归属咨询师）",
+      "input": {
+        "type": "object",
+        "properties": { "customerId": { "type": "string", "description": "客户 ID（19 位雪花 ID 字符串）" } },
+        "required": ["customerId"]
+      },
+      "backend": [{ "method": "GET", "path": "/v1/customer/detail", "query": { "customerId": "{customerId}" } }],
+      "returns": "{ selfTenantFlag, tenantName, fixFlag, circleAccount[], detail:{ base:{ 姓名/性别/年龄/生日/邮箱/地址/职业/标签... } } }",
+      "verified": true,
+      "permission": "customer:read",
+      "pii": "high"
+    },
+    {
+      "name": "get_customer_360",
+      "description": "客户 360° 聚合视图：一次返回档案 + 联系方式 + 消费统计 + RFM 价值评分 + 转介绍关系。推荐作为客户分析的主工具，避免多次往返。",
+      "when_to_use": "『帮我看看这个客户的情况』『这个客户价值如何』『有没有转介绍』",
+      "input": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "phone": { "type": "string", "description": "可选：直接给手机号，内部先搜索再聚合" }
+        }
+      },
+      "backend": [
+        { "method": "GET", "path": "/v1/customer/getCustomerByPhone", "query": { "phone": "{phone}" }, "optional": true },
+        { "method": "GET", "path": "/v1/customer/detail", "query": { "customerId": "{customerId}" } },
+        { "method": "GET", "path": "/v1/customer/getCustomerPhoneNumbers", "query": { "customerId": "{customerId}" } },
+        { "method": "GET", "path": "/v1/customerOverView/consumeStatistical", "query": { "customerId": "{customerId}" } },
+        { "method": "GET", "path": "/v1/customerOverView/getRfmScore", "query": { "customerId": "{customerId}", "isGroup": "false" } },
+        { "method": "GET", "path": "/v1/customerOverView/cusRelations", "query": { "id": "{customerId}" } }
+      ],
+      "returns": "{ basic, profile, phones[], consume:{balance,totalCostAmount,givenBalance,depositAmount}, rfm:{score,indicator[]}, relations:{statistics:{num,money,costFriendNum}} }",
+      "verified": true,
+      "permission": "customer:read + customerOverView:read",
+      "pii": "high",
+      "notes": "6 个接口可并发调用（Promise.all）；全部为 GET，浏览器端也能直连"
+    },
+    {
+      "name": "get_customer_consumption",
+      "description": "客户消费与余额统计（累计消费、账户余额、赠送余额、寄存金额、最高单项目金额）。",
+      "input": {
+        "type": "object",
+        "properties": { "customerId": { "type": "string" } },
+        "required": ["customerId"]
+      },
+      "backend": [{ "method": "GET", "path": "/v1/customerOverView/consumeStatistical", "query": { "customerId": "{customerId}" } }],
+      "verified": true,
+      "permission": "customerOverView:read",
+      "notes": "金额字段可能为 null，按 0 处理；单位=元"
+    },
+    {
+      "name": "get_customer_rfm",
+      "description": "客户 RFM 价值评分（距今未消费天数 / 最近一年消费次数 / 最近一年消费总额 三指标 + 总分），用于客户分层与价值判断。",
+      "input": {
+        "type": "object",
+        "properties": {
+          "customerId": { "type": "string" },
+          "isGroup": { "type": "boolean", "default": false, "description": "是否集团口径" }
+        },
+        "required": ["customerId"]
+      },
+      "backend": [{ "method": "GET", "path": "/v1/customerOverView/getRfmScore", "query": { "customerId": "{customerId}", "isGroup": "{isGroup}" } }],
+      "returns": "{ score:'0.00', name:'用户评分', indicator:[{text,value,max}×3], value:[r,f,m] }",
+      "verified": true,
+      "permission": "customerOverView:read"
+    },
+    {
+      "name": "get_customer_relations",
+      "description": "客户转介绍关系图谱（好友数、消费好友数、转介绍金额）及关系节点。",
+      "input": {
+        "type": "object",
+        "properties": { "customerId": { "type": "string" } },
+        "required": ["customerId"]
+      },
+      "backend": [{ "method": "GET", "path": "/v1/customerOverView/cusRelations", "query": { "id": "{customerId}" } }],
+      "verified": true,
+      "permission": "customerOverView:read"
+    },
+    {
+      "name": "get_customer_overview_stats",
+      "description": "机构客户总览指标：客户总数、个人池/非个人池客户数、今日消息与待办数。适合做看板 KPI 或回答『我们有多少客户』。",
+      "when_to_use": "总览类问题、看板首页、日报",
+      "input": { "type": "object", "properties": {} },
+      "backend": [
+        { "method": "GET", "path": "/v1/channel/getCustomerNumber" },
+        { "method": "GET", "path": "/v1/customerPool/customerPools" },
+        { "method": "GET", "path": "/v1/msg/todayTotal" }
+      ],
+      "returns": "{ totalCustomers:3428, personalPoolCount:2321, nonPersonalPoolCount:1125, today:{msgNum,tskNum,sumNum} }",
+      "verified": true,
+      "permission": "customer:read",
+      "caching": "建议缓存 5 分钟"
+    },
+    {
+      "name": "list_customer_pools",
+      "description": "公海池明细列表：每个池的名称、当前客户数、池类型（默认非个人池/黑名单池等）、回收规则周期。",
+      "input": { "type": "object", "properties": {} },
+      "backend": [{ "method": "GET", "path": "/v1/customerPool/customerPools" }],
+      "returns": "{ personalPoolCount, nonPersonalPoolCount, customerPoolVoList:[{id,name,currentCount,type,specialType,activePeriod,activePeriodRemind}] }",
+      "verified": true,
+      "permission": "customerPool:read"
+    },
+    {
+      "name": "list_receptions",
+      "description": "接诊记录分页查询（到院接待、分诊、接诊人）。",
+      "input": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer", "default": 1 },
+          "limit": { "type": "integer", "default": 20, "maximum": 100 },
+          "startDate": { "type": "string", "description": "YYYY-MM-DD" },
+          "endDate": { "type": "string", "description": "YYYY-MM-DD" }
+        }
+      },
+      "backend": [{ "method": "POST", "path": "/v2/reception/receptionList", "body": { "page": "{page}", "limit": "{limit}" } }],
+      "returns": "MyBatis-Plus IPage: { records[], total, size, current, pages }",
+      "verified": true,
+      "verifiedNote": "实测 {page,limit} 返回 total=6；records 为空说明日期/状态等筛选参数未生效，需按实际页面参数补齐",
+      "permission": "reception:read",
+      "requiresProxy": true
+    },
+    {
+      "name": "list_appointments",
+      "description": "预约记录分页查询（预约到店、改期、预约项目）。",
+      "input": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer", "default": 1 },
+          "limit": { "type": "integer", "default": 20, "maximum": 100 },
+          "startDate": { "type": "string" },
+          "endDate": { "type": "string" }
+        }
+      },
+      "backend": [{ "method": "POST", "path": "/v2/bespeak/bespeakList", "body": { "page": "{page}", "limit": "{limit}" } }],
+      "returns": "IPage 分页结构",
+      "verified": true,
+      "permission": "bespeak:read",
+      "requiresProxy": true,
+      "notes": "传 current/size 会返回 20002 错误，必须用 page/limit"
+    },
+    {
+      "name": "list_cube_templates",
+      "description": "列出系统预置的 74 个客户数据集定义（今日未成交、最近N日未回访、消费分级、欠费、生日客户等）。可作为业务规则的参考库，用于理解机构关注哪些客户群体。",
+      "input": { "type": "object", "properties": {} },
+      "backend": [
+        { "method": "GET", "path": "/v2/customer/cube/template/get-user-all-cube-config" },
+        { "method": "GET", "path": "/v2/customer/cube/template/get-user-cube-config" }
+      ],
+      "returns": "[{ id, systemConfigEnum, title, type, permType, contentList, jsonObject }]",
+      "verified": true,
+      "permission": "customer:read",
+      "notes": "接口返回 74 条记录，但去重后为 25 个不同数据集（同一数据集按模块/权限重复注册）；显示名在 title 字段而非 name",
+      "limitation": "数据集『定义』可读，但『执行查询』接口 /v1/customer/customerCube 在本租户网关未放行；如需按数据集取客户，需厂商开通或自行用其他查询接口组合实现"
+    },
+    {
+      "name": "list_staff",
+      "description": "员工列表（姓名、岗位、部门、在职状态、权限标识）。",
+      "input": {
+        "type": "object",
+        "properties": { "onlyEnabled": { "type": "boolean", "default": true, "description": "true=仅在职" } }
+      },
+      "backend": [
+        { "method": "GET", "path": "/v1/user/userAllEnable", "when": "onlyEnabled=true" },
+        { "method": "GET", "path": "/v1/user/userAll", "when": "onlyEnabled=false" }
+      ],
+      "returns": "[{ id, userNo, name, phone, position, depart, label, jobStatus, status, isDisabled, perm, value }]",
+      "verified": true,
+      "permission": "user:read",
+      "pii": "medium"
+    },
+    {
+      "name": "list_doctors",
+      "description": "医生列表（用于排班、分配咨询师/治疗医生）。",
+      "input": { "type": "object", "properties": {} },
+      "backend": [{ "method": "GET", "path": "/v1/user/getAllDoctors" }],
+      "returns": "[{ value: '医生ID', label: '医生姓名' }]",
+      "verified": true,
+      "permission": "user:read"
+    },
+    {
+      "name": "list_departments",
+      "description": "科室/部门树。",
+      "input": { "type": "object", "properties": {} },
+      "backend": [{ "method": "GET", "path": "/v1/dept/tree" }],
+      "verified": true,
+      "permission": "dept:read"
+    },
+    {
+      "name": "get_dict",
+      "description": "数据字典查询（如渠道等级 channelLevel 等枚举的中文含义）。用于把接口返回的编码翻译成业务语义。",
+      "input": {
+        "type": "object",
+        "properties": { "codes": { "type": "string", "description": "字典编码，多个用逗号分隔，如 channelLevel" } },
+        "required": ["codes"]
+      },
+      "backend": [{ "method": "GET", "path": "/v1/dict", "query": { "codes": "{codes}" } }],
+      "verified": true,
+      "permission": "dict:read",
+      "caching": "建议缓存 24 小时"
+    },
+    {
+      "name": "get_today_summary",
+      "description": "今日消息/任务/待办汇总。",
+      "input": { "type": "object", "properties": {} },
+      "backend": [{ "method": "GET", "path": "/v1/msg/todayTotal" }],
+      "returns": "{ msgNum, tskNum, sumNum }",
+      "verified": true,
+      "permission": "msg:read",
+      "caching": "建议缓存 1 分钟"
+    },
+    {
+      "name": "get_permission_context",
+      "description": "获取当前账号的菜单/权限/配置上下文（1018 个权限点）。Agent 启动时调用一次，用于判断自己有哪些能力可用，并据此裁剪工具集。",
+      "input": {
+        "type": "object",
+        "properties": { "tenantId": { "type": "string", "default": "1" } }
+      },
+      "backend": [{ "method": "GET", "path": "/v1/afterLoginLoadData", "query": { "tenantId": "{tenantId}" } }],
+      "returns": "{ menuList, globalConfig, menuTempList, permList, fieldList }",
+      "verified": true,
+      "permission": "-",
+      "caching": "会话级缓存"
+    },
+    {
+      "name": "get_customer_distribution",
+      "description": "客户分布树：机构 → 公海池 → 员工，每个节点都带客户数量（来自客户列表页配置接口的 extra 字段）。无需数据集(cube)接口即可回答『每个池/每个人手上有多少客户』。",
+      "when_to_use": "『客户是怎么分布的』『谁手上客户最多』『各池子有多少人』",
+      "input": { "type": "object", "properties": {} },
+      "backend": [{ "method": "GET", "path": "/v1/customer/initListV2" }],
+      "returns": "三层树：[{ title:'全部', extra:3456 }, { title:'个人池', typeChildren:{ '池维度':[{ title:'客服部新客池', extra:2321, children:[{ title:'丁云', extra:12 }, ...] }] } }]",
+      "fieldNotes": { "extra": "该节点的客户数量", "title": "节点显示名（池名/员工名）", "value": "节点 ID（池 ID / 用户 ID）", "children": "子树，叶子节点可能是字符串 \"[]\"" },
+      "verified": true,
+      "permission": "customer:read",
+      "notes": "★ 本会话意外发现的高价值接口：比 cube 数据集更好用，且本租户可用。注意计数口径与 /v1/channel/getCustomerNumber 略有差异（3456 vs 3428）"
+    },
+    {
+      "name": "search_api_catalog",
+      "description": "在 4229 条接口清单（api-endpoints.json）中按关键词检索，供 Agent 自行发现未封装的能力（如『回访』『退费』『病历』对应的接口）。",
+      "input": {
+        "type": "object",
+        "properties": { "keyword": { "type": "string", "description": "如 customer / visitPlan / billing / 退款" } },
+        "required": ["keyword"]
+      },
+      "backend": [{ "method": "LOCAL", "path": "api-endpoints.json", "filter": "path/moduleName 包含 keyword" }],
+      "verified": true,
+      "notes": "这是本地文件检索工具，不消耗 API 调用；建议让 Agent 用它扩展能力，而不是把 4229 条全部塞进上下文"
+    },
+
+    {
+      "name": "get_operation_dashboard",
+      "description": "运营三件套：客户活跃率、复购率、腰率（流失预警）+ 客户综合画像（期初/期末/新增/消费客户数）。全部来自 /report/v1/wym 报表引擎，实测 12/12 可用。",
+      "when_to_use": "用户问『今年经营得怎么样』『活跃/复购情况』『有多少客户在消费』时",
+      "input": { "type": "object", "properties": { "year": { "type": "string", "description": "统计年份，默认当年" } } },
+      "backend": [
+        { "method": "POST", "path": "/report/v1/wym/celebrateCustomer/getCustomerActiveRate", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/celebrateCustomer/getCustomerRepurchaseRate", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/celebrateCustomer/getCustomerWaistRate", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/celebrateCustomer/listCusComprehensiveAnalysis", "body": { "year": "{year}", "page": 1, "limit": 50 } }
+      ],
+      "notes": "★ 报表接口限流严格：调用间隔 ≥1.5s，收到 401『没有找到您要的资源』或非 JSON 时等 4s 重试一次（详见技术文档 §9.4）"
+    },
+    {
+      "name": "get_channel_performance",
+      "description": "渠道业绩排行与渠道客户分析：各渠道新增客户、付费客户、业绩金额、流失趋势、渠道 RFM 分层。",
+      "when_to_use": "用户问『哪个渠道效果好』『渠道 ROI』『渠道客户流失』时",
+      "input": { "type": "object", "properties": { "year": { "type": "string" } } },
+      "backend": [
+        { "method": "POST", "path": "/report/v1/wym/marketingStatistics/listChannelPerformanceRank", "body": { "year": "{year}", "page": 1, "limit": 20 } },
+        { "method": "POST", "path": "/report/v1/wym/marketingStatistics/listChannelAddCusAnalysis", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/marketingStatistics/listChannelCusLossTrend", "body": { "year": "{year}" } }
+      ]
+    },
+    {
+      "name": "get_deduct_analysis",
+      "description": "划扣/耗卡分析：已售未耗（未划扣）项目排行、划扣项目业绩排行、科室划扣人数。『已售未耗』是回访与复购的最强抓手。",
+      "when_to_use": "用户问『哪些客户买了没做』『耗卡情况』『项目业绩排行』时",
+      "input": { "type": "object", "properties": { "year": { "type": "string" }, "limit": { "type": "number", "default": 20 } } },
+      "backend": [
+        { "method": "POST", "path": "/report/v1/wym/deductStatistics/listNotDeductItemPerformanceRank", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } },
+        { "method": "POST", "path": "/report/v1/wym/deductStatistics/listDeductItemPerformanceRank", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } },
+        { "method": "POST", "path": "/report/v1/wym/deductStatistics/listDepartmentNumberDeduct", "body": { "year": "{year}" } }
+      ]
+    },
+    {
+      "name": "get_staff_performance",
+      "description": "人员效能：医生业绩（操作例数/划扣金额）、咨询师业绩（实收/客单价/付费客户数）、未成交原因分析。",
+      "when_to_use": "用户问『医生/咨询师业绩』『为什么没成交』时",
+      "input": { "type": "object", "properties": { "year": { "type": "string" }, "limit": { "type": "number", "default": 20 } } },
+      "backend": [
+        { "method": "POST", "path": "/report/v1/wym/teamStatistics/listDoctorPerformanceAnalysis", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } },
+        { "method": "POST", "path": "/report/v1/wym/teamStatistics/listConsultPerformanceAnalysis", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } },
+        { "method": "POST", "path": "/report/v1/wym/teamStatistics/listConsultNoDealReason", "body": { "year": "{year}" } }
+      ]
+    },
+    {
+      "name": "get_customer_trend",
+      "description": "获客与到院节奏：新客/老客到院数、首诊数的月度趋势（含去年同比）、预约分析、回访有效率、付费与划扣业绩月度曲线。",
+      "when_to_use": "用户问『这个月来了多少新客』『业绩趋势』『回访做得怎么样』时",
+      "input": { "type": "object", "properties": { "year": { "type": "string" } } },
+      "backend": [
+        { "method": "POST", "path": "/report/v1/wym/timeStatistics/listNewCusReceptionNum", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/timeStatistics/listOldCusReceptionNum", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/timeStatistics/listFirstReceptionNum", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/timeStatistics/listBackVisitAnalysis", "body": { "year": "{year}" } },
+        { "method": "POST", "path": "/report/v1/wym/timeStatistics/listPayAndDeductPerformance", "body": { "year": "{year}" } }
+      ],
+      "notes": "月度横表字段为 january…december + yearStr（2026/2025/同比去年 三行）"
+    },
+    {
+      "name": "get_pay_analysis",
+      "description": "品项与付费分析：付费分析（客单价/项目实收）、复付费分析（1~5次付费客户分布、复购率）、核心爆品、科室业绩。",
+      "when_to_use": "用户问『哪些项目赚钱』『复购率』『爆品』时",
+      "input": { "type": "object", "properties": { "year": { "type": "string" }, "limit": { "type": "number", "default": 20 } } },
+      "backend": [
+        { "method": "POST", "path": "/report/v1/wym/productItemStatistics/listPayAnalysis", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } },
+        { "method": "POST", "path": "/report/v1/wym/productItemStatistics/listRepeatPayAnalysis", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } },
+        { "method": "POST", "path": "/report/v1/wym/productItemStatistics/listCoreExplosiveProduct", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } },
+        { "method": "POST", "path": "/report/v1/wym/productItemStatistics/listDepartmentPerformance", "body": { "year": "{year}", "page": 1, "limit": "{limit}" } }
+      ]
+    }
+  ],
+
+  "roadmap": {
+    "phase1_readonly": "上线 24 个只读工具（客户/预约/接诊/员工/总览 18 个 + 运营报表 6 个），运营分析优先走 /report/v1/wym 报表引擎",
+    "phase2_write": "按业务需要逐个实测写接口（新增客户、建预约、发消息），每个写接口必须先验证幂等性与权限，并加人工确认",
+    "phase3_events": "接入 WebSocket（/api/v2/ws）做实时通知（新预约、到店提醒），需先实测握手鉴权方式",
+    "blocked": [
+      "客户数据集(cube) 执行查询 —— 需厂商开通路由",
+      "全量客户批量同步 —— 无公开导出接口，需与厂商协商"
+    ]
+  },
+
+  "safety": {
+    "never": [
+      "把 token / 密码写入模型上下文或日志",
+      "从浏览器直发 POST（会被 CORS 拦截且暴露凭据）",
+      "未经确认执行写操作或批量导出",
+      "将客户 PII 发送到未授权的境外/第三方服务",
+      "对报表接口高速连发（会触发限流，表现为 401『没有找到您要的资源』或返回 HTML）",
+      "对同一账号与人工共用登录（建议：为 Agent 建独立机器人账号；实测并发登录不互踢，但审计会混在一起）"
+    ],
+    "always": [
+      "默认脱敏返回，完整 PII 需显式授权 + 审计",
+      "写操作前人工确认，写后核对结果",
+      "限流 ≤5 req/s（报表接口 ≤0.7 req/s），分页 size ≤100",
+      "token 到期前自动续期，失败则告警"
+    ]
+  }
+}
