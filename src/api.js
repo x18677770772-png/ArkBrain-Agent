@@ -452,7 +452,14 @@ export function startAPI(port = 3721, {
         return
       }
 
-      if (origin && !isAllowedOrigin(origin, req, url)) {
+      // Read-only static shell assets (isPublicPath) are tokenless by design
+      // for LAN first-load, so a foreign Origin fetching them via GET/HEAD is
+      // harmless (no secrets, no state change) — allow it so reverse-proxy /
+      // tunnel previews (browser sends its own Origin on module scripts) can
+      // load the UI. All dynamic routes and writes keep the strict origin gate.
+      const isPublicStaticRead = (req.method === 'GET' || req.method === 'HEAD')
+        && isPublicPath(url.pathname)
+      if (origin && !isPublicStaticRead && !isAllowedOrigin(origin, req, url)) {
         return jsonResponse(res, 403, { ok: false, error: 'forbidden origin' })
       }
 
