@@ -163,3 +163,6 @@ dist
 .serena/
 api-capability-slots.json
 
+# 业务台独立预览：bundle 由 scripts/build-biz-preview.sh 生成，只留源与脚本
+src/ui/brain-ui/biz-preview.bundle.js
+

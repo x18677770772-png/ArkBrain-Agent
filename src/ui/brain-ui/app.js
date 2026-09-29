@@ -11,6 +11,7 @@ import { initTyphoon, toggleTyphoon, setTyphoonMode } from "./typhoon.js";
 import { cancelPersonCardAssistantEnrichment, enrichVisiblePersonCardFromText, initPersonCard, setPersonCardMode } from "./person-card.js";
 import { initDocPanel, setDocPanelMode } from "./doc.js";
 import { initKnowledgePanel, setKnowledgeCortexMode } from "./knowledge.js";
+import { initBizPanel, setBizPanelMode } from "./biz.js";
 import { initWechatPopup, showWechatPopup } from "./wechat-popup.js";
 import { initFeishuPopup, showFeishuPopup } from "./feishu-popup.js";
 import { attachJarvisAudioGraph, attachJarvisFx, isFxEnabledForVoice, setFxEnabledForVoice, getJarvisFxParams, setJarvisFxParams, resetJarvisFxParams, isFxUnlocked, tryUnlockFx, resumeJarvisAudioContext } from "./tts-fx.js";
@@ -2907,6 +2908,11 @@ function handle({ type, data = {}, ts = null }) {
         documentId: data.document_id || data.documentId,
       });
       break;
+    case "biz_panel_mode":
+      setBizPanelMode(!!data.active || data.action === "show" || data.action === "open", {
+        view: data.view || undefined,
+      });
+      break;
     case "social_status":
       window.dispatchEvent(new CustomEvent("arkbrain:social_status", { detail: data }));
       break;
@@ -3828,6 +3834,21 @@ chat = initChat({
       toggleTyphoon();
       return;
     }
+    if (document.body.classList.contains('biz-panel-mode') && /关闭|退出|关掉|隐藏/.test(text)) {
+      setBizPanelMode(false);
+      return;
+    }
+    // 专属词直接开；「看板/闸门/会员」等泛词需带开启动词，避免劫持正常聊天
+    const bizVerb = /打开|进入|调出|显示|看看|切到/.test(text);
+    const bizTerm = /业务台|会员360|检测台|方案审阅|审计流/.test(text)
+      || (bizVerb && /看板|闸门|会员|检测|方案|审计/.test(text));
+    if (bizTerm && !document.body.classList.contains('biz-panel-mode')) {
+      const view = /会员/.test(text) ? "members" : /检测/.test(text) ? "lab"
+        : /方案|审阅|diff/i.test(text) ? "plan" : /审计/.test(text) ? "audit"
+        : /闸门/.test(text) ? "gates" : "dashboard";
+      setBizPanelMode(true, { view });
+      return;
+    }
     if (/热点|热搜/.test(text) && !document.body.classList.contains('hotspot-mode')) {
       toggleHotspot();
     }
@@ -3853,6 +3874,7 @@ loadAgentProfile();
 initPersonCard();
 initDocPanel().catch((err) => console.warn('[DocPanel] init failed:', err));
 initKnowledgePanel();
+initBizPanel();
 chat.restoreChatHistory();
 setInterval(() => chat?.restoreChatHistory?.(), 15_000);
 window.addEventListener("focus", () => chat?.restoreChatHistory?.());

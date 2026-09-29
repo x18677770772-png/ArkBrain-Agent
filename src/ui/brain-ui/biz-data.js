@@ -1,0 +1,166 @@
+/**
+ * 方舟业务台 · 种子数据（借假修真）
+ * 接口形状对齐蓝图（.claude/plans/方舟大脑二开架构蓝图-v1.0.md）：
+ * 看板 metrics/funnel · 会员360 · LAB 检测 · PLN 方案diff · Agent审计 · 四闸门。
+ * v1 为前端 seed；A5 纵切片落库后替换为 API 拉取（保持字段形状不变）。
+ * 非真实患者数据。
+ */
+export const BIZ_DATA = {
+  meta: {
+    brand: "方舟大脑",
+    product: "ArkBrain Agent",
+    site: "生命方舟 · 金融城旗舰店",
+    demo: true,
+  },
+  metrics: {
+    preferencePairs: 12847,
+    preferenceToday: 36,
+    trajectoryCoverage: 97.2,
+    labStructured: 412,
+    plansSigned: 89,
+    members: 128,
+    llmCalls: 8421,
+    desensitizeHits: 216,
+    weeklyActiveClinicians: 9,
+  },
+  // 每日偏好对增量（sparkline 用，旧→新）
+  preferenceDaily: [18, 24, 21, 33, 29, 41, 36],
+  funnel: [
+    { key: "baseline", label: "会员基线", value: 128, unit: "人" },
+    { key: "lab", label: "检测结构化", value: 119, unit: "人" },
+    { key: "plan", label: "方案已签", value: 89, unit: "人" },
+    { key: "intervene", label: "干预执行", value: 74, unit: "人" },
+    { key: "outcome", label: "90天结局", value: 41, unit: "人" },
+  ],
+  stages: ["建档", "检测", "方案", "干预", "随访", "结局"],
+  members: [
+    {
+      id: "MB-2041", name: "林晚晴", gender: "女", age: 42,
+      bioAge: 36.4, delta: -5.6, stage: "方案执行", stageIdx: 3,
+      plan: "黑金 · 29,800/年", tags: ["代谢", "睡眠", "高依从"],
+      consent: ["AI处理", "研究可选"], phoneMask: "138****6621",
+      lastLab: "2026-09-12", doctor: "周慕白", city: "贵阳",
+      loyalty: 0.92, notes: "空腹血糖改善明显，继续干预包 B。",
+    },
+    {
+      id: "MB-1988", name: "陈予安", gender: "男", age: 51,
+      bioAge: 49.2, delta: -1.8, stage: "检测解读", stageIdx: 2,
+      plan: "钻石 · 9,800/年", tags: ["血脂", "久坐"],
+      consent: ["AI处理"], phoneMask: "139****1044",
+      lastLab: "2026-09-18", doctor: "顾清禾", city: "贵阳",
+      loyalty: 0.71, notes: "LDL-C 偏高，待方案评审。",
+    },
+    {
+      id: "MB-2210", name: "沈知夏", gender: "女", age: 37,
+      bioAge: 33.1, delta: -3.9, stage: "随访中", stageIdx: 4,
+      plan: "黑金 · 29,800/年", tags: ["免疫", "旅居"],
+      consent: ["AI处理", "研究可选", "外呼"], phoneMask: "186****9032",
+      lastLab: "2026-08-30", doctor: "周慕白", city: "贵阳",
+      loyalty: 0.88, notes: "90天复检预约在 10/12。",
+    },
+    {
+      id: "MB-1755", name: "韩叙", gender: "男", age: 45,
+      bioAge: 47.5, delta: 2.5, stage: "基线建档", stageIdx: 1,
+      plan: "钻石 · 9,800/年", tags: ["压力", "新客"],
+      consent: ["AI处理"], phoneMask: "135****7710",
+      lastLab: "—", doctor: "待分配", city: "遵义",
+      loyalty: 0.44, notes: "待完成首检。",
+    },
+    {
+      id: "MB-2099", name: "赵疏桐", gender: "女", age: 58,
+      bioAge: 54.8, delta: -3.2, stage: "结局回访", stageIdx: 5,
+      plan: "黑金 · 29,800/年", tags: ["骨密度", "复购"],
+      consent: ["AI处理", "研究可选"], phoneMask: "137****2288",
+      lastLab: "2026-07-21", doctor: "顾清禾", city: "贵阳",
+      loyalty: 0.95, notes: "骨密度改善，推荐星火转介 1 人。",
+    },
+  ],
+  labs: {
+    "MB-2041": {
+      panel: "功能医学核心 · 62项", date: "2026-09-12", lab: "金域医学",
+      hero: {
+        name: "空腹血糖", code: "GLU", value: 5.4, unit: "mmol/L",
+        range: [3.9, 6.1], status: "in", trend: [6.1, 5.9, 5.8, 5.6, 5.4],
+      },
+      items: [
+        { name: "糖化血红蛋白", code: "HbA1c", value: 5.6, unit: "%", range: [4.0, 5.7], status: "in" },
+        { name: "空腹胰岛素", code: "INS", value: 12.4, unit: "μIU/mL", range: [2.6, 24.9], status: "in" },
+        { name: "低密度脂蛋白", code: "LDL-C", value: 3.8, unit: "mmol/L", range: [0, 3.4], status: "high" },
+        { name: "高密度脂蛋白", code: "HDL-C", value: 1.42, unit: "mmol/L", range: [1.0, 1.6], status: "in" },
+        { name: "甘油三酯", code: "TG", value: 1.1, unit: "mmol/L", range: [0, 1.7], status: "in" },
+        { name: "同型半胱氨酸", code: "Hcy", value: 14.2, unit: "μmol/L", range: [0, 15], status: "in" },
+        { name: "维生素D", code: "25-OH-VD", value: 28, unit: "ng/mL", range: [30, 80], status: "low" },
+        { name: "超敏C反应蛋白", code: "hs-CRP", value: 1.8, unit: "mg/L", range: [0, 3], status: "in" },
+        { name: "促甲状腺素", code: "TSH", value: 2.1, unit: "mIU/L", range: [0.27, 4.2], status: "in" },
+        { name: "肌酐", code: "CREA", value: 72, unit: "μmol/L", range: [41, 81], status: "in" },
+        { name: "尿酸", code: "UA", value: 368, unit: "μmol/L", range: [155, 357], status: "high" },
+        { name: "骨密度Z值", code: "BMD-Z", value: -0.4, unit: "", range: [-2, 2], status: "in" },
+      ],
+      bioAge: 36.4, chronological: 42,
+      aiNote: "初稿：代谢窗口整体改善，LDL-C 与维生素D 需干预包 B 覆盖。需医学顾问审核。",
+    },
+    "MB-1988": {
+      panel: "功能医学核心 · 62项", date: "2026-09-18", lab: "迪安诊断",
+      hero: {
+        name: "低密度脂蛋白", code: "LDL-C", value: 4.6, unit: "mmol/L",
+        range: [0, 3.4], status: "high", trend: [3.9, 4.1, 4.3, 4.5, 4.6],
+      },
+      items: [
+        { name: "总胆固醇", code: "TC", value: 6.4, unit: "mmol/L", range: [0, 5.2], status: "high" },
+        { name: "甘油三酯", code: "TG", value: 2.3, unit: "mmol/L", range: [0, 1.7], status: "high" },
+        { name: "高密度脂蛋白", code: "HDL-C", value: 0.98, unit: "mmol/L", range: [1.0, 1.6], status: "low" },
+        { name: "空腹血糖", code: "GLU", value: 5.9, unit: "mmol/L", range: [3.9, 6.1], status: "in" },
+        { name: "糖化血红蛋白", code: "HbA1c", value: 5.9, unit: "%", range: [4.0, 5.7], status: "high" },
+        { name: "颈动脉IMT", code: "IMT", value: 0.92, unit: "mm", range: [0, 0.9], status: "high" },
+      ],
+      bioAge: 49.2, chronological: 51,
+      aiNote: "初稿：血脂谱异常，建议他汀评估 + 生活方式处方。需医学顾问审核。",
+    },
+  },
+  plan: {
+    id: "PL-8841",
+    memberId: "MB-2041",
+    title: "代谢优化干预包 · 90天",
+    status: "pending_sign",
+    model: "ark-code-latest",
+    tokens: 4820,
+    cost: 0.62,
+    draft: [
+      "【目标】90天内空腹血糖稳定 <5.7 mmol/L，LDL-C 下降 ≥10%。",
+      "【营养】每日热量 1650 kcal；碳水供能比 40%；晚餐提前至 19:00 前；补充 Omega-3 2g/日。",
+      "【运动】每周 150 分钟中等强度有氧 + 2 次抗阻；步数目标 8000/日。",
+      "【睡眠】就寝 23:00±30min，睡眠时长 ≥7h；睡前 1h 屏幕禁用。",
+      "【随访】第 2/6/10 周各 1 次线上随访；第 90 天复检空腹血 + 血脂四项。",
+      "【风险】LDL-C 若 6 周未降，转医学总监评估药物路径。",
+    ],
+    final: [
+      "【目标】90天内空腹血糖稳定 <5.7 mmol/L，LDL-C 下降 ≥10%。",
+      "【营养】每日热量 1600 kcal；碳水供能比 35%；晚餐提前至 19:00 前；补充 Omega-3 2g/日 + 维生素D 2000IU/日。",
+      "【运动】每周 150 分钟中等强度有氧 + 2 次抗阻；步数目标 8000/日；久坐每小时起身 3 分钟。",
+      "【睡眠】就寝 23:00±30min，睡眠时长 ≥7h；睡前 1h 屏幕禁用。",
+      "【随访】第 2/6/10 周各 1 次线上随访；第 90 天复检空腹血 + 血脂四项 + 25-OH-VD。",
+      "【风险】LDL-C 若 6 周未降，转医学总监评估药物路径；尿酸持续 >420 加痛风宣教。",
+    ],
+    revisions: ["热量", "碳水比", "补充剂", "久坐", "复检项", "禁忌"],
+  },
+  agentFeed: [
+    { t: "14:02:11", type: "tick", text: "L2 心跳 · 记忆整理 3 条", risk: "low" },
+    { t: "14:02:40", type: "tool", text: "read_file · 检测报告 PDF 解析", risk: "low", ok: true },
+    { t: "14:03:02", type: "llm", text: "经网关生成方案初稿 · 4,820 tok", risk: "low", ok: true },
+    { t: "14:03:18", type: "gate", text: "脱敏闸门 · 拦截手机 1 · 替换姓名 2", risk: "med", ok: true },
+    { t: "14:04:01", type: "tool", text: "ui_set · plan_diff 舞台就绪", risk: "low", ok: true },
+    { t: "14:05:22", type: "contract", text: "action contract · file_write 等待签发", risk: "med", ok: true },
+    { t: "14:06:00", type: "audit", text: "偏好对写入准备 · preference_pairs", risk: "low", ok: true },
+  ],
+  providers: [
+    { name: "火山方舟 · 主链", status: "ok", latency: 210 },
+    { name: "备用链路", status: "standby", latency: null },
+    { name: "ArkBrain-v1", status: "gated", latency: null },
+  ],
+  gates: [
+    { name: "数据闸", ok: false, note: "轨迹 12.8k / 50k" },
+    { name: "业务闸", ok: false, note: "稳定运营 0 / 6 月" },
+    { name: "资金闸", ok: true, note: "预算 ≤ 毛利5%" },
+    { name: "合规闸", ok: false, note: "同意覆盖 74%" },
+  ],
+};

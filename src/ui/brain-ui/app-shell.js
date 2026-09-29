@@ -3,6 +3,7 @@ import { createWorldcupPanel } from './worldcup-panel.js';
 import { createTyphoonPanel } from './typhoon-panel.js';
 import { createDocPanel } from './doc-panel.js';
 import { createKnowledgePanel } from './knowledge-panel.js';
+import { createBizPanel } from './biz-panel.js';
 
 const createAppTitlebar = () => `
 <header class="app-titlebar" aria-label="Window drag area"></header>
@@ -24,6 +25,7 @@ const createPrimaryPanel = () => `
     <button class="voice-btn" id="voice-btn" title="麦克风 开/关" type="button">🎤</button>
     <button class="video-btn" id="video-btn" title="视频模式 (V)" type="button" hidden>⊞</button>
     <button class="music-btn" id="music-btn" title="音乐模式 (M)" type="button" hidden>♪</button>
+    <button class="settings-btn biz-btn" id="biz-btn" title="方舟业务台" type="button">▦</button>
     <button class="settings-btn" id="settings-btn" title="设置" type="button">⚙</button>
   </header>
 
@@ -1144,6 +1146,7 @@ export function createBrainUiMarkup() {
     createTyphoonPanel(),
     createDocPanel(),
     createKnowledgePanel(),
+    createBizPanel(),
   ].join("\n\n");
 
   return `${createAppTitlebar()}\n\n<main class="app-viewport">${viewportMarkup}</main>`;
