@@ -4,6 +4,7 @@
  * 动效遵守 token：只动 transform/opacity，时长走 --dur-*。
  */
 import { BIZ_DATA } from "./biz-data.js";
+import { COCKPIT_SEED } from "./cockpit-data.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -14,6 +15,7 @@ const VIEW_META = {
   plan: { kicker: "04 · PLAN REVIEW", title: "方案审阅台 · diff 签发" },
   audit: { kicker: "05 · GATEWAY AUDIT", title: "Agent 审计流" },
   gates: { kicker: "06 · MODEL GATES", title: "模型四闸门" },
+  cockpit: { kicker: "07 · RM COCKPIT", title: "驾驶舱 · 睿美云经营总览" },
 };
 
 // 可变业务状态（签发会增长；v1 内存态，A5 接库后由 API 回读）
@@ -30,7 +32,7 @@ const state = {
 };
 
 const fmt = (n) => Number(n).toLocaleString("en-US");
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const esc = (s) => String(s).replace(/[&<>"'`]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#96;" }[c]));
 
 function sparkPath(values, w, h) {
   if (!values?.length) return "";
@@ -317,6 +319,120 @@ function renderGates() {
     </div>`).join("");
 }
 
+/* ── 驾驶舱（唯一接真实数据的视图） ─────────────────── */
+// 数据源：GET /rm/cockpit → RM-Bridge → 睿美云。
+// 失败/未配置一律降级到 COCKPIT_SEED，并在 UI 上明示「非实时」——不假装有数据。
+const cockpit = {
+  data: COCKPIT_SEED,
+  loading: false,
+  loaded: false,
+  note: null,
+};
+
+async function loadCockpit({ refresh = false } = {}) {
+  if (cockpit.loading) return;
+  cockpit.loading = true;
+  renderCockpit();
+  try {
+    const res = await fetch(`/rm/cockpit${refresh ? "?refresh=1" : ""}`);
+    const json = await res.json();
+    if (json.ok) {
+      cockpit.data = json;
+      cockpit.note = json.partial ? `${json.meta?.errorCount ?? 0} 项指标未取到` : null;
+    } else {
+      cockpit.data = COCKPIT_SEED;
+      cockpit.note = json.reason === "not_configured"
+        ? "睿美云未配置凭据，显示占位数据"
+        : (json.error || "拉取失败，显示占位数据");
+    }
+  } catch (err) {
+    cockpit.data = COCKPIT_SEED;
+    cockpit.note = `拉取失败：${err.message}`;
+  } finally {
+    // loaded 一律置位：失败也视为「已尝试」，否则后端挂掉时每次切 tab 都会重新打一枪
+    cockpit.loaded = true;
+    cockpit.loading = false;
+    renderCockpit();
+  }
+}
+
+function barRows(rows, unit = "人") {
+  if (!rows?.length) return `<div class="biz-empty">暂无数据</div>`;
+  const max = Math.max(...rows.map((r) => Number(r.customers) || 0)) || 1;
+  return rows.map((r) => `
+    <div class="biz-funnel-row">
+      <span class="biz-funnel-label">${esc(r.name)}</span>
+      <span class="biz-funnel-track"><span class="biz-funnel-bar" style="width:${((Number(r.customers) || 0) / max) * 100}%"></span></span>
+      <span class="biz-funnel-val">${fmt(Number(r.customers) || 0)}<i>${unit}</i></span>
+    </div>`).join("");
+}
+
+function renderCockpit() {
+  const d = cockpit.data || COCKPIT_SEED;
+  const k = d.kpi || {};
+  const src = d.meta?.source;
+  const live = src === "ruimeiyun";
+  // 三态，不混淆：实时 / 部分取到 / 完全取不到 / 未配置占位
+  const chipText = live
+    ? (d.meta?.partial ? `睿美云 · 部分指标（${d.meta.errorCount} 项失败）` : "睿美云 · 实时")
+    : src === "unavailable" ? "睿美云 · 取数失败"
+    : "占位数据 · 非实时";
+  const pctText = (v) => (v == null ? "—" : `${v}%`);
+
+  $("biz-cockpit-source").innerHTML = `
+    <div class="biz-card-kicker">数据源</div>
+    <div class="biz-cockpit-src-row">
+      <span class="biz-chip ${live ? "biz-chip-ok" : ""}">${esc(chipText)}</span>
+      <span class="biz-chip biz-chip-mono">角色 ${esc(d.meta?.role || "—")}</span>
+      <span class="biz-chip biz-chip-mono">年度 ${esc(d.meta?.year || "—")}</span>
+      ${d.meta?.fetchedAt ? `<span class="biz-chip biz-chip-mono">拉取 ${esc(String(d.meta.fetchedAt).slice(11, 19))}</span>` : ""}
+      <button class="biz-btn" id="biz-cockpit-refresh" type="button" ${cockpit.loading ? "disabled" : ""}>${cockpit.loading ? "拉取中…" : "刷新"}</button>
+    </div>
+    ${cockpit.note ? `<div class="biz-cockpit-note">${esc(cockpit.note)}</div>` : ""}`;
+
+  // foot 一律标出睿美云来源字段名。
+  // 原因：三个「率」的字段映射来自侦察文档的返回样例，而样例里 getCustomerActiveRate
+  // 返回的是 waistRate（腰率），与接口名对不上 —— 未经真实数据校验前不假装确定。
+  // 接入真库后若发现错配，foot 上的字段名能一眼看出来。
+  const cards = [
+    { kicker: "客户总量", value: fmt(k.totalCustomers || 0), foot: `totalCustomers · 个人池 ${fmt(k.personalPoolCount || 0)}` },
+    { kicker: "今日待办", value: fmt(k.todoMessages || 0), foot: `msgNum · 待办任务 ${fmt(k.todoTasks || 0)}` },
+    { kicker: "客户活跃率", value: pctText(k.activeRate), foot: "睿美云字段 · customerRate" },
+    { kicker: "客户复购率", value: pctText(k.repurchaseRate), foot: k.repurchaseSuspect ? "两接口返回全等 · 疑似占位未采信" : "睿美云字段 · repurchaseRate" },
+    { kicker: "消费腰率", value: pctText(k.waistRate), foot: "睿美云字段 · waistRate" },
+  ];
+  $("biz-cockpit-kpi").innerHTML = cards.map((c) => `
+    <div class="biz-card biz-card-metric">
+      <div class="biz-card-kicker">${esc(c.kicker)}</div>
+      <div class="biz-metric-num">${esc(c.value)}</div>
+      <div class="biz-card-foot">${esc(c.foot)}</div>
+    </div>`).join("");
+
+  // 注：原「渠道分布·客户数」已移除 —— 真库核对发现 getAllChannel 只返回渠道字典，
+  // 不含客户数，那个图是错的（见 bridge/cockpit.js 注释）。
+  $("biz-cockpit-pools").innerHTML = barRows(d.pools);
+
+  const cons = d.consumption;
+  $("biz-cockpit-consumption").innerHTML = cons
+    ? `<div class="biz-kv"><span>人均消费</span><b class="mono">¥${fmt(cons.average)}</b></div>
+       <div class="biz-kv"><span>消费总额</span><b class="mono">¥${fmt(cons.customerAmount)}</b></div>
+       <div class="biz-kv"><span>超均值客户</span><b class="mono">${fmt(cons.overAvgCusNum)}</b></div>`
+    : `<div class="biz-empty">暂无数据</div>`;
+
+  const errs = d.errors || [];
+  const errEl = $("biz-cockpit-errors");
+  if (errs.length) {
+    errEl.hidden = false;
+    errEl.innerHTML = `<div class="biz-card-kicker">未取到的指标</div>` +
+      errs.map((e) => `<div class="biz-feed-row"><span class="biz-feed-type type-error">${esc(e.metric)}</span><span class="biz-feed-text">${esc(e.error || "")}</span></div>`).join("");
+  } else {
+    errEl.hidden = true;
+    errEl.innerHTML = "";
+  }
+
+  $("biz-cockpit-refresh")?.addEventListener("click", () => loadCockpit({ refresh: true }));
+}
+
 /* ── 视图切换 / 开合 ───────────────────────────────── */
 function switchView(view) {
   if (!VIEW_META[view]) return;
@@ -325,6 +441,9 @@ function switchView(view) {
   document.querySelectorAll(".biz-view").forEach((v) => v.classList.toggle("is-active", v.dataset.view === view));
   $("biz-view-kicker").textContent = VIEW_META[view].kicker;
   $("biz-view-title").textContent = VIEW_META[view].title;
+  // 驾驶舱首次进入才拉数据：冷启动要打 ~7 个睿美云接口（受 1.5s 限流串行，约 10s），
+  // 不能拖慢面板开合。先渲种子，数据到了再重渲。
+  if (view === "cockpit" && !cockpit.loaded && !cockpit.loading) loadCockpit();
 }
 
 let toastTimer = null;
@@ -350,6 +469,7 @@ export function setBizPanelMode(visible, { view } = {}) {
     renderPlan();
     renderAudit();
     renderGates();
+    renderCockpit();
   }
 }
 

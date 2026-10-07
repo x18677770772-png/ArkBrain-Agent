@@ -6712,6 +6712,17 @@ body.biz-panel-mode .biz-panel {
 .biz-gate.is-open .biz-gate-state { color: var(--add); border-color: color-mix(in srgb, var(--add) 40%, transparent); }
 .biz-gate.is-locked .biz-gate-state { color: var(--warm); border-color: color-mix(in srgb, var(--warm) 40%, transparent); }
 
+/* ── 07 驾驶舱（睿美云真实数据） ── */
+.biz-cockpit { display: flex; flex-direction: column; gap: var(--space-4); }
+.biz-cockpit-source { padding: var(--space-4) var(--space-5); }
+.biz-cockpit-src-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.biz-cockpit-src-row .biz-btn { margin-left: auto; }
+.biz-cockpit-note { margin-top: var(--space-3); font-size: var(--fs-caption); color: var(--warn); }
+/* KPI 卡自适应用户宽度：不复用 .biz-bento —— 那个类带 nth-of-type 硬定位，是看板 4 卡专用 */
+.biz-cockpit-kpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr)); gap: var(--space-4); }
+.biz-cockpit-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.biz-cockpit-errors { border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+
 /* ── toast ── */
 .biz-toast {
   position: absolute;
@@ -6744,4 +6755,5 @@ body.biz-panel-mode .biz-panel {
   .biz-members { grid-template-columns: minmax(0, 1fr); }
   .biz-lab { grid-template-columns: minmax(0, 1fr); }
   .biz-member-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .biz-cockpit-split { grid-template-columns: minmax(0, 1fr); }
 }

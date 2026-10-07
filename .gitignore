@@ -170,3 +170,9 @@ src/ui/brain-ui/biz-preview.bundle.js
 # 正式视图一律在 src/ui/brain-ui/，此目录仅本地留存，不进仓库
 demo/
 
+# 睿美云 RM-Bridge：账号凭据与审计日志，绝不进仓库
+# 模板 bridge/accounts.example.json 才提交
+bridge/accounts.json
+bridge/bridge-audit.log
+bridge/*.log
+

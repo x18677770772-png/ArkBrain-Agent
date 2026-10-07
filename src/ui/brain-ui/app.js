@@ -3838,12 +3838,14 @@ chat = initChat({
       setBizPanelMode(false);
       return;
     }
-    // 专属词直接开；「看板/闸门/会员」等泛词需带开启动词，避免劫持正常聊天
+    // 专属词直接开；「看板/闸门/会员」等泛词需带开启动词，避免劫持正常聊天。
+    // 「睿美云」是产品名、正常聊天里也会出现 → 归入泛词组，须带动词才开。
     const bizVerb = /打开|进入|调出|显示|看看|切到/.test(text);
-    const bizTerm = /业务台|会员360|检测台|方案审阅|审计流/.test(text)
-      || (bizVerb && /看板|闸门|会员|检测|方案|审计/.test(text));
+    const bizTerm = /业务台|会员360|检测台|方案审阅|审计流|驾驶舱/.test(text)
+      || (bizVerb && /看板|闸门|会员|检测|方案|审计|睿美云/.test(text));
     if (bizTerm && !document.body.classList.contains('biz-panel-mode')) {
-      const view = /会员/.test(text) ? "members" : /检测/.test(text) ? "lab"
+      const view = /驾驶舱|睿美云/.test(text) ? "cockpit"
+        : /会员/.test(text) ? "members" : /检测/.test(text) ? "lab"
         : /方案|审阅|diff/i.test(text) ? "plan" : /审计/.test(text) ? "audit"
         : /闸门/.test(text) ? "gates" : "dashboard";
       setBizPanelMode(true, { view });

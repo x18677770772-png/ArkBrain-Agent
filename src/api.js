@@ -18,6 +18,7 @@ import { handleBrowserPreviewRoutes } from './api/routes/browser-preview.js'
 import { handleEmbeddingRoutes } from './api/routes/embedding.js'
 import { handleEventRoutes } from './api/routes/events.js'
 import { handleMediaRoutes } from './api/routes/media.js'
+import { handleRuimeiyunRoutes } from './api/routes/ruimeiyun.js'
 import { handleMapRoutes } from './api/routes/map.js'
 import { handleMemoryRoutes } from './api/routes/memory.js'
 import { handleKnowledgeRoutes } from './api/routes/knowledge.js'
@@ -162,6 +163,8 @@ function isSensitivePath(pathname) {
     || pathname === '/conversations'
     || pathname.startsWith('/memory/')
     || pathname === '/social/wechat-clawbot/logout'
+    // 睿美云代理：拿着本机凭据访问外部 SaaS，写操作必须同源、LAN 必须带 token
+    || pathname.startsWith('/rm/')
 }
 
 // State-changing requests on sensitive paths must come from a same-origin
@@ -230,6 +233,7 @@ async function dispatchHttpRoutes(req, res, url, context) {
   if (await handleEmbeddingRoutes(req, res, url)) return true
   if (await handleAdminRoutes(req, res, url, context)) return true
   if (await handleTTSRoutes(req, res, url)) return true
+  if (await handleRuimeiyunRoutes(req, res, url)) return true
   if (await handleStaticRoutes(req, res, url)) return true
   return false
 }

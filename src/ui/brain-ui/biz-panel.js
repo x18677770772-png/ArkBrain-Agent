@@ -1,7 +1,8 @@
 /**
  * 方舟业务台 · 面板模板（brain-ui 五件套之一）
- * 单面板 6 tab：看板 / 会员 / 检测 / 方案 / 审计 / 闸门。
+ * 单面板 7 tab：看板 / 会员 / 检测 / 方案 / 审计 / 闸门 / 驾驶舱。
  * 结构见 docs/ui-audit-baseline.md；数据由 biz.js 从 biz-data.js 渲染。
+ * 驾驶舱（07）是唯一接真实数据的视图：经 /rm/cockpit 拉睿美云，失败降级 cockpit-data.js。
  */
 export const createBizPanel = () => `
 <section id="biz-panel" class="biz-panel" aria-hidden="true" aria-label="方舟业务台">
@@ -34,6 +35,10 @@ export const createBizPanel = () => `
       <button class="biz-tab" role="tab" data-view="gates" type="button">
         <span class="biz-tab-glyph">06</span><span class="biz-tab-label">闸门</span>
         <span class="biz-tab-name">模型四闸门</span>
+      </button>
+      <button class="biz-tab" role="tab" data-view="cockpit" type="button">
+        <span class="biz-tab-glyph">07</span><span class="biz-tab-label">驾驶舱</span>
+        <span class="biz-tab-name">睿美云经营总览</span>
       </button>
       <div class="biz-rail-foot">
         <div class="biz-pref-line" id="biz-rail-pref" title="今日新增偏好对">今日偏好对 <b id="biz-rail-pref-n">+36</b></div>
@@ -150,6 +155,25 @@ export const createBizPanel = () => `
             <div class="biz-gates-state" id="biz-gates-state"></div>
           </div>
           <div class="biz-gates-grid" id="biz-gates-grid"></div>
+        </div>
+      </section>
+
+      <!-- 07 驾驶舱（睿美云真实数据） -->
+      <section class="biz-view" data-view="cockpit" aria-label="驾驶舱">
+        <div class="biz-cockpit">
+          <div class="biz-card biz-cockpit-source" id="biz-cockpit-source"></div>
+          <div class="biz-cockpit-kpi" id="biz-cockpit-kpi"></div>
+          <div class="biz-cockpit-split">
+            <div class="biz-card">
+              <div class="biz-card-kicker">客户池分布 · 当前客户数</div>
+              <div class="biz-funnel" id="biz-cockpit-pools"></div>
+            </div>
+            <div class="biz-card">
+              <div class="biz-card-kicker">消费概况</div>
+              <div class="biz-cockpit-consumption" id="biz-cockpit-consumption"></div>
+            </div>
+          </div>
+          <div class="biz-card biz-cockpit-errors" id="biz-cockpit-errors" hidden></div>
         </div>
       </section>
     </div>
