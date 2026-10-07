@@ -176,3 +176,7 @@ bridge/accounts.json
 bridge/bridge-audit.log
 bridge/*.log
 
+# ark-api（A5 切片）Python 字节码；ark-api/.env 由上方 .env 规则覆盖
+__pycache__/
+*.pyc
+

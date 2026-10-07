@@ -6600,6 +6600,16 @@ body.biz-panel-mode .biz-panel {
 .biz-legal { margin-top: var(--space-3); font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: .08em; color: var(--warn); }
 .biz-legal-inline { color: var(--warn); font-size: var(--fs-micro); font-family: var(--font-mono); }
 
+/* ── 03b 检测录入（A5 简版手工录入 · 落 PG lab_results） ── */
+.biz-lab-entry-card { grid-column: 1 / -1; }
+.biz-lab-entry-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.biz-lab-form { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(5, minmax(0, 1fr)) auto; gap: var(--space-2); margin-top: var(--space-3); align-items: center; }
+.biz-lab-form[hidden] { display: none; } /* 类选择器的 display:grid 会盖掉 hidden 属性，必须显式兜底 */
+.biz-input { background: color-mix(in srgb, var(--ink) 4%, transparent); border: 1px solid var(--line); border-radius: var(--radius-s); color: var(--ink); font-size: var(--fs-caption); padding: 8px 10px; min-width: 0; transition: border-color var(--dur-fast) var(--ease-out); }
+.biz-input::placeholder { color: var(--dim); }
+.biz-input:focus { outline: none; border-color: color-mix(in srgb, var(--cool) 60%, transparent); }
+.biz-input-mono { font-family: var(--font-mono); }
+
 /* ── 04 方案 diff ── */
 .biz-plan { display: flex; flex-direction: column; gap: var(--space-4); }
 .biz-plan-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
@@ -6754,6 +6764,7 @@ body.biz-panel-mode .biz-panel {
   .biz-card-stream, .biz-card-funnel { grid-column: auto; grid-row: auto; }
   .biz-members { grid-template-columns: minmax(0, 1fr); }
   .biz-lab { grid-template-columns: minmax(0, 1fr); }
+  .biz-lab-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .biz-member-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .biz-cockpit-split { grid-template-columns: minmax(0, 1fr); }
 }

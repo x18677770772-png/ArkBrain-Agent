@@ -18,17 +18,22 @@ const VIEW_META = {
   cockpit: { kicker: "07 · RM COCKPIT", title: "驾驶舱 · 睿美云经营总览" },
 };
 
-// 可变业务状态（签发会增长；v1 内存态，A5 接库后由 API 回读）
+// 可变业务状态。A5 起由 API 回读（/slice/bootstrap、/slice/plans/sign 响应回填）；
+// API 挂时保留种子值作三态降级展示，但签发/录入失败绝不本地假成功。
 const state = {
   active: false,
   view: "dashboard",
   memberId: BIZ_DATA.members[0].id,
-  planStatus: BIZ_DATA.plan.status, // pending_sign → signed
+  // 种子的 "pending_sign" 是 v1 遗留词，对齐 DB 状态机 draft→pending_review→signed→active
+  planStatus: BIZ_DATA.plan.status === "pending_sign" ? "pending_review" : BIZ_DATA.plan.status,
   prefPairs: BIZ_DATA.metrics.preferencePairs,
   prefToday: BIZ_DATA.metrics.preferenceToday,
   plansSigned: BIZ_DATA.metrics.plansSigned,
   feed: [...BIZ_DATA.agentFeed],
   signedAt: null,
+  planOps: null,      // 服务端逐字 diff（权威）；null = 未拉到 → diffSeg 降级展示
+  revisionTypes: [],  // 服务端行级修订类型（按改动行序，来自 5 枚举分类器）
+  signing: false,
 };
 
 const fmt = (n) => Number(n).toLocaleString("en-US");
@@ -46,6 +51,16 @@ function sparkPath(values, w, h) {
 function renderDashboard() {
   $("biz-hero-pref").textContent = fmt(state.prefPairs);
   $("biz-hero-today").textContent = `今日 +${state.prefToday}`;
+  // 数据源三态 chip：PG 实时（真计数，首日 0 签发后长）/ 种子降级 / 同步中
+  const srcEl = $("biz-dash-source");
+  if (srcEl) {
+    const live = slice.source === "postgres";
+    srcEl.textContent = live
+      ? "PG · 实时"
+      : slice.loaded ? "种子降级 · 非实时"
+      : slice.loading ? "同步 PG…" : "种子数据";
+    srcEl.classList.toggle("biz-chip-ok", live);
+  }
   $("biz-spark").innerHTML = `<path d="${sparkPath(BIZ_DATA.preferenceDaily, 140, 32)}" fill="none" stroke="var(--warm)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
   $("biz-m-coverage").textContent = `${BIZ_DATA.metrics.trajectoryCoverage}%`;
   $("biz-m-signed").textContent = fmt(state.plansSigned);
@@ -121,6 +136,7 @@ function renderMembers() {
     el.addEventListener("click", () => {
       state.memberId = el.dataset.member;
       renderMembers();
+      if (slice.loaded) loadSlice(state.memberId);  // 按新会员回读 lab（异步，回来再渲）
       renderLab();
     });
   });
@@ -129,7 +145,8 @@ function renderMembers() {
 
 /* ── 检测台 ──────────────────────────────────────────── */
 function renderLab() {
-  const lab = BIZ_DATA.labs[state.memberId];
+  // 数据源：切片回读优先（服务端重算过 status 的权威 doc），缺省落种子
+  const lab = slice.lab[state.memberId] || BIZ_DATA.labs[state.memberId];
   const wrap = $("biz-lab-hero");
   const grid = $("biz-lab-grid");
   if (!lab) {
@@ -185,7 +202,8 @@ function renderLab() {
 
 /* ── 方案 diff 签发 ─────────────────────────────────── */
 function diffSeg(a, b) {
-  // 公共前后缀剥离 → 中间为改动段（v1 逐段级，A5 落库换 difflib 逐字）
+  // 公共前后缀剥离 → 中间为改动段。仅在服务端 diffOps 缺席（API 挂/未加载）时
+  // 作展示降级 —— 正常路径的 diff 由 ark-api difflib 单写者计算（蓝图裁定）。
   let p = 0;
   while (p < a.length && p < b.length && a[p] === b[p]) p++;
   let s = 0;
@@ -219,14 +237,20 @@ function renderPlan() {
       </div>
     </div>
     <div class="biz-plan-actions">
-      <div class="biz-revision-chips">${plan.revisions.map((r) => `<span class="biz-chip biz-chip-diff">${esc(r)}</span>`).join("")}</div>
-      <button class="biz-btn biz-btn-sign${signed ? " is-signed" : ""}" id="biz-sign-btn" type="button" ${signed ? "disabled" : ""}>
-        ${signed ? "✓ 已签发 · 偏好对已落库" : "签发并落库偏好对"}
+      <div class="biz-revision-chips">${(state.revisionTypes.length ? [...new Set(state.revisionTypes)] : plan.revisions).map((r) => `<span class="biz-chip biz-chip-diff">${esc(r)}</span>`).join("")}</div>
+      <button class="biz-btn biz-btn-sign${signed ? " is-signed" : ""}" id="biz-sign-btn" type="button" ${signed || state.signing ? "disabled" : ""}>
+        ${signed ? "✓ 已签发 · 偏好对已落库" : state.signing ? "落库中…" : "签发并落库偏好对"}
       </button>
     </div>`;
 
   // 单 grid 行对齐（draft | gutter | final 同行等高，换行不错位）
-  const n = Math.max(plan.draft.length, plan.final.length);
+  // 两档渲染：有服务端 diffOps → 逐字 ops 权威（蓝图：diff 单写者，前端只排版）；
+  // 无（API 挂/未加载）→ diffSeg 仅降级展示，落库路径始终走服务端。
+  const lines = Array.isArray(state.planOps?.lines) && state.planOps.lines.length
+    ? state.planOps.lines : null;
+  // 行数取三方最大：server lines 与 seed 数组理论上同步（loadSlice/sign 同源写入），
+  // 但任何一侧漂移都不允许越界（审查 MEDIUM 防御）
+  const n = Math.max(plan.draft.length, plan.final.length, lines?.length ?? 0);
   const changedIdx = [];
   let rows = `
     <div class="biz-diff-titlecell"><span class="biz-dot biz-dot-ai"></span>AI 初稿 · 灰阶</div>
@@ -235,6 +259,37 @@ function renderPlan() {
   for (let i = 0; i < n; i++) {
     const d = plan.draft[i] ?? "";
     const f = plan.final[i] ?? "";
+    const serverLine = lines ? lines[i] : null;
+
+    if (serverLine?.same === true) {
+      rows += `<div class="biz-diff-line is-same"><span>${esc(d)}</span></div>
+               <div class="biz-diff-gutter-cell"></div>
+               <div class="biz-diff-line is-same"><span>${esc(f)}</span></div>`;
+      continue;
+    }
+
+    if (Array.isArray(serverLine?.ops)) {
+      const k = changedIdx.push(i) - 1;
+      const left = serverLine.ops.map((op) => {
+        if (op.tag === "equal") return esc(op.text);
+        if (op.tag === "delete") return `<mark class="biz-del">${esc(op.text)}</mark>`;
+        if (op.tag === "replace") return `<mark class="biz-del">${esc(op.old)}</mark>`;
+        return ""; // insert 只进右栏
+      }).join("");
+      const right = serverLine.ops.map((op) => {
+        if (op.tag === "equal") return esc(op.text);
+        if (op.tag === "insert") return `<mark class="biz-add">${esc(op.text)}</mark>`;
+        if (op.tag === "replace") return `<mark class="biz-add">${esc(op.new)}</mark>`;
+        return ""; // delete 只进左栏
+      }).join("");
+      const chip = state.revisionTypes[k] || plan.revisions[k] || "修订";
+      rows += `<div class="biz-diff-line is-del"><span>${left}</span></div>
+               <div class="biz-diff-gutter-cell"><span class="biz-chip biz-chip-diff">${esc(chip)}</span></div>
+               <div class="biz-diff-line is-add"><span>${right}</span></div>`;
+      continue;
+    }
+
+    // 降级档：无服务端 ops（种子态 / API 挂）
     const same = d === f;
     const k = same ? -1 : changedIdx.push(i) - 1;
     const seg = same ? null : diffSeg(d, f);
@@ -259,25 +314,59 @@ function renderPlan() {
   $("biz-sign-btn")?.addEventListener("click", signPlan);
 }
 
-function signPlan() {
-  if (state.planStatus === "signed") return;
-  state.planStatus = "signed";
-  state.prefPairs += 1;
-  state.prefToday += 1;
-  state.plansSigned += 1;
-  const now = new Date();
-  state.signedAt = now.toISOString().slice(0, 16).replace("T", " ");
-  state.feed.unshift({
-    t: now.toTimeString().slice(0, 8),
-    type: "audit",
-    text: `偏好对落库 · ${BIZ_DATA.plan.id} 逐字 diff`,
-    risk: "low",
-    ok: true,
-  });
-  renderPlan();
-  renderDashboard();
-  renderAudit();
-  toast(`偏好对 +1 · ${BIZ_DATA.plan.id} 已签发并落库`);
+async function signPlan() {
+  if (state.planStatus === "signed" || state.signing) return;
+  state.signing = true;
+  renderPlan(); // 按钮 →「落库中…」
+  try {
+    const res = await fetch("/slice/plans/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        planId: BIZ_DATA.plan.id,
+        memberId: BIZ_DATA.plan.memberId,
+        draft: BIZ_DATA.plan.draft,   // 仅一致性校验，AI 初稿以 DB 行为准
+        final: BIZ_DATA.plan.final,
+        model: BIZ_DATA.plan.model,
+        tokens: BIZ_DATA.plan.tokens,
+        cost: BIZ_DATA.plan.cost,
+        signedBy: "周慕白",
+      }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!j.ok) {
+      throw new Error(SLICE_ERR_NICE[j.error] || j.error || `HTTP ${res.status}`);
+    }
+    // 用响应回填 state（替换旧版本地 +1 —— 计数必须来自 PG 聚合）
+    state.planStatus = j.plan.status;
+    state.planOps = j.diffOps;
+    state.revisionTypes = j.revisionTypes || [];
+    state.signedAt = j.plan.signedAt;
+    state.prefPairs = j.counts.preferencePairs;
+    state.prefToday = j.counts.preferenceToday;
+    state.plansSigned = j.counts.plansSigned;
+    slice.source = "postgres";
+    const now = new Date();
+    state.feed.unshift({
+      t: now.toTimeString().slice(0, 8),
+      type: "audit",
+      text: `偏好对落库 · ${BIZ_DATA.plan.id} 逐字 diff · PG#${j.pairId}${j.alreadySigned ? "（幂等重签）" : ""}`,
+      risk: "low",
+      ok: true,
+    });
+    const mismatchNote = j.draftMismatch ? " ⚠ 本地初稿与 DB 不一致，diff 以 DB 为准" : "";
+    toast((j.alreadySigned
+      ? `${BIZ_DATA.plan.id} 此前已签发 · 幂等返回，未重复落库`
+      : `偏好对 +1 · ${BIZ_DATA.plan.id} 已落 PG（pair #${j.pairId}）`) + mismatchNote);
+  } catch (err) {
+    // 失败零变更：不本地假 +1，按钮恢复可点，如实报错
+    toast(`签发失败：${err.message} · 未落库`);
+  } finally {
+    state.signing = false;
+    renderPlan();
+    renderDashboard();
+    renderAudit();
+  }
 }
 
 /* ── Agent 审计 ─────────────────────────────────────── */
@@ -433,6 +522,67 @@ function renderCockpit() {
   $("biz-cockpit-refresh")?.addEventListener("click", () => loadCockpit({ refresh: true }));
 }
 
+/* ── A5 切片（看板 / 检测台 / 方案 接 PG 真库） ─────── */
+// 数据源：GET /slice/bootstrap → 3721 代理 → ark-api(3724) → PostgreSQL。
+// 三态诚实：通 = 真 PG 计数与回读（首日 0，签发/录入后增长）；
+// 挂 = 种子降级并在 chip 上明示 —— 绝不用假数字冒充实时（驾驶舱同款纪律）。
+const slice = {
+  source: "seed",   // "postgres" | "seed"
+  loading: false,
+  loaded: false,
+  note: null,
+  lab: {},          // memberId → lab doc（服务端回读；缺省落回 BIZ_DATA.labs）
+};
+let sliceReqSeq = 0;  // loadSlice 竞态防护：单调序号，过期响应丢弃
+
+// 代理层错误码 → 用户可读文案（3721 /slice/* 的三态降级信号）
+const SLICE_ERR_NICE = {
+  slice_unavailable: "切片服务未连接",
+  slice_timeout: "切片服务超时",
+  slice_upstream_error: "切片服务错误",
+};
+
+async function loadSlice(memberId = state.memberId) {
+  // 单调序号防竞态：会员快速连点时，过期响应直接丢弃（否则后到的旧响应会覆盖新会员状态）
+  const seq = ++sliceReqSeq;
+  slice.loading = true;
+  if (!slice.loaded) renderDashboard(); // 首次先渲「同步中…」
+  try {
+    const res = await fetch(`/slice/bootstrap?memberId=${encodeURIComponent(memberId)}`);
+    const j = await res.json();
+    if (seq !== sliceReqSeq) return;  // 已被更新的请求取代
+    if (!j.ok) throw new Error(j.error || `HTTP ${res.status}`);
+    slice.source = "postgres";
+    slice.loaded = true;
+    slice.note = null;
+    // 计数以服务端聚合为准（替换种子基线 —— 「轨迹从零生长」就是要演示的叙事）
+    state.prefPairs = j.metrics.preferencePairs;
+    state.prefToday = j.metrics.preferenceToday;
+    state.plansSigned = j.metrics.plansSigned;
+    if (j.plan) {
+      BIZ_DATA.plan.draft = j.plan.draft;   // 契约：字段形状不变，内容以 DB 为准
+      BIZ_DATA.plan.final = j.plan.final;
+      state.planStatus = j.plan.status;
+      state.planOps = j.plan.diffOps;
+      state.revisionTypes = j.plan.revisionTypes || [];
+      state.signedAt = j.plan.signedAt;
+    }
+    if (j.lab) slice.lab[memberId] = j.lab;
+  } catch (err) {
+    if (seq !== sliceReqSeq) return;
+    slice.source = "seed";
+    slice.loaded = true;
+    slice.note = `拉取失败：${err.message}`;
+  } finally {
+    if (seq === sliceReqSeq) {
+      slice.loading = false;
+      renderDashboard();
+      renderLab();
+      renderPlan();
+    }
+  }
+}
+
 /* ── 视图切换 / 开合 ───────────────────────────────── */
 function switchView(view) {
   if (!VIEW_META[view]) return;
@@ -470,6 +620,9 @@ export function setBizPanelMode(visible, { view } = {}) {
     renderAudit();
     renderGates();
     renderCockpit();
+    // A5 切片懒加载（cockpit 同款先例）：面板首次打开才打 /slice/bootstrap，
+    // 种子先上屏，数据到了重渲 —— 不拖慢开合。
+    if (!slice.loaded && !slice.loading) loadSlice();
   }
 }
 
@@ -483,4 +636,64 @@ export function initBizPanel() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && state.active) setBizPanelMode(false);
   });
+
+  // 检测台 · 简版手工录入（模板静态，事件只绑一次）
+  $("biz-lab-entry-toggle")?.addEventListener("click", () => {
+    const form = $("biz-lab-entry");
+    const open = form.hidden;
+    form.hidden = !open;
+    $("biz-lab-entry-toggle").setAttribute("aria-expanded", String(open));
+    $("biz-lab-entry-toggle").textContent = open ? "− 收起" : "＋ 录入";
+    if (open) $("biz-lf-name")?.focus();
+  });
+  $("biz-lf-add")?.addEventListener("click", addLabItem);
+  $("biz-lab-entry")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addLabItem(); }
+  });
+}
+
+/* ── 检测录入：本地即时渲染 → POST 整份 doc → 响应覆盖（失败回滚） ── */
+async function addLabItem() {
+  const name = $("biz-lf-name")?.value.trim();
+  const code = $("biz-lf-code")?.value.trim() || "MANUAL";
+  const value = Number($("biz-lf-value")?.value);
+  const unit = $("biz-lf-unit")?.value.trim();
+  const lo = Number($("biz-lf-lo")?.value);
+  const hi = Number($("biz-lf-hi")?.value);
+  if (!name || !Number.isFinite(value) || !Number.isFinite(lo) || !Number.isFinite(hi)) {
+    toast("录入不完整：项目名 / 数值 / 下限 / 上限必填");
+    return;
+  }
+  if (lo > hi) { toast("参考区间无效：下限不能大于上限"); return; }
+
+  const mid = state.memberId;
+  const base = slice.lab[mid] || BIZ_DATA.labs[mid];
+  if (!base) { toast(`该会员无检测档案（${mid}），简版录入需在既有 doc 上追加`); return; }
+
+  // 乐观渲染先按同规则本地判级（服务端响应仍会权威重算覆盖）
+  const localStatus = value < lo ? "low" : value > hi ? "high" : "in";
+  const item = { name, code, value, unit, range: [lo, hi], status: localStatus };
+  const prev = slice.lab[mid];
+  const doc = { ...base, items: [...(base.items || []), item] };
+  slice.lab[mid] = doc;
+  renderLab();
+
+  try {
+    const res = await fetch("/slice/lab/results", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ memberId: mid, lab: doc }),
+    });
+    const j = await res.json().catch(() => ({}));
+    if (!j.ok) {
+      throw new Error(SLICE_ERR_NICE[j.error] || j.error || `HTTP ${res.status}`);
+    }
+    slice.lab[mid] = j.lab;   // 服务端权威（status 已按参考区间重算）
+    const saved = (j.lab.items || []).find((x) => x.code === code && x.name === name && x.value === value);
+    toast(`已落 PG · ${name} ${value}${unit || ""} · ${saved?.status === "high" ? "偏高" : saved?.status === "low" ? "偏低" : "区间内"}`);
+  } catch (err) {
+    if (prev === undefined) delete slice.lab[mid]; else slice.lab[mid] = prev;  // 回滚不留假数据
+    toast(`落库失败：${err.message} · 已回滚`);
+  }
+  renderLab();
 }

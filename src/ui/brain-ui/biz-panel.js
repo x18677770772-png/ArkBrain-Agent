@@ -69,6 +69,7 @@ export const createBizPanel = () => `
             <div class="biz-hero-metric" id="biz-hero-pref">12,847</div>
             <div class="biz-hero-sub">
               <span class="biz-delta-up" id="biz-hero-today">今日 +36</span>
+              <span class="biz-chip" id="biz-dash-source">种子数据</span>
               <svg class="biz-spark" id="biz-spark" viewBox="0 0 140 36" preserveAspectRatio="none" aria-hidden="true"></svg>
             </div>
             <div class="biz-card-foot">垂直模型原料 · 不可回溯 · 竞对无法事后补齐</div>
@@ -113,6 +114,21 @@ export const createBizPanel = () => `
       <!-- 03 检测台 -->
       <section class="biz-view" data-view="lab" aria-label="检测台">
         <div class="biz-lab">
+          <div class="biz-card biz-lab-entry-card">
+            <div class="biz-lab-entry-head">
+              <div class="biz-card-kicker">手工录入 · 简版（落 PG lab_results，status 服务端重算）</div>
+              <button class="biz-btn" id="biz-lab-entry-toggle" type="button" aria-expanded="false" aria-controls="biz-lab-entry">＋ 录入</button>
+            </div>
+            <div class="biz-lab-form" id="biz-lab-entry" hidden>
+              <input class="biz-input" id="biz-lf-name" type="text" placeholder="项目名 *" aria-label="项目名" maxlength="40">
+              <input class="biz-input biz-input-mono" id="biz-lf-code" type="text" placeholder="代码" aria-label="代码" maxlength="16">
+              <input class="biz-input biz-input-mono" id="biz-lf-value" type="number" step="any" placeholder="数值 *" aria-label="数值">
+              <input class="biz-input" id="biz-lf-unit" type="text" placeholder="单位" aria-label="单位" maxlength="12">
+              <input class="biz-input biz-input-mono" id="biz-lf-lo" type="number" step="any" placeholder="下限 *" aria-label="下限">
+              <input class="biz-input biz-input-mono" id="biz-lf-hi" type="number" step="any" placeholder="上限 *" aria-label="上限">
+              <button class="biz-btn biz-btn-primary" id="biz-lf-add" type="button">加入并落库</button>
+            </div>
+          </div>
           <div class="biz-card biz-lab-hero" id="biz-lab-hero"></div>
           <div class="biz-card biz-lab-age" id="biz-lab-age"></div>
           <div class="biz-card biz-lab-grid-wrap">

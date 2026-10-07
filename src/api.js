@@ -25,6 +25,7 @@ import { handleKnowledgeRoutes } from './api/routes/knowledge.js'
 import { handleMessageRoutes } from './api/routes/message.js'
 import { handlePanelRoutes } from './api/routes/panels.js'
 import { handleSettingsRoutes } from './api/routes/settings.js'
+import { handleSliceRoutes } from './api/routes/slice.js'
 import { handleSocialRoutes } from './api/routes/social.js'
 import { handleSocialWebhook } from './social/webhooks.js'
 import { handleStaticRoutes } from './api/routes/static.js'
@@ -165,6 +166,8 @@ function isSensitivePath(pathname) {
     || pathname === '/social/wechat-clawbot/logout'
     // 睿美云代理：拿着本机凭据访问外部 SaaS，写操作必须同源、LAN 必须带 token
     || pathname.startsWith('/rm/')
+    // A5 切片：写入 PG 业务真源（检测录入/方案签发），与 /rm/ 同级门控
+    || pathname.startsWith('/slice/')
 }
 
 // State-changing requests on sensitive paths must come from a same-origin
@@ -234,6 +237,7 @@ async function dispatchHttpRoutes(req, res, url, context) {
   if (await handleAdminRoutes(req, res, url, context)) return true
   if (await handleTTSRoutes(req, res, url)) return true
   if (await handleRuimeiyunRoutes(req, res, url)) return true
+  if (await handleSliceRoutes(req, res, url)) return true
   if (await handleStaticRoutes(req, res, url)) return true
   return false
 }
