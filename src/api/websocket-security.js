@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import net from 'net'
+import { isExtraAllowedOrigin } from './allowed-origins.js'
 
 export const WS_TOKEN_PROTOCOL_PREFIX = 'arkbrain.auth.'
 export const WS_PUBLIC_PROTOCOL = 'arkbrain.v1'
@@ -62,11 +63,18 @@ function isAllowedWebSocketOrigin(origin, remoteIsLoopback, lanEnabled) {
   // Native WebSocket clients commonly omit Origin. Browser file:// and Electron use null locally.
   if (!origin) return true
   if (origin === 'null') return remoteIsLoopback
+  // 公网隧道 / 反向代理预览：与 HTTP 门禁共用 ARKBRAIN_EXTRA_ALLOWED_ORIGINS 白名单
+  if (isExtraAllowedOrigin(origin)) return true
   try {
     const hostname = new URL(origin).hostname
     if (isLoopbackAddress(hostname)) return true
     return lanEnabled && isPrivateLanAddress(hostname)
   } catch { return false }
+}
+
+function isLoopbackOrigin(origin) {
+  if (!origin || origin === 'null') return false
+  try { return isLoopbackAddress(new URL(origin).hostname) } catch { return false }
 }
 
 export function authorizeWebSocketUpgrade(req, {
@@ -79,8 +87,18 @@ export function authorizeWebSocketUpgrade(req, {
 
   const remoteAddress = req.socket?.remoteAddress
   const remoteIsLoopback = isLoopbackAddress(remoteAddress)
-  if (!isAllowedWebSocketOrigin(req.headers?.origin, remoteIsLoopback, lanEnabled)) {
+  const origin = req.headers?.origin
+  if (!isAllowedWebSocketOrigin(origin, remoteIsLoopback, lanEnabled)) {
     return { ok: false, status: 403, reason: 'forbidden_origin' }
+  }
+  // /scene 承载 security-confirm-* 等敏感 intent：非回环 Origin（隧道/反代，
+  // 含白名单放行的）必须持口令 —— 否则任意白名单域的页面经隧道即可直改安全开关。
+  // /voice/cloud 与 /message 同级（聊天预览面），裸链接可用。本地/原生客户端
+  // Origin 缺失或为回环，不受影响。
+  if (pathname === '/scene' && origin && !isLoopbackOrigin(origin)) {
+    if (!timingSafeTokenEqual(getWebSocketCredential(req), expectedToken)) {
+      return { ok: false, status: 403, reason: 'forbidden' }
+    }
   }
   if (remoteIsLoopback) return { ok: true }
 

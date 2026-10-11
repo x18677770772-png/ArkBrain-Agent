@@ -23,6 +23,7 @@ import { handleMapRoutes } from './api/routes/map.js'
 import { handleMemoryRoutes } from './api/routes/memory.js'
 import { handleKnowledgeRoutes } from './api/routes/knowledge.js'
 import { handleMessageRoutes } from './api/routes/message.js'
+import { isExtraAllowedOrigin } from './api/allowed-origins.js'
 import { handlePanelRoutes } from './api/routes/panels.js'
 import { handleSettingsRoutes } from './api/routes/settings.js'
 import { handleSliceRoutes } from './api/routes/slice.js'
@@ -109,6 +110,8 @@ function isAllowedOrigin(origin = '', req = null, url = null) {
   // Missing Origin: non-browser client (curl / native) — no CORS to grant.
   if (!origin) return true
   if (isLoopbackOrigin(origin)) return true
+  // Tunnel / reverse-proxy previews opted in via env allowlist.
+  if (isExtraAllowedOrigin(origin)) return true
   // Opaque origin is only acceptable with an explicit LAN bearer token.
   if (origin === 'null') return !!(req && url && hasValidAuthToken(req, url))
   if (!isLanAccessEnabled()) return false
@@ -133,16 +136,30 @@ function hasValidAuthToken(req, url) {
   return timingSafeTokenEqual(bearer, expected) || timingSafeTokenEqual(queryToken, expected)
 }
 
+// 403 拒绝留痕：设置/保存类失败此前完全不可观测（前端 catch 静默），
+// 记 method/path/origin 足够定位是哪道门拒的。不记 header/token；
+// origin 来自客户端可控头，剥离控制字符防日志注入。
+function warnDenied(reason, req, url) {
+  const origin = String(req.headers?.origin || '-').replace(/[\r\n\x00-\x1f]/g, '?')
+  console.warn(`[API 403] ${reason} ${req.method} ${url?.pathname || '?'} origin=${origin} remote=${req.socket?.remoteAddress || '-'}`)
+}
+
 function requireLocalOrToken(req, res, url) {
   if (hasValidAuthToken(req, url)) return true
   // Browser request with a non-loopback Origin (including opaque 'null'):
   // TCP loopback alone is not enough — require the token.
+  // 隧道/反代白名单（ARKBRAIN_EXTRA_ALLOWED_ORIGINS）只放行非敏感预览面
+  // （isAllowedOrigin / WS 门禁），敏感面永远要口令 —— 否则拿到预览链接的
+  // 任何人可读出 LLM API key 与 LAN 配对 token。带口令链接（#token=）打开
+  // 即获完整会话，与桌面端/局域网配对模型一致。
   const origin = req.headers.origin
   if (origin && !isLoopbackOrigin(origin)) {
+    warnDenied('token-gate:origin', req, url)
     jsonResponse(res, 403, { ok: false, error: 'forbidden' })
     return false
   }
   if (isLoopbackRequest(req)) return true
+  warnDenied('token-gate:no-credential', req, url)
   jsonResponse(res, 403, { ok: false, error: 'forbidden' })
   return false
 }
@@ -385,7 +402,10 @@ function attachWebSocketUpgrades(server, port, { sceneWss, cloudWss }) {
       expectedToken: getAuthToken(),
       knownPaths,
     })
-    if (!auth.ok || !target) return rejectWebSocketUpgrade(socket, auth.status)
+    if (!auth.ok || !target) {
+      if (!auth.ok) warnDenied(`ws-upgrade:${auth.reason}`, req, url)
+      return rejectWebSocketUpgrade(socket, auth.status)
+    }
     target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req))
   })
 }
@@ -468,14 +488,17 @@ export function startAPI(port = 3721, {
       const isPublicStaticRead = (req.method === 'GET' || req.method === 'HEAD')
         && isPublicPath(url.pathname)
       if (origin && !isPublicStaticRead && !isAllowedOrigin(origin, req, url)) {
+        warnDenied('origin-gate', req, url)
         return jsonResponse(res, 403, { ok: false, error: 'forbidden origin' })
       }
 
       if (!hasAllowedAccess(req, url)) {
+        warnDenied('access-gate', req, url)
         return jsonResponse(res, 403, { ok: false, error: 'forbidden' })
       }
 
       if (isForbiddenSensitiveWrite(req, url.pathname)) {
+        warnDenied('sensitive-write:sec-fetch-site', req, url)
         return jsonResponse(res, 403, { ok: false, error: 'forbidden origin' })
       }
 

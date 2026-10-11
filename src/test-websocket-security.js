@@ -118,6 +118,35 @@ async function main() {
       }).reason, 'forbidden_origin')
     })
 
+    await test('extra-allowed tunnel Origin passes (ARKBRAIN_EXTRA_ALLOWED_ORIGINS)', () => {
+      // 公网隧道场景：cloudflared 落到 127.0.0.1（loopback），Origin 是隧道域名。
+      const tunnelOrigin = 'https://foo-123.trycloudflare.com'
+      const prev = process.env.ARKBRAIN_EXTRA_ALLOWED_ORIGINS
+      try {
+        delete process.env.ARKBRAIN_EXTRA_ALLOWED_ORIGINS
+        assert.equal(authorize('/voice/cloud', '127.0.0.1', { origin: tunnelOrigin }).reason, 'forbidden_origin')
+
+        process.env.ARKBRAIN_EXTRA_ALLOWED_ORIGINS = '*.trycloudflare.com'
+        // 聊天语音面（/voice/cloud）：白名单裸链接可用
+        assert.equal(authorize('/voice/cloud', '127.0.0.1', { origin: tunnelOrigin }).ok, true)
+        // 敏感面（/scene 承载 security-confirm-*）：非回环 Origin 必须持口令
+        assert.equal(authorize('/scene', '127.0.0.1', { origin: tunnelOrigin }).reason, 'forbidden')
+        const encoded = Buffer.from(TEST_TOKEN).toString('base64url')
+        assert.equal(authorize('/scene', '127.0.0.1', {
+          origin: tunnelOrigin,
+          'sec-websocket-protocol': `${WS_PUBLIC_PROTOCOL}, ${WS_TOKEN_PROTOCOL_PREFIX}${encoded}`,
+        }).ok, true)
+        // 回环 Origin（桌面 UI）不受口令门禁影响
+        assert.equal(authorize('/scene', '127.0.0.1', { origin: 'http://127.0.0.1:3721' }).ok, true)
+        // 白名单不放宽未列入的来源，也不豁免非回环客户端的 token 门禁
+        assert.equal(authorize('/scene', '127.0.0.1', { origin: 'https://evil.example' }).reason, 'forbidden_origin')
+        assert.equal(authorize('/voice/cloud', '192.168.1.20', { origin: tunnelOrigin }).ok, false)
+      } finally {
+        if (prev === undefined) delete process.env.ARKBRAIN_EXTRA_ALLOWED_ORIGINS
+        else process.env.ARKBRAIN_EXTRA_ALLOWED_ORIGINS = prev
+      }
+    })
+
     await test('non-loopback request without Token is rejected', () => {
       assert.equal(authorize('/scene', '192.168.1.20', { origin: 'http://192.168.1.5:3721' }).ok, false)
       assert.equal(authorize('/voice/cloud', '192.168.1.20', { origin: 'http://192.168.1.5:3721' }).ok, false)

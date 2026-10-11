@@ -216,7 +216,12 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
     ttsAutosave?.schedule({ immediate: true });
   });
 
-  fetch(`${API}/settings/tts`).then(r => r.json()).then(({ tts, voices }) => {
+  fetch(`${API}/settings/tts`).then(r => {
+    // 403（敏感面白名单不豁免，如裸预览链接无口令）也会返回 JSON，
+    // 不检查 r.ok 会静默渲染成空下拉 —— 必须当失败处理并给出可执行提示。
+    if (!r.ok) throw new Error(`settings_http_${r.status}`);
+    return r.json();
+  }).then(({ tts, voices }) => {
     if (voices) allVoices = voices;
     const provider = tts?.ttsProvider || "doubao";
     if (tts?.ttsProvider) providerSel.value = tts.ttsProvider;
@@ -239,7 +244,9 @@ function initTTSSettings({ createAutosave, feedback } = {}) {
     const baseurlEl = document.getElementById("tts-openai-baseurl");
     if (baseurlEl && tts?.openaiTtsBaseURL) baseurlEl.value = tts.openaiTtsBaseURL;
     showCredSection(provider);
-  }).catch(() => {});
+  }).catch(() => {
+    setAutosaveStatus("error", "设置加载失败 — 公网预览请使用带 #token= 口令的链接打开；本地请检查服务是否在运行");
+  });
 
   showCredSection(providerSel.value);
 

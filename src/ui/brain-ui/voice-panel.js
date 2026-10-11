@@ -17,6 +17,22 @@ import { createPttController } from './voice-ptt.js';
 import { createWakeFlow } from './voice-wake.js';
 import { getApiToken } from './api-client.js';
 
+// 「内网提示门禁」——决定是否在前端就提示"局域网访问未配对"。
+// 私网 IPv4/IPv6、单标签机器名、.local 等内部后缀 → 需要配对口令；
+// 公网 IP/域名（含 *.trycloudflare.com 隧道）返回 false —— 它们不在此拦，
+// 访问控制完全由后端负责（Origin 白名单 + 敏感面口令，见 allowed-origins.js）。
+// 注意：公网 IP 直连时这里不拦，但后端对非私网远端依旧 403（与局域网策略一致）。
+export function isLanOnlyHost(hostname = '') {
+  const host = String(hostname || '').toLowerCase();
+  if (!host) return false;
+  if (/^(10\.|192\.168\.|169\.254\.)/.test(host)) return true;
+  const second = host.match(/^172\.(\d{1,2})\./);
+  if (second && Number(second[1]) >= 16 && Number(second[1]) <= 31) return true;
+  if (/^\[?f[cd][0-9a-f]*:/.test(host) || /^fe80:/.test(host)) return true;
+  if (!host.includes('.')) return true; // mDNS/NetBIOS 单标签机器名
+  return /\.(local|lan|internal|home|intranet)$/.test(host);
+}
+
 export function initVoicePanel({
   btnId, panelId, canvasId, statusId, transcriptId,
   compactTranscriptId, compactPanelId,
@@ -62,8 +78,10 @@ export function initVoicePanel({
         }
         return false;
       }
-      const isRemoteHost = !['localhost', '127.0.0.1', '::1'].includes(location.hostname);
-      if (isRemoteHost && !getApiToken()) {
+      // 配对口令只对「真内网主机」有意义（桌面端带口令链接的场景）。
+      // 公网隧道 / 反向代理域名不在这里拦：后端 ARKBRAIN_EXTRA_ALLOWED_ORIGINS
+      // 白名单（api.js + websocket-security.js 同一套规则）才是真正的门禁。
+      if (isLanOnlyHost(location.hostname) && !getApiToken()) {
         if (transcript) transcript.textContent = '局域网访问未配对，请使用桌面端显示的带口令链接';
         return false;
       }
