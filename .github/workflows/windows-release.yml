@@ -1,0 +1,58 @@
+name: Windows Release
+
+# 方舟大脑 Windows 桌面版自动构建：
+# - 推送 v* tag → 构建 NSIS 安装包并挂到 GitHub Release
+# - workflow_dispatch → 构建并作为 workflow artifact 下载（不建 Release）
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # 构建步骤不携带 git 凭据（构建内含第三方下载链路，最小化 token 暴露面）
+          persist-credentials: false
+
+      - name: Setup Node.js (x64)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # build-win.mjs 自带完整校验链：PE x64 检查 → better-sqlite3 重编 →
+      # electron-builder NSIS → smoke-win-artifacts → packaged Playwright smoke。
+      # 产物名由 package.json build.artifactName 决定：ArkBrain-Setup-${version}.exe
+      # 未配置代码签名证书；不设 ARKBRAIN_REQUIRE_WINDOWS_SIGNING → 签名校验降级为警告
+      - name: Build Windows installer
+        run: npm run build:win
+
+      - name: Upload installer to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          # token 仅在此步骤注入（action 默认用 github.token，contents: write 已授权）
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: dist/ArkBrain-Setup-*.exe
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+      - name: Upload installer as workflow artifact
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArkBrain-Setup-${{ github.sha }}
+          path: dist/ArkBrain-Setup-*.exe
+          if-no-files-found: error
+          retention-days: 14

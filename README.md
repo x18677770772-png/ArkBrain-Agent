@@ -2,6 +2,8 @@
 
 # ArkBrain-Agent
 
+**当前版本：v1.0.0-beta.1** · [Windows 桌面版安装包下载](https://github.com/x18677770772-png/ArkBrain-Agent/releases/latest)（GitHub Actions 自动构建，见 [CHANGELOG](./CHANGELOG.md)）
+
 ArkBrain-Agent 是一个持续运行的桌面 AI Agent 项目。它不是一次问答结束就退出的聊天程序，而是由主循环驱动：有用户消息时优先处理，空闲时按节奏继续整理记忆、检查任务、刷新上下文，并把状态实时推送到 Brain UI。
 
 项目由 Electron 桌面壳、本地 HTTP 服务、LLM 调用层、记忆系统、工具执行器、语音系统、社交连接器和 Brain UI 组成。它的目标是让一个本地 Agent 既能聊天，也能记住、行动、观察自己的运行状态，并通过工具完成文件、网页、媒体、提醒、任务和系统级操作。
@@ -256,6 +258,33 @@ npm run publish
 - 可以通过 API Token 让远程请求携带凭证访问。
 - 文件与工具能力经过执行器统一路由，部分危险操作会进入确认或策略流程。
 - Electron 桌面端启用上下文隔离，前端通过预加载桥接访问必要能力。
+
+### 公网预览白名单（ARKBRAIN_EXTRA_ALLOWED_ORIGINS）
+
+给 cloudflared 等反代/隧道做临时预览时，用该环境变量放行来源（逗号分隔）：
+
+```bash
+ARKBRAIN_EXTRA_ALLOWED_ORIGINS='*.trycloudflare.com'   # 通配（quick tunnel 每次变域名）
+ARKBRAIN_EXTRA_ALLOWED_ORIGINS='https://preview.example.com,preview.example.com'  # 精确来源 / 主机名
+```
+
+匹配规则：完整来源需 scheme+host 全等（`http://` 条目不匹配 `https://` 同主机）；
+主机名条目匹配任意 scheme/port；`*.suffix` 要求至少一个子域名（单独 `*` 无效）。
+
+**信任模型（务必理解）**：
+
+| 访问面 | 裸预览链接（仅白名单） | 带口令链接（`…/#token=<口令>`） |
+|---|---|---|
+| 页面静态资源、聊天 `/message`、语音 `/voice/cloud`、SSE | ✅ | ✅ |
+| `/settings*`、`/admin/*`、`/memories`、`/conversations`、`/slice*` 等敏感面 | ❌ 403 | ✅ |
+| `/scene` WebSocket（承载 security-confirm 确认） | ❌ 403 | ✅ |
+
+- **裸链接 = 可对话的预览，不等于本机会话**——请勿外传，持有者可收发消息、旁听事件流。
+- **口令链接才含设置与密钥**，等价于桌面端「带口令链接」的局域网配对模型；
+  口令来自 `ARKBRAIN_API_TOKEN` 环境变量或局域网访问开启后生成的 accessToken。
+- 优先用精确来源条目；通配符（如 `*.trycloudflare.com`）意味着该平台下任意子域都
+  能获得预览面访问，仅建议在临时演示时使用。
+- 未列入白名单的 Origin 一律 403（跨站写另有 `Sec-Fetch-Site` 与 `Origin:null` 硬拒）。
 
 ## License
 
