@@ -259,7 +259,9 @@ async function streamDoubao({
   if (Number.isFinite(rate) && rate !== 0) {
     reqParams.audio_params.speech_rate = Math.max(-50, Math.min(100, Math.round(rate)))
   }
-  const resp = await fetch('https://openspeech.bytedance.com/api/v3/tts/unidirectional', {
+  // 火山方舟 Agent Plan：HTTP 流式合成走 /api/v3/plan/tts/unidirectional（ark-* API Key）；
+  // 勿改用 ark.cn-beijing.volces.com/api/v3 —— 该入口对语音会产生额外费用。
+  const resp = await fetch('https://openspeech.bytedance.com/api/v3/plan/tts/unidirectional', {
     method: 'POST',
     headers,
     body: JSON.stringify({

@@ -15,7 +15,7 @@ export const createPersonCardPanel = () => `
         </div>
       </div>
     </div>
-    <div class="pc-summary" id="pc-summary">当你不认识某位公众人物时，Longma 会在这里弹出一张简短人物卡片。</div>
+    <div class="pc-summary" id="pc-summary">当你不认识某位公众人物时，方舟大脑会在这里弹出一张简短人物卡片。</div>
     <div class="pc-section">
       <div class="pc-section-title">识别点</div>
       <ul class="pc-known-list" id="pc-known-list"></ul>

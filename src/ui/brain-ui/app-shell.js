@@ -11,7 +11,7 @@ const createAppTitlebar = () => `
 
 const createGraphStage = () => `
 <div class="grid-overlay"></div>
-<svg id="graph" aria-label="Longma 记忆节点图"></svg>
+<svg id="graph" aria-label="方舟大脑记忆节点图"></svg>
 `;
 
 const createPrimaryPanel = () => `
@@ -20,7 +20,7 @@ const createPrimaryPanel = () => `
     <div class="brand-mark"></div>
     <div class="brand-copy">
       <div class="eyebrow">认知界面</div>
-      <div class="brand-title" id="agent-brand-name">Longma AI Agent</div>
+      <div class="brand-title" id="agent-brand-name">方舟大脑 AI Agent</div>
     </div>
     <button class="voice-btn" id="voice-btn" title="麦克风 开/关" type="button">🎤</button>
     <button class="video-btn" id="video-btn" title="视频模式 (V)" type="button" hidden>⊞</button>
@@ -230,7 +230,7 @@ const createConsole = () => `
   <div id="input-row">
     <div id="slash-menu" class="slash-menu" role="listbox" aria-label="命令" hidden></div>
     <span class="prompt-mark">▸</span>
-    <textarea id="msg-input" rows="1" placeholder="向 Longma 发送消息…（输入 / 调出命令，Shift+Enter 换行）" autocomplete="off"></textarea>
+    <textarea id="msg-input" rows="1" placeholder="向方舟大脑发送消息…（输入 / 调出命令，Shift+Enter 换行）" autocomplete="off"></textarea>
     <button id="send-btn" type="button">发送</button>
   </div>
 </section>

@@ -309,7 +309,7 @@ export function detectDocTopic(text) {
   const t = text.toLowerCase()
 
   // TTS 相关：Agent 没声音、文字转语音
-  if (/没有?声音|没声音|tts|文字.{0,5}(语音|声音)|(语音|声音)合成|听不到你|你.*说话|longma.*说话|agent.*说话|朗读|doubao.*key|doubaokey|minimax.*tts|openai.*tts|elevenlabs|volcanotoken|doubao.*tts/.test(t)) {
+  if (/没有?声音|没声音|tts|文字.{0,5}(语音|声音)|(语音|声音)合成|听不到你|你.*说话|(longma|方舟大脑|arkbrain).*说话|agent.*说话|朗读|doubao.*key|doubaokey|minimax.*tts|openai.*tts|elevenlabs|volcanotoken|doubao.*tts/.test(t)) {
     return 'voice_tts'
   }
 

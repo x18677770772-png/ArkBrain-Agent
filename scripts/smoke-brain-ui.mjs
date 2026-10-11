@@ -161,7 +161,7 @@ function createServer() {
     }
 
     if (url.pathname === '/agent-profile') {
-      sendJson(res, { name: 'SmokeLongma' })
+      sendJson(res, { name: 'SmokeArkBrain' })
       return
     }
 
@@ -262,7 +262,7 @@ function createServer() {
           card: {
             name: '马云',
             title: '人物卡片',
-            summary: '暂时没有内置资料。可以让 Longma 补充身份、代表作品和为什么被提到。',
+            summary: '暂时没有内置资料。可以让方舟大脑补充身份、代表作品和为什么被提到。',
             knownFor: [],
             tags: ['待补充'],
             image: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 640 360%22%3E%3Crect width=%22640%22 height=%22360%22 fill=%22%23112332%22/%3E%3Ccircle cx=%22320%22 cy=%22130%22 r=%2260%22 fill=%22%2382d2ff%22/%3E%3Crect x=%22205%22 y=%22210%22 width=%22230%22 height=%2280%22 rx=%2240%22 fill=%22%2382d2ff%22/%3E%3C/svg%3E',
@@ -330,7 +330,7 @@ function createServer() {
 
     if (req.method === 'GET' && url.pathname === '/settings') {
       sendJson(res, {
-        agent_name: 'SmokeLongma',
+        agent_name: 'SmokeArkBrain',
         llm: {
           activated: true,
           provider: 'deepseek',
@@ -539,7 +539,7 @@ try {
 
   await page.goto(`${baseUrl}/brain-ui`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#graph circle', { timeout: 5000 })
-  await page.waitForFunction(() => window.d3 && document.querySelector('#agent-brand-name')?.textContent.includes('SmokeLongma'))
+  await page.waitForFunction(() => window.d3 && document.querySelector('#agent-brand-name')?.textContent.includes('SmokeArkBrain'))
   await page.waitForSelector('#heartbeat-state[data-state="alive"]')
   await page.waitForFunction(() => document.querySelector('#heartbeat-state-label')?.textContent === '20 分钟')
   await page.evaluate(() => document.fonts.ready)

@@ -347,7 +347,7 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: url("/site-assets/icon.png") center / cover no-repeat;
+  background: url("/site-assets/icon.png?v=2") center / cover no-repeat;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.06),
     0 0 18px color-mix(in srgb, var(--cool) 34%, transparent);

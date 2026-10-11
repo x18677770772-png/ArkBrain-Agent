@@ -245,7 +245,8 @@ function createXunfeiSession(appId, apiKey, lang, onTranscript, onError, onClose
 // 协议：自定义二进制帧，首包 gzip JSON full request，后续 gzip PCM audio only request。
 // 端点用 bigmodel_async（官方文档：双向流式优化版，数据变化即返回、低延迟，推荐的实时端点）。
 // 不要用 bigmodel_nostream（流式输入模式：音频>15s 或收到最后一包才返回）。bigmodel 为 legacy 双向流式。
-const VOLC_BIGMODEL_ASR_URL = 'wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async'
+// 火山方舟 Agent Plan 走 /api/v3/plan/ 前缀（ark-* API Key）；勿用 ark.cn-beijing.volces.com/api/v3 接语音。
+const VOLC_BIGMODEL_ASR_URL = 'wss://openspeech.bytedance.com/api/v3/plan/sauc/bigmodel_async'
 // 新配置优先使用 ASR 2.0；未开通时，在握手 403 后无感回退到对应的 1.0 资源。
 const VOLC_DEFAULT_RESOURCE_ID = 'volc.seedasr.sauc.duration'
 const VOLC_RESOURCE_FALLBACKS = new Map([

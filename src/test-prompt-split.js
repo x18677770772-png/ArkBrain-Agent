@@ -29,7 +29,7 @@ function assert(cond, label) {
 }
 
 const baseSystemArgs = {
-  agentName: 'Longma',
+  agentName: '方舟大脑',
   persona: 'Curious, brief, and a little philosophical.',
   existenceDesc: '3 hours',
   security: { execSandbox: true },
@@ -54,7 +54,7 @@ const sys2 = buildSystemPrompt({
   task: 'do thing',
 })
 assert(sys1 === sys2, 'system stays stable when only dynamic fields differ')
-assert(sys1.includes('Longma'), 'system contains agent name')
+assert(sys1.includes('方舟大脑'), 'system contains agent name')
 assert(sys1.includes('Curious, brief'), 'system contains persona')
 assert(sys1.includes('## Relationship Posture'), 'system contains hard floor')
 assert(sys1.includes('neither passive nor proactive by default'), 'system gives Tick posture judgment to the model')
@@ -173,7 +173,7 @@ assert(sys1.includes('Round-Local Context Channel'), 'system explains the <conte
 // =============================================================================
 
 // 8.0 Neutral baseline：无 userMessage + 无信号位 → CORE 段保留、场景段不出现
-const sysNeutral = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '你好' })
+const sysNeutral = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '你好' })
 assert(!sysNeutral.includes('Music Mode: Highest Priority'), 'neutral input: no Music Mode block')
 assert(!sysNeutral.includes('Video Mode: Reply Brevity'), 'neutral input: no Video Mode block')
 assert(!sysNeutral.includes('WeatherCard Rules'), 'neutral input: no WeatherCard Rules block')
@@ -190,85 +190,85 @@ assert(!sysNeutral.includes('## TICK Handling'), 'neutral: TICK rules omitted')
 assert(sysNeutral.includes('## Decision And Execution Core'), 'neutral: compact decision loop kept')
 assert(sysNeutral.includes('## Tool Usage Core'), 'neutral: compact tool rules kept')
 
-const sysVisual = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '给我展示一个进度面板' })
+const sysVisual = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '给我展示一个进度面板' })
 assert(sysVisual.includes('## Visual Surfaces'), 'visual request: Visual Surfaces injected')
 assert(sysVisual.includes('### Kinds & Composition'), 'visual request: kind catalog injected')
-const sysVoice = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '你好', isVoiceTurn: true })
+const sysVoice = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '你好', isVoiceTurn: true })
 assert(sysVoice.includes('## Voice Input: Spoken Brevity'), 'voice turn: spoken brevity injected')
-const sysTick = buildSystemPrompt({ agentName: 'Longma', persona: 'p', isTick: true })
+const sysTick = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', isTick: true })
 assert(sysTick.includes('## TICK Handling'), 'tick turn: TICK rules injected')
 assert(sysTick.includes('## Presence Sense And Spoken Proactivity'), 'tick turn: presence rules injected')
 assert(sysTick.includes('## Visual Surfaces'), 'tick turn: autonomous visual rules injected')
 
 // 8.1 Music gate
-const sysMusic = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '放首周杰伦的歌' })
+const sysMusic = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '放首周杰伦的歌' })
 assert(sysMusic.includes('Music Mode: Highest Priority') === (process.platform !== 'darwin'), 'local Music Mode follows platform ownership')
 if (process.platform === 'darwin') assert(sysMusic.includes('macOS System Music'), 'macOS music request injects Music.app rules')
-const sysMusic2 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: 'play a song please' })
+const sysMusic2 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: 'play a song please' })
 assert(sysMusic2.includes('Music Mode: Highest Priority') === (process.platform !== 'darwin'), 'english music request follows platform ownership')
-const sysMusic3 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '换一首' })
+const sysMusic3 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '换一首' })
 assert(sysMusic3.includes('Music Mode: Highest Priority') === (process.platform !== 'darwin'), 'track change follows platform ownership')
 
 // 8.2 Video gate
-const sysVideo = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我在B站看视频' })
+const sysVideo = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我在B站看视频' })
 assert(sysVideo.includes('## Video Mode'), 'video keyword: Video Mode injected')
-const sysVideo2 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: 'open youtube' })
+const sysVideo2 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: 'open youtube' })
 assert(sysVideo2.includes('## Video Mode'), 'youtube: Video Mode injected')
 
 // 8.3 Weather Surface gate（工作流块现由 weather 能力经 capability-registry 注入）
-const sysWeather = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '今天天气怎么样' })
+const sysWeather = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '今天天气怎么样' })
 assert(sysWeather.includes('Weather Surface Rules'), 'weather keyword: Weather Surface Rules injected')
 assert(sysWeather.includes('wttr.in'), 'Weather block contains wttr.in source line')
-const sysWeather2 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: 'what about the weather' })
+const sysWeather2 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: 'what about the weather' })
 assert(sysWeather2.includes('Weather Surface Rules'), 'english weather: Weather Surface Rules injected')
 
 // 8.3b 能力工作流块（hotspot / worldcup / software-install）经 capability-registry 注入
-const sysHotspot = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '看看今天的热搜' })
+const sysHotspot = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '看看今天的热搜' })
 assert(sysHotspot.includes('Hotspot Panel'), 'hotspot keyword: Hotspot Panel block injected (via capability)')
-const sysWorldcup = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '世界杯比分怎么样' })
+const sysWorldcup = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '世界杯比分怎么样' })
 assert(sysWorldcup.includes('World Cup Panel'), 'worldcup keyword: World Cup Panel block injected (via capability)')
-const sysInstall = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我安装一个 QQ' })
+const sysInstall = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我安装一个 QQ' })
 assert(sysInstall.includes('Software Install Workflow'), 'install keyword: Software Install Workflow block injected (via capability)')
 assert(!sysNeutral.includes('Hotspot Panel') && !sysNeutral.includes('World Cup Panel') && !sysNeutral.includes('Software Install Workflow'),
   'neutral input: no capability workflow blocks injected')
 
 // 8.4 WeChat Connection gate
-const sysWcConn = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我连接微信' })
+const sysWcConn = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我连接微信' })
 assert(sysWcConn.includes('## WeChat Connection'), 'connect-wechat keyword: WeChat Connection injected')
-const sysWcConn2 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: 'please connect WeChat for me' })
+const sysWcConn2 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: 'please connect WeChat for me' })
 assert(sysWcConn2.includes('## WeChat Connection'), 'english connect-wechat: injected')
 
 // 8.5 WeChat Outbound gate —— channel 状态触发，关键词不需要
-const sysWcOut = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '随便聊聊', currentChannel: 'WECHAT' })
+const sysWcOut = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '随便聊聊', currentChannel: 'WECHAT' })
 assert(sysWcOut.includes('WeChat Outbound Constraint'), 'channel=WECHAT: Outbound Constraint injected')
-const sysWcOut2 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '随便聊聊', hasWechatHistory: true })
+const sysWcOut2 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '随便聊聊', hasWechatHistory: true })
 assert(sysWcOut2.includes('WeChat Outbound Constraint'), 'hasWechatHistory: Outbound Constraint injected')
-const sysWcOut3 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '随便聊聊' })
+const sysWcOut3 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '随便聊聊' })
 assert(!sysWcOut3.includes('WeChat Outbound Constraint'), 'no wechat signal: Outbound Constraint NOT injected')
 
 // 8.6 Focus Banner gate
-const sysFocus = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我进入专注模式' })
+const sysFocus = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我进入专注模式' })
 assert(sysFocus.includes('## Focus Banner'), 'focus keyword: Focus Banner injected')
-const sysFocus2 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '吃了吗', hasActiveFocus: true })
+const sysFocus2 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '吃了吗', hasActiveFocus: true })
 assert(sysFocus2.includes('## Focus Banner'), 'hasActiveFocus=true: Focus Banner injected even without keyword')
-const sysFocus3 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '吃了吗' })
+const sysFocus3 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '吃了吗' })
 assert(!sysFocus3.includes('## Focus Banner'), 'no focus signal: Focus Banner NOT injected')
 
 // 8.7 Security Sandbox gate
-const sysSb = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我解除沙箱限制' })
+const sysSb = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我解除沙箱限制' })
 assert(sysSb.includes('## Security Sandbox'), 'sandbox keyword: Security Sandbox injected')
-const sysSb2 = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: 'disable sandbox please' })
+const sysSb2 = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: 'disable sandbox please' })
 assert(sysSb2.includes('## Security Sandbox'), 'english sandbox: Security Sandbox injected')
 
 // 8.8 Platform Routing gate
-const sysPlatCN = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我找一个视频', currentCountryCode: 'CN' })
+const sysPlatCN = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我找一个视频', currentCountryCode: 'CN' })
 assert(sysPlatCN.includes('## Platform Routing'), 'CN country: Platform Routing injected')
-const sysPlatTZ = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '查一下这个明星的资料', currentTimezone: 'Asia/Shanghai' })
+const sysPlatTZ = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '查一下这个明星的资料', currentTimezone: 'Asia/Shanghai' })
 assert(sysPlatTZ.includes('## Platform Routing'), 'CN timezone: Platform Routing injected')
-const sysPlatUS = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我找一个视频', currentCountryCode: 'US', currentTimezone: 'America/New_York' })
+const sysPlatUS = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我找一个视频', currentCountryCode: 'US', currentTimezone: 'America/New_York' })
 assert(!sysPlatUS.includes('## Platform Routing'), 'US country+tz: Platform Routing NOT injected')
 // 保守 fallback 只在确实需要选平台时注入；普通聊天不再承担这段成本。
-const sysPlatUnknown = buildSystemPrompt({ agentName: 'Longma', persona: 'p', userMessage: '帮我找一个视频' })
+const sysPlatUnknown = buildSystemPrompt({ agentName: '方舟大脑', persona: 'p', userMessage: '帮我找一个视频' })
 assert(sysPlatUnknown.includes('## Platform Routing'), 'route-relevant request with unknown geo: default-to-CN injected')
 assert(!sysNeutral.includes('## Platform Routing'), 'neutral request: Platform Routing omitted')
 
@@ -281,7 +281,7 @@ for (const s of [sysNeutral, sysMusic, sysVideo, sysWeather, sysWcConn, sysWcOut
 
 // 8.10 Token 节省估算：neutral baseline vs full-injection
 const sysAllScenarios = buildSystemPrompt({
-  agentName: 'Longma',
+  agentName: '方舟大脑',
   persona: 'p',
   userMessage: '放首歌 看视频 天气怎样 连接微信 专注模式 解除沙箱',
   currentChannel: 'WECHAT',

@@ -1,5 +1,5 @@
 // 种子记忆：新 Agent 启动时预置的系统知识
-// 来源：从 Longma 实际积累的记忆中提炼，经过验证的正确理解
+// 来源：从方舟大脑实际积累的记忆中提炼，经过验证的正确理解
 import { getDB, insertMemory } from '../src/db.js'
 import { nowTimestamp } from '../src/time.js'
 import { pathToFileURL } from 'url'
