@@ -191,3 +191,4 @@ logo.png
 logo.jpg
 build/icon-backup-*/
 build/favicon.ico
+build/_*.png

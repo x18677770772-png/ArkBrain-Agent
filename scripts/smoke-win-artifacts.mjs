@@ -123,7 +123,10 @@ function probeEsm(label, relPath) {
 probeEsm('ruimeiyun route chain', 'src/api/routes/ruimeiyun.js')
 
 // 品牌守卫：app 图标必须是方舟大脑的暗色底 —— 防旧 BaiLongma 蓝底图标回流。
-// 取 ICO 里最大的 PNG 帧，缩到 16px 后采样 4 个靠内背景点（圆角外不取）。
+// 取 ICO 里最大的 PNG 帧，缩到 16px 后采样 4 个角落背景点。
+// 圆角半径 22%×16≈3px，(2,2)/(13,·)/(·,13) 到圆角圆心距 <3 → 内容区不透明，
+// 但仍是角落背景像素。别用靠内点 [5,5] 等 —— 那会落在图标中心图形上
+// （ArkBrain 图形标中心是发光船体/脑网络，内点采样必然超亮 → 误报）。
 function largestIcoPngFrame(buf) {
   const count = buf.readUInt16LE(4)
   let best = null
@@ -143,7 +146,7 @@ const { data: icoPixels } = await sharp(icoFrame)
   .ensureAlpha()
   .raw()
   .toBuffer({ resolveWithObject: true })
-for (const [x, y] of [[5, 5], [10, 5], [5, 10], [10, 10]]) {
+for (const [x, y] of [[2, 2], [13, 2], [2, 13], [13, 13]]) {
   const i = (y * 16 + x) * 4
   const rgb = [icoPixels[i], icoPixels[i + 1], icoPixels[i + 2]]
   const maxChannel = Math.max(...rgb)
