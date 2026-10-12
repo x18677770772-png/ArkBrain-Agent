@@ -315,10 +315,39 @@ async function streamOnce({ messages, toolSchemas, temperature, topP, maxTokens,
   flushTextStream()
   if (streamStarted) onStream?.({ event: 'end' })
   const streamError = responseStreamError(parsed)
-  if (streamError && (parsed.terminalType !== 'response.incomplete' || !parsed.content.trim())) {
-    // 丢 terminal / failed 但已有正文：salvage partial，禁止整消息 requeue 重放已执行工具。
-    if (streamError.hadContent && String(parsed.content || parsed.reasoningContent || '').trim()) {
-      console.warn(`[LLM] Responses stream error with partial content, salvaging instead of requeue: ${streamError.code || streamError.message}`)
+  if (streamError) {
+    const hasPartial = String(parsed.content || parsed.reasoningContent || '').trim()
+    const incompleteReason = parsed.response?.incomplete_details?.reason || ''
+    // length = 输出撞 max_output_tokens 上限：确定性截断，同样的请求重发还会撞
+    // ——不重试，直接交付已有正文（这正是 Ark plan 长答案的实际截断原因）。
+    if (streamError.code === 'ERESPONSEINCOMPLETE' && incompleteReason === 'length' && hasPartial) {
+      console.warn(`[LLM] 输出长度截断（length），跳过重试直接交付已有正文（${String(parsed.content || '').length} 字符）`)
+      return {
+        content: sanitizeAssistantReplyForDelivery(parsed.content || ''),
+        reasoningContent: parsed.reasoningContent,
+        toolCalls: [],
+        outputItems: [],
+        incomplete: true,
+        aborted: false,
+      }
+    }
+    // Ark plan 断流的两种形态：缺 terminal（ERESPONSESTREAM）/ incomplete terminal
+    //（ERESPONSEINCOMPLETE，length 除外）。都属 provider 侧瞬时故障。带正文也抛出
+    // 交给 streamOnceWithRetry 重发整条；partial 挂在错误上，重试耗尽时兜底交付
+    // salvage 半截答案（而不是整轮失败）。
+    if ((streamError.code === 'ERESPONSEINCOMPLETE' || streamError.code === 'ERESPONSESTREAM')
+      && !streamError.aborted) {
+      if (hasPartial) {
+        streamError.partialResult = {
+          content: sanitizeAssistantReplyForDelivery(parsed.content || ''),
+          reasoningContent: parsed.reasoningContent,
+        }
+      }
+      throw streamError
+    }
+    // failed / 其他 terminal 但已有正文：salvage partial，禁止整消息 requeue 重放已执行工具。
+    if (streamError.hadContent && hasPartial) {
+      console.warn(`[LLM] Responses stream error with partial content, salvaging instead of requeue: ${streamError.code} — ${streamError.message}`)
       return {
         content: sanitizeAssistantReplyForDelivery(parsed.content || ''),
         reasoningContent: parsed.reasoningContent,
@@ -362,8 +391,14 @@ export function isTransientError(err) {
   if (status && status >= 500 && status < 600) return true
   if (status === 408) return true
   const code = err.code || err.cause?.code
-  // Responses 流缺 terminal event：无已流出正文时允许 800/2500ms inner retry，避免整消息 requeue
-  if (code === 'ERESPONSESTREAM' && !err.hadContent) return true
+  // Responses 流缺 terminal event（Ark 断流）：与 ERESPONSEINCOMPLETE 同理，
+  // 带正文也整条重发——partialResult 挂在错误上，重试耗尽兜底交付 salvage。
+  if (code === 'ERESPONSESTREAM' && !err.aborted) return true
+  // Ark plan 偶发把长流截断成 response.incomplete（provider 侧断流，非内容问题）。
+  // 这是瞬时故障，整条重发比交付截断答案更好；重试上限由 streamOnceWithRetry 的
+  // BACKOFFS_MS 控制，最坏 3 次。带正文也照重——重复一段已生成的开头，远好过
+  // 给用户一个拦腰截断的答复。
+  if (code === 'ERESPONSEINCOMPLETE' && !err.aborted) return true
   if (code && ['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EAI_AGAIN', 'ENOTFOUND', 'EPIPE'].includes(code)) return true
   const msg = err.message || ''
   if (!err.hadContent && /stream ended without a terminal response event/i.test(msg)) return true
@@ -397,7 +432,8 @@ function abortableSleep(ms, signal) {
 }
 
 // 包装 streamOnce：对瞬时错误做有限次退避重试；已流出内容时不重试避免 UI 重复
-async function streamOnceWithRetry(args) {
+// exported for unit tests covering the ERESPONSEINCOMPLETE retry-with-salvage path
+export async function streamOnceWithRetry(args) {
   const BACKOFFS_MS = [800, 2500]
   const MAX_ATTEMPTS = BACKOFFS_MS.length + 1
   let lastErr
@@ -407,8 +443,14 @@ async function streamOnceWithRetry(args) {
       return await streamOnce(args)
     } catch (err) {
       if (err.name === 'AbortError' || args.signal?.aborted) throw err
-      if (err.hadContent) throw err
+      // 非瞬时错误直接抛。瞬时错误里，已流出正文的一般不重试（避免 UI 重复），
+      // 但 ERESPONSEINCOMPLETE 例外——那是 Ark 侧断流导致的截断，重发整条比
+      // 交付半截答案更好。副作用安全性由下一轮不执行截断参数来保证。
       if (!isTransientError(err)) throw err
+      // 带正文的错误默认不重试（避免 UI 重复），但 Ark 断流两兄弟除外——
+      // ERESPONSEINCOMPLETE / ERESPONSESTREAM：partialResult 已挂在错误上，
+      // 重试耗尽时兜底交付，重试期间前端 live 气泡由最终 message 权威全文覆盖。
+      if (err.hadContent && err.code !== 'ERESPONSEINCOMPLETE' && err.code !== 'ERESPONSESTREAM') throw err
       lastErr = err
       if (attempt < MAX_ATTEMPTS - 1) {
         const delay = BACKOFFS_MS[attempt]
@@ -421,6 +463,17 @@ async function streamOnceWithRetry(args) {
         })
         console.warn(`[LLM] 瞬时错误 "${(err.message || '').slice(0, 80)}"，${delay}ms 后第 ${attempt + 2} 次尝试`)
         await abortableSleep(delay, args.signal)
+      } else if (err.partialResult) {
+        // 重试耗尽仍有部分正文：交付 salvage（内容不完整，但比整轮失败/空回复好）。
+        console.warn(`[LLM] 重试 ${MAX_ATTEMPTS} 次仍 ERESPONSEINCOMPLETE，交付 salvage 正文（${err.partialResult.content.length} 字符）`)
+        return {
+          content: err.partialResult.content,
+          reasoningContent: err.partialResult.reasoningContent,
+          toolCalls: [],
+          outputItems: [],
+          incomplete: true,
+          aborted: false,
+        }
       }
     }
   }

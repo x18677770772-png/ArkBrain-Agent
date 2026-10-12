@@ -2,7 +2,7 @@
 
 # ArkBrain-Agent
 
-**当前版本：v1.0.0-beta.1** · [Windows 桌面版安装包下载](https://github.com/x18677770772-png/ArkBrain-Agent/releases/latest)（GitHub Actions 自动构建，见 [CHANGELOG](./CHANGELOG.md)）
+**当前版本：v1.0.0-beta.2** · [Windows 桌面版安装包下载](https://github.com/x18677770772-png/ArkBrain-Agent/releases/latest)（GitHub Actions 自动构建，见 [CHANGELOG](./CHANGELOG.md)）
 
 ArkBrain-Agent 是一个持续运行的桌面 AI Agent 项目。它不是一次问答结束就退出的聊天程序，而是由主循环驱动：有用户消息时优先处理，空闲时按节奏继续整理记忆、检查任务、刷新上下文，并把状态实时推送到 Brain UI。
 

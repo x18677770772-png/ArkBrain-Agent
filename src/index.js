@@ -18,6 +18,7 @@ import { recordSelfEvolutionFromMemories } from './memory/self-evolution.js'
 import { runRuntimeInjector } from './context/runtime-injector.js'
 import { selectContextSections } from './context/section-gate.js'
 import { runKnowledgeInjector } from './knowledge/injector.js'
+import { DEFAULT_PERSONA } from './persona-default.js'
 import { getDB, getConfig, setConfig, getKnownEntities, getOrInitBirthTime, insertConversation, insertMemory, getRecentConversationPartners, getDueReminders, materializeReminderRun, recoverInterruptedReminderRuns, claimRunnableReminderRuns, completeReminderRun, retryReminderRun, failReminderRun, getNextPendingReminder, getNextPendingReminderRun, getMemoryCount, getRecentConversationTimeline, loadFocusStack, loadThreadState, saveThreadState, setCurrentFocusTopic, setCurrentThreadId, updateUserMessageFocusTopic, reassignConversationsThread, insertActionLog } from './db.js'
 import { calculateNextDueAt, detectOpenFollowupQuestion } from './capabilities/executor.js'
 import { pushMessage } from './inbound-message.js'
@@ -1096,7 +1097,8 @@ async function runTurn(input, label, msg = null) {
     }
 
     // 2. Build system prompt (stable hard-floor) + context block (per-round dynamic)
-    const persona = getConfig('persona') || ''
+    // persona 为空时用出厂默认人格（长寿医学超级专家）兜底，保证安装包所有用户一致。
+    const persona = getConfig('persona') || DEFAULT_PERSONA
     const agentName = getConfig('agent_name') || '方舟大脑'
     const entities = getKnownEntities()
     const toolContextLimit = Number.isInteger(injection.toolCallLimit)
@@ -1788,11 +1790,15 @@ async function main() {
   }
 
 
-  const persona = getConfig('persona')
-  if (persona) {
-    console.log(`[system] Persona loaded: ${persona.slice(0, 60)}...`)
+  // 出厂默认人格（长寿医学超级专家）：config 为空时 seed 落库，之后可被
+  // [UPDATE_PERSONA: ...] / 设置页正常改写——默认角色是可覆盖的出厂值，不是硬锁。
+  let persona = getConfig('persona')
+  if (!persona) {
+    setConfig('persona', DEFAULT_PERSONA)
+    persona = DEFAULT_PERSONA
+    console.log('[system] No persona set — seeded default persona (longevity-medicine expert)')
   } else {
-    console.log('[system] No persona set — waiting for Jarvis to self-define')
+    console.log(`[system] Persona loaded: ${persona.slice(0, 60)}...`)
   }
 
   // Start HTTP(S) API — must start regardless of activation status; the activation page depends on it

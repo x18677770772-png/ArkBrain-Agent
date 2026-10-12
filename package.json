@@ -1,7 +1,7 @@
 {
   "name": "arkbrain-agent",
   "productName": "ArkBrain-Agent",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "A continuously running digital consciousness framework",
   "type": "module",
   "main": "electron/main.cjs",
@@ -46,6 +46,7 @@
     "test:relevance": "electron ./src/test-relevance-selection.js",
     "test:section-gate": "node ./src/test-section-gate.js",
     "test:tick-policy": "node ./src/test-tick-policy.js",
+    "test:persona-default": "node ./src/test-persona-default.js",
     "test:failed-outbound-dedupe": "node ./src/test-failed-outbound-dedupe.js",
     "test:consciousness-loop": "node ./src/test-consciousness-loop.js",
     "test:reminder-runs": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:ELECTRON_RUN_AS_NODE='1'; .\\node_modules\\.bin\\electron.cmd .\\src\\test-reminder-runs.js\"",
@@ -61,7 +62,7 @@
     "test:browser-challenge": "node ./src/test-browser-challenge-guard.js",
     "test:no-fake-detection": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:ELECTRON_RUN_AS_NODE='1'; .\\node_modules\\.bin\\electron.cmd .\\src\\test-no-fake-tool-detection.js\"",
     "test:config-upgrade": "node ./src/test-config-upgrade.js",
-    "test:llm-responses": "node ./src/test-llm-responses.js && node ./src/test-llm-responses-loop.js",
+    "test:llm-responses": "node ./src/test-llm-responses.js && node ./src/test-llm-responses-loop.js && node ./src/test-llm-incomplete-retry.js",
     "test:media-modules": "node ./src/test-media-modules.js",
     "test:chat-resources": "electron ./src/test-chat-resources.js",
     "test:db-schema-module": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:ELECTRON_RUN_AS_NODE='1'; .\\node_modules\\.bin\\electron.cmd .\\src\\test-db-schema-module.js\"",
@@ -165,6 +166,7 @@
     "files": [
       "electron/**/*",
       "src/**/*",
+      "bridge/**/*",
       "skills/**/*",
       "scripts/seed-memories.js",
       "index.html",
@@ -197,6 +199,9 @@
       "!**/node_modules/better-sqlite3/build/Release/test_extension.node",
       "!**/node_modules/.cache",
       "!**/.vscode",
+      "!bridge/accounts.json",
+      "!bridge/bridge-audit.log",
+      "!bridge/*.log",
       "!data/**/*"
     ],
     "directories": {
@@ -208,6 +213,7 @@
       "files": [
         "electron/**/*",
         "src/**/*",
+        "bridge/**/*",
         "skills/**/*",
         "scripts/seed-memories.js",
         "index.html",
@@ -236,6 +242,9 @@
         "!**/node_modules/better-sqlite3/build/Release/test_extension.node",
         "!**/node_modules/.cache",
         "!**/.vscode",
+        "!bridge/accounts.json",
+        "!bridge/bridge-audit.log",
+        "!bridge/*.log",
         "!.dev-test/**/*",
         "!sandbox/**/*",
         "!data/**/*",

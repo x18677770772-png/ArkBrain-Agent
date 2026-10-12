@@ -3,6 +3,27 @@
 本项目版本号与 `package.json` 同步，遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 Windows 桌面安装包由 GitHub Actions 在推送 `v*` 标签后自动构建并挂到 Releases。
 
+## [1.0.0-beta.2] - 2026-10-12
+
+### 🐛 修复
+
+- **安装包启动即崩（beta.1 实机踩坑）**：`bridge/**` 未进 app.asar，后端 import
+  `src/api/routes/ruimeiyun.js` → `bridge/cockpit.js` 时 `Cannot find module`。
+  `files` 列表补上 `bridge/**/*`（凭据 `accounts.json` / 审计日志仍强制排除）；
+  smoke 测试新增 asar 条目硬校验 + 睿美云路由 ESM 模块图探针，此类漏包在 CI 就红。
+- **LLM 长答案间歇性截断**：Ark plan 偶发断流（缺 terminal / incomplete）时旧逻辑
+  对带正文的错误一律不重试，直接交付半截答案。现两种断流码带正文也整条重发
+  （800/2500ms 退避，最坏 3 次），耗尽后用 partial 兜底交付；`length` 截断
+  （撞 max_output_tokens，确定性失败）跳过重试直接交付已有正文。
+
+### ✨ 新增
+
+- **出厂默认人格：全球长寿医学超级专家**（`src/persona-default.js`）。安装包所有
+  用户首次启动自动 seed；被问"你是谁"/健康长寿问题时以"融汇全球长寿医学智慧的
+  超级医学专家"身份回答——通读全球长寿医学论文/文献/临床数据，循证标注证据等级
+  （人体临床试验 / 观察性 / 动物实验 / 假说），涉及疾病诊疗明确建议就医。
+  可被 `[UPDATE_PERSONA: ...]` 正常改写，是可覆盖的出厂默认而非硬锁。
+
 ## [1.0.0-beta.1] - 2026-10-12
 
 方舟大脑（ArkBrain-Agent）首个 Beta 版本，二开基线 2.2.120。

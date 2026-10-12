@@ -4,8 +4,9 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { extractFile, listPackage } from '@electron/asar'
+import sharp from 'sharp'
 import { assertPeX64, inspectWindowsSignature } from './build-win.mjs'
 import { inspectExternalBlockmap } from './publish-updates-lib.mjs'
 
@@ -71,11 +72,19 @@ for (const required of [
   '/electron/main.cjs',
   '/src/index.js',
   '/src/device-information-scanner.js',
+  // src/api.js 静态引入 routes/ruimeiyun.js → bridge/*；bridge 漏打进 asar 会让
+  // 安装后的应用启动即崩（beta.1 实机踩坑），这里把 bridge 列为硬性条目
+  '/bridge/cockpit.js',
+  '/bridge/ruimeiyun-client.js',
   '/node_modules/better-sqlite3/package.json',
   '/node_modules/sharp/package.json',
   '/node_modules/sherpa-onnx-node/package.json',
 ]) {
   assert.ok(entries.has(required), `required packaged entry is missing: ${required}`)
+}
+// 凭据文件绝不进包（gitignore 双保险：即便本地存在也不会被打进去）
+for (const forbidden of ['/bridge/accounts.json', '/bridge/bridge-audit.log']) {
+  assert.equal(entries.has(forbidden), false, `packaged app must not contain ${forbidden}`)
 }
 const packagedPkg = JSON.parse(extractFile(appAsar, 'package.json').toString('utf8'))
 assert.equal(packagedPkg.version, pkg.version, 'packaged version does not match package.json')
@@ -95,6 +104,53 @@ const requirePrelude = "const {createRequire}=require('node:module');const r=cre
 probeModule('better-sqlite3', `${requirePrelude}const D=r('better-sqlite3');const d=new D(':memory:');d.exec('select 1');d.close();`)
 probeModule('sharp', `${requirePrelude}const s=r('sharp');if(!s.versions?.sharp)throw new Error('sharp version unavailable');`)
 probeModule('sherpa-onnx', `${requirePrelude}const s=r('sherpa-onnx-node');if(!s)throw new Error('sherpa unavailable');`)
+
+// ESM 模块图探针：require 探不到 ESM 依赖缺失。按打包后的真实路径 import
+// 睿美云路由（连带加载 src/api/routes/ruimeiyun.js → bridge/*）—— beta.1 的
+// 启动崩溃正是这条链上 bridge/ 未进 asar，这里让它在 CI 就红。
+function probeEsm(label, relPath) {
+  const target = pathToFileURL(path.join(appAsar, relPath)).href
+  const source = `import(${JSON.stringify(target)}).catch(e=>{console.error(e && e.stack || e);process.exit(1)})`
+  const result = spawnSync(exe, ['-e', source], {
+    cwd: root,
+    encoding: 'utf8',
+    windowsHide: true,
+    timeout: 30_000,
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+  })
+  assert.equal(result.status, 0, `${label} ESM probe failed:\n${result.stdout || ''}${result.stderr || ''}`)
+}
+probeEsm('ruimeiyun route chain', 'src/api/routes/ruimeiyun.js')
+
+// 品牌守卫：app 图标必须是方舟大脑的暗色底 —— 防旧 BaiLongma 蓝底图标回流。
+// 取 ICO 里最大的 PNG 帧，缩到 16px 后采样 4 个靠内背景点（圆角外不取）。
+function largestIcoPngFrame(buf) {
+  const count = buf.readUInt16LE(4)
+  let best = null
+  for (let i = 0; i < count; i += 1) {
+    const entry = 6 + i * 16
+    const size = buf.readUInt32LE(entry + 8)
+    const offset = buf.readUInt32LE(entry + 12)
+    if (buf.readUInt32LE(offset) !== 0x474e5089) continue // \x89PNG 小端
+    if (!best || size > best.size) best = { size, offset }
+  }
+  assert.ok(best, 'packaged build/icon.ico contains no PNG frame')
+  return buf.subarray(best.offset, best.offset + best.size)
+}
+const icoFrame = largestIcoPngFrame(extractFile(appAsar, 'build/icon.ico'))
+const { data: icoPixels } = await sharp(icoFrame)
+  .resize(16, 16, { fit: 'fill' })
+  .ensureAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true })
+for (const [x, y] of [[5, 5], [10, 5], [5, 10], [10, 10]]) {
+  const i = (y * 16 + x) * 4
+  const rgb = [icoPixels[i], icoPixels[i + 1], icoPixels[i + 2]]
+  const maxChannel = Math.max(...rgb)
+  assert.ok(maxChannel < 100,
+    `packaged app icon background too bright at (${x},${y}) rgb=${rgb.join(',')} — ` +
+    'expected ArkBrain dark background (old Bailongma icon is bright blue)')
+}
 
 const latest = fs.readFileSync(latestYml, 'utf8')
 assert.match(latest, new RegExp(`version:\\s*['\"]?${pkg.version.replaceAll('.', '\\.')}`))

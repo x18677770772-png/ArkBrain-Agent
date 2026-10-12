@@ -6,6 +6,7 @@ import { getSecurity } from './config.js'
 import { formatTick, describeExistence, nowTimestamp } from './time.js'
 import { formatTerminalStreamContext } from './terminal-stream.js'
 import { buildAutonomousTickDirections } from './runtime/tick-policy.js'
+import { DEFAULT_PERSONA } from './persona-default.js'
 
 function cloneStateSnapshot(stateSnapshot = {}) {
   return {
@@ -48,7 +49,7 @@ export async function buildHeartbeatSystemPromptPreview({
     memories: memoriesText,
   })
 
-  const persona = getConfig('persona') || ''
+  const persona = getConfig('persona') || DEFAULT_PERSONA
   const agentName = getConfig('agent_name') || '方舟大脑'
   const entities = getKnownEntities()
   const birthTime = getOrInitBirthTime()
